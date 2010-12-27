@@ -32,4 +32,9 @@ setup(name='silva.core.editor',
       install_requires=[
         'setuptools',
         ],
+      entry_points="""
+      # -*- Entry points: -*-
+      [silva.core.editor.plugins]
+      core = silva.core.editor:PLUGINS
+      """,
       )
