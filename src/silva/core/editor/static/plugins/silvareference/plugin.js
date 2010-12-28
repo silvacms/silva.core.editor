@@ -9,10 +9,14 @@
                 CKEDITOR.tools.extend(CKEDITOR.ui.dialog, {
                     reference: function(dialog, elementDefinition, htmlList) {
                         var identifier = dialog.getName() + '-' + elementDefinition.id;
+                        var self = this;
 
                         this._ = {};
                         this._.id = identifier;
                         this._.remote = new ReferencedRemoteObject(identifier);
+                        this._.remote.change(function(event, info) {
+                            self.fire('reference-update', info);
+                        });
                         var innerHTML = function() {
                             var data = {};
 
@@ -39,7 +43,12 @@
                         },
                         clear: function() {
                             this._.remote.clear();
-                        }
+                        },
+                        eventProcessors: CKEDITOR.tools.extend({}, CKEDITOR.ui.dialog.uiElement.prototype.eventProcessors, {
+                            onReferenceUpdate: function(dialog, func) {
+                                this.on('reference-update', func);
+                            }
+                        }, true)
                     }, true);
                 CKEDITOR.dialog.addUIElement('reference', {
                     build: function(dialog, elementDefinition, output) {

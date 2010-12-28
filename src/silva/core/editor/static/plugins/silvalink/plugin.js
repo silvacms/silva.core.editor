@@ -24,13 +24,26 @@ CKEDITOR.plugins.silvalink = {
                     return selectedElement;
             }
 
-            var range = selection.getRanges(true)[ 0 ];
-            range.shrink(CKEDITOR.SHRINK_TEXT);
-            var root = range.getCommonAncestor();
+            var ranges = selection.getRanges(true)[0];
+            ranges.shrink(CKEDITOR.SHRINK_TEXT);
+
+            var root = ranges.getCommonAncestor();
             return root.getAscendant('a', true);
         }
         catch(e) {
             return null;
+        }
+    },
+    insertAndSelectTextIfNoneSelected: function(editor, text) {
+        var selection = editor.getSelection();
+        var ranges = selection.getRanges(true);
+
+        if (ranges.length == 1 && ranges[0].collapsed) {
+            var node = new CKEDITOR.dom.text(text);
+
+            ranges[0].insertNode(node);
+            ranges[0].selectNodeContents(node);
+            selection.selectRanges(ranges);
         }
     },
     createDialogFields: function () {
@@ -53,17 +66,20 @@ CKEDITOR.plugins.silvalink = {
                   var documentAnchor = dialog.getContentElement('link', 'documentAnchor').getElement();
                   var anchor = dialog.getContentElement('link', 'anchor').getElement();
 
-                  if (value == 'intern') {
+                  switch(value) {
+                  case 'intern':
                       urlField.hide();
                       documentAnchor.hide();
                       referenceField.show();
                       anchor.show();
-                  } else if (value == 'extern') {
+                      break;
+                  case 'extern':
                       referenceField.hide();
                       documentAnchor.hide();
                       urlField.show();
                       anchor.show();
-                  } else {
+                      break;
+                  default:
                       urlField.hide();
                       referenceField.hide();
                       anchor.hide();
@@ -103,6 +119,14 @@ CKEDITOR.plugins.silvalink = {
               id: 'linkedContent',
               label: 'Link target',
               required: true,
+              onReferenceUpdate: function(event) {
+                  var dialog = this.getDialog();
+                  var title = dialog.getContentElement('link', 'title');
+
+                  if (!title.getValue()) {
+                      title.setValue(event.data.title);
+                  };
+              },
               setup: function(data) {
                   if (data.link.content != undefined) {
                       this.setValue(data.link.content);
