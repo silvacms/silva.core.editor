@@ -55,6 +55,14 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
                     label: 'Image',
                     content: 'silva.core.interfaces.content.IImage',
                     required: true,
+                    onReferenceUpdate: function(event) {
+                        var dialog = this.getDialog();
+                        var alt = dialog.getContentElement('image', 'alt');
+
+                        if (!alt.getValue()) {
+                            alt.setValue(event.data.title);
+                        };
+                    },
                     setup: function(data) {
                         if (data.image.content != undefined) {
                             this.setValue(data.image.content);

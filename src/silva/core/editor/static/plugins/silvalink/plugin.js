@@ -55,7 +55,7 @@ CKEDITOR.plugins.silvalink = {
               items: [
                   ['internal link', 'intern'],
                   ['external link', 'extern'],
-                  ['anchor', 'anchor']
+                  ['local anchor', 'anchor']
               ],
               required: true,
               onChange: function () {

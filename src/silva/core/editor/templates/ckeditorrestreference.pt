@@ -6,7 +6,7 @@
        </ul>
      </div>
      <button class="reference-dialog-trigger"
-             title="Lookup a content to link to"
+             title="Lookup a content in Silva"
              i18n:attributes="title">
      </button>
      <a target="_blank" id="{id|html-attr-value}-link"></a>

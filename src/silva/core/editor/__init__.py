@@ -12,5 +12,6 @@ PLUGINS = {
     'silvareference': '++resource++silva.core.editor/plugins/silvareference',
     'silvalink': '++resource++silva.core.editor/plugins/silvalink',
     'silvaimage': '++resource++silva.core.editor/plugins/silvaimage',
+    'silvaanchor': '++resource++silva.core.editor/plugins/silvaanchor',
     'silvasave': '++resource++silva.core.editor/plugins/silvasave'
     }

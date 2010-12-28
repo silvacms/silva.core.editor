@@ -93,5 +93,5 @@ class CKEditorRESTConfiguration(rest.REST):
         return self.json_response(
             {'toolbars': service.get_toolbars_configuration(),
              'paths': service.get_extra_paths(self.request),
-             'extraPlugins': 'silvaimage,silvalink,silvasave',
+             'extraPlugins': 'silvaimage,silvalink,silvaanchor,silvasave',
              'skin': service.skin})
