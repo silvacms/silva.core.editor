@@ -9,5 +9,8 @@ silvaconf.extension_title(u"Silva CORE Editor")
 silvaconf.extension_system()
 
 PLUGINS = {
+    'silvareference': '++resource++silva.core.editor/plugins/silvareference',
     'silvalink': '++resource++silva.core.editor/plugins/silvalink',
-    'silvasave': '++resource++silva.core.editor/plugins/silvasave'}
+    'silvaimage': '++resource++silva.core.editor/plugins/silvaimage',
+    'silvasave': '++resource++silva.core.editor/plugins/silvasave'
+    }

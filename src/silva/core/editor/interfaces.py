@@ -24,6 +24,7 @@ tools_vocabulary = SimpleVocabulary([
     SimpleTerm(title='-- group separator --', value='-'),
     SimpleTerm(title='Save in Silva', value='SilvaSave'),
     SimpleTerm(title='Link a Silva content', value='SilvaLink'),
+    SimpleTerm(title='Include a Silva (or remote) image', value='SilvaImage'),
     SimpleTerm(title='Cut', value='Cut'),
     SimpleTerm(title='Copy', value='Copy'),
     SimpleTerm(title='Paste', value='Paste'),
@@ -51,7 +52,6 @@ tools_vocabulary = SimpleVocabulary([
     SimpleTerm(title='Replace', value='Replace'),
     SimpleTerm(title='Select All', value='SelectAll'),
     SimpleTerm(title='Remove Formating', value='RemoveFormat'),
-    SimpleTerm(title='Flash', value='Flash'),
     SimpleTerm(title='Table', value='Table'),
     SimpleTerm(title='Horizontal Rule', value='HorizontalRule'),
     SimpleTerm(title='Smiley', value='Smiley'),
@@ -60,6 +60,11 @@ tools_vocabulary = SimpleVocabulary([
     SimpleTerm(title='Maximize editor size', value='Maximize'),
     SimpleTerm(title='Online Spell Checker', value='Scayt'),
     SimpleTerm(title='About', value='About')])
+
+skin_vocabulary = SimpleVocabulary([
+    SimpleTerm(title='Kama', value='kama'),
+    SimpleTerm(title='Office 2003', value='office2003'),
+    SimpleTerm(title='v2', value='v2')])
 
 
 class ICKEditorSettings(interface.Interface):
@@ -72,10 +77,16 @@ class ICKEditorSettings(interface.Interface):
                  'Cut', 'Copy', 'Paste', '-',
                  'Undo', 'Redo', '-',
                  'Find', 'Replace', '/',
-                 'Bold', 'Italic', 'Strike', '-',
+                 'Format', '-', 'Bold', 'Italic', 'Strike', '-',
                  'NumberedList', 'BulletedList', '-',
                  'Outdent', 'Indent', '-',
-                 'SilvaLink'],
+                 'SilvaLink', 'SilvaImage'],
+        required=True)
+    skin = schema.Choice(
+        title=u"Editor skin",
+        description=u"Editor theme",
+        source=skin_vocabulary,
+        default='kama',
         required=True)
 
 

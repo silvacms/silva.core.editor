@@ -23,6 +23,7 @@ $(document).ready(function(){
                 language: lang,
                 extraPlugins: configuration['extraPlugins'],
                 removePlugins: 'save,link,flash,image',
+                skin: configuration['skin'],
                 toolbar: 'Silva',
                 toolbar_Silva: configuration['toolbars']
             });

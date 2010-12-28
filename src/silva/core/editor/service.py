@@ -34,6 +34,7 @@ class CKEditorService(SilvaService):
 
 
     toolbars = FieldProperty(ICKEditorSettings['toolbars'])
+    skin = FieldProperty(ICKEditorSettings['skin'])
 
     def get_toolbars_configuration(self):
         """Return toolbar configuration.
@@ -92,4 +93,5 @@ class CKEditorRESTConfiguration(rest.REST):
         return self.json_response(
             {'toolbars': service.get_toolbars_configuration(),
              'paths': service.get_extra_paths(self.request),
-             'extraPlugins': 'silvalink,silvasave'})
+             'extraPlugins': 'silvaimage,silvalink,silvasave',
+             'skin': service.skin})
