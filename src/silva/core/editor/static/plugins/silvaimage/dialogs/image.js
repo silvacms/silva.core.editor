@@ -74,10 +74,12 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
                     onReferenceUpdate: function(event) {
                         var dialog = this.getDialog();
                         var alt = dialog.getContentElement('image', 'alt');
+                        var url = dialog.getContentElement('image', 'url');
 
                         if (!alt.getValue()) {
                             alt.setValue(event.data.title);
                         };
+                        url.setValue(event.data.url);
                     },
                     setup: function(data) {
                         if (data.image.content != undefined) {
@@ -190,6 +192,12 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
                         if (value) {
                             custom.setValue(false);
                         }
+                    },
+                    setup: function(data) {
+                        this.setValue(data.link.hires);
+                    },
+                    commit: function(data) {
+                        data.link.hires = this.getValue();
                     }
                   },
                   { type: 'checkbox',
@@ -207,6 +215,13 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
                             options.show();
                         } else {
                             options.hide();
+                        };
+                    },
+                    setup: function(data) {
+                        if (data.link.type != null) {
+                            this.setValue(true);
+                        } else {
+                            this.setValue(false);
                         };
                     }
                   },
@@ -229,19 +244,70 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
         ],
         onShow: function() {
             var data = {};
+            var editor = this.getParentEditor();
+            var element = CKEDITOR.plugins.silvaimage.getSelectedImage(editor);
 
             data.link = {};
-            data.link.type = 'intern';
             data.image = {};
+            if (element != null) {
+                alert('foo !');
+            }
             data.image.type = 'intern';
             this.setupContent(data);
         },
         onOk: function() {
             var data = {};
+            var editor =  this.getParentEditor();
 
             data.link = {};
             data.image = {};
             this.commitContent(data);
+
+            var selection = editor.getSelection();
+            var ranges = selection.getRanges(true);
+
+            var div = new CKEDITOR.dom.element('div');
+            var div_attributes = {contenteditable: false};
+            ranges[0].insertNode(div);
+            selection.selectElement(div);
+            div_attributes['class'] = 'image';
+            div.setAttributes(div_attributes);
+            div.addClass(data.image.align);
+            div.unselectable();
+            var a = new CKEDITOR.dom.element('a');
+            var a_attributes = {href: 'javascript:void()'};
+            if (data.link.type) {
+                a_attributes['target'] = data.link.target;
+                a_attributes['title'] = data.link.title;
+                switch (data.link.type) {
+                case 'intern':
+                    a_attributes['silva_target'] = data.link.content;
+                    a_attributes['silva_reference'] = 'new';
+                    break;
+                case 'extern':
+                    a_attributes['href'] = data.link.url;
+                    break;
+                };
+            };
+            a.setAttributes(a_attributes);
+            div.append(a);
+            var img = new CKEDITOR.dom.element('img');
+            var img_attributes = {src: data.image.url,
+                                  alt: data.image.alt};
+            if (data.image.type == 'intern') {
+                img_attributes['silva_target'] = data.image.content;
+                img_attributes['silva_reference'] = 'new';
+            };
+            img.setAttributes(img_attributes);
+            a.append(img);
+            if (data.image.caption) {
+                var caption = new CKEDITOR.dom.element('span');
+                var caption_attributes = {};
+                caption_attributes['class'] = 'caption';
+                caption.setAttributes(caption_attributes);
+                caption.setText(data.image.caption);
+                a.append(caption);
+            }
         }
     };
 });

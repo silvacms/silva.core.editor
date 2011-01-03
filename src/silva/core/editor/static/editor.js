@@ -22,7 +22,7 @@ $(document).ready(function(){
                 fullPage: false,
                 language: lang,
                 extraPlugins: configuration['extraPlugins'],
-                removePlugins: 'save,link,flash,image',
+                removePlugins: 'save,link,flash,image,filebrowser,forms',
                 skin: configuration['skin'],
                 toolbar: 'Silva',
                 toolbar_Silva: configuration['toolbars']
