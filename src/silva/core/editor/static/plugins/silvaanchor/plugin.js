@@ -52,5 +52,19 @@ CKEDITOR.plugins.silvaanchor = {
         catch(e) {
             return null;
         }
+    },
+    listDocumentAnchors: function(editor) {
+        var anchors = [];
+        var candidates = new CKEDITOR.dom.nodeList(editor.document.$.anchors);
+
+        for (var i=0; i < candidates.count(); i++) {
+            var candidate = candidates.getItem(i);
+
+            if (CKEDITOR.plugins.silvaanchor.isAnchor(candidate)) {
+                anchors.push([candidate.getAttribute('name'),
+                              candidate.getAttribute('title')]);
+            };
+        };
+        return anchors;
     }
 };

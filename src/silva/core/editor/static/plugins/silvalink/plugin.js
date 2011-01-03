@@ -118,7 +118,7 @@ CKEDITOR.plugins.silvalink = {
 
                   if (type == 'extern') {
                       var checker = CKEDITOR.dialog.validate.notEmpty(
-                          'Missing link external URL');
+                          'Missing link external URL !');
                       return checker.apply(this);
                   };
                   return true;
@@ -145,7 +145,7 @@ CKEDITOR.plugins.silvalink = {
 
                   if (type == 'intern') {
                       var checker = CKEDITOR.dialog.validate.notEmpty(
-                          'Missing linked content');
+                          'You need to select a content to link to !');
 
                       return checker.apply(this);
                   };
@@ -166,15 +166,38 @@ CKEDITOR.plugins.silvalink = {
               id: 'documentAnchor',
               label: 'Anchor',
               items: [],
-              hidden: true,
               required: true,
               setup: function(data) {
                   var editor = this.getDialog().getParentEditor();
-                  var anchors = new CKEDITOR.dom.nodeList(editor.document.$.anchors);
+                  var anchors = CKEDITOR.plugins.silvaanchor.listDocumentAnchors(
+                      editor);
 
                   this.clear();
-                  for (var i=0; i < anchors.count(); i++ ) {
-                      this.add(anchors.getItem(i).getAttribute('name'));
+                  this.add('No anchor selected', '');
+                  for (var i=0; i < anchors.length; i++ ) {
+                      this.add(anchors[i][1], anchors[i][0]);
+                  };
+                  if (data.link.type == 'anchor') {
+                      this.setValue(data.link.anchor);
+                  };
+              },
+              validate: function(data) {
+                  var dialog = this.getDialog();
+                  var type = dialog.getContentElement('link', 'type').getValue();
+
+                  if (type == 'anchor') {
+                      var checker = CKEDITOR.dialog.validate.notEmpty(
+                          'You need to select a document anchor !');
+                      return checker.apply(this);
+                  };
+                  return true;
+              },
+              commit: function(data) {
+                  var dialog = this.getDialog();
+                  var type = dialog.getContentElement('link', 'type').getValue();
+
+                  if (type == 'anchor') {
+                      data.link.anchor = this.getValue();
                   };
               }
             },
@@ -185,7 +208,12 @@ CKEDITOR.plugins.silvalink = {
                   this.setValue(data.link.anchor);
               },
               commit: function(data) {
-                  data.link.anchor = this.getValue();
+                  var dialog = this.getDialog();
+                  var type = dialog.getContentElement('link', 'type').getValue();
+
+                  if (type != 'anchor') {
+                      data.link.anchor = this.getValue();
+                  };
               }
             },
             { type: 'select',
@@ -254,7 +282,8 @@ CKEDITOR.plugins.silvalink = {
 
                   if (target == 'input') {
                       var checker = CKEDITOR.dialog.validate.notEmpty(
-                          'Custom window target is selected for the link, but no custom target is filled.');
+                          'Custom window target is selected for the link, ' +
+                              'but no custom target is filled !');
                       return checker.apply(this);
                   };
                   return true;

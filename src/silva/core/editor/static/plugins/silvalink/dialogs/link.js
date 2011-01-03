@@ -31,8 +31,14 @@ CKEDITOR.dialog.add('silvalink', function(editor) {
                     data.link.type = 'intern';
                     data.link.content = link.getAttribute('silva_target');
                 } else {
-                    data.link.type = 'extern';
-                    data.link.url = link.getAttribute('href');
+                    var href = link.getAttribute('href');
+
+                    if (href == 'javascript:void()') {
+                        data.link.type = 'anchor';
+                    } else {
+                        data.link.type = 'extern';
+                        data.link.url = href;
+                    };
                 };
             } else {
                 // Default values, there are no link here
@@ -69,6 +75,8 @@ CKEDITOR.dialog.add('silvalink', function(editor) {
                 break;
             case 'extern':
                 attributes.href = data.link.url;
+                // No break, clean the same  attributes than anchor case
+            case 'anchor':
                 attributesToClean.push('silva_reference');
                 attributesToClean.push('silva_target');
                 break;
