@@ -15,20 +15,31 @@ CKEDITOR.plugins.add('silvalink', {
 });
 
 CKEDITOR.plugins.silvalink = {
+    isLink: function(element) {
+        if (element != null && element.is('a') && element.hasClass('link')) {
+            return true;
+        };
+        return false;
+    },
     getSelectedLink: function(editor) {
         try {
             var selection = editor.getSelection();
             if (selection.getType() == CKEDITOR.SELECTION_ELEMENT) {
                 var selectedElement = selection.getSelectedElement();
-                if (selectedElement.is('a'))
+                if (CKEDITOR.plugins.silvalink.isLink(selectedElement)) {
                     return selectedElement;
-            }
+                };
+            };
 
             var ranges = selection.getRanges(true)[0];
             ranges.shrink(CKEDITOR.SHRINK_TEXT);
 
-            var root = ranges.getCommonAncestor();
-            return root.getAscendant('a', true);
+            var base = ranges.getCommonAncestor();
+            var selectedElement = base.getAscendant('a', true);
+            if (CKEDITOR.plugins.silvalink.isLink(selectedElement)) {
+                return selectedElement;
+            };
+            return null;
         }
         catch(e) {
             return null;
@@ -47,7 +58,8 @@ CKEDITOR.plugins.silvalink = {
         }
     },
     createDialogFields: function () {
-        // Define popup fields for links. They are defined here to be used in other plugins.
+        // Define popup fields for links. They are defined here to be
+        // used in other plugins.
         return [
             { type: 'radio',
               id: 'type',
@@ -107,7 +119,7 @@ CKEDITOR.plugins.silvalink = {
                   if (type == 'extern') {
                       var checker = CKEDITOR.dialog.validate.notEmpty(
                           'Missing link external URL');
-                      return checker.apply( this );
+                      return checker.apply(this);
                   };
                   return true;
               },
@@ -126,6 +138,18 @@ CKEDITOR.plugins.silvalink = {
                   if (!title.getValue()) {
                       title.setValue(event.data.title);
                   };
+              },
+              validate: function(data) {
+                  var dialog = this.getDialog();
+                  var type = dialog.getContentElement('link', 'type').getValue();
+
+                  if (type == 'intern') {
+                      var checker = CKEDITOR.dialog.validate.notEmpty(
+                          'Missing linked content');
+
+                      return checker.apply(this);
+                  };
+                  return true;
               },
               setup: function(data) {
                   if (data.link.content != undefined) {

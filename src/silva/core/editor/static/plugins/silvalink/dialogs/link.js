@@ -1,6 +1,7 @@
 
 
-// createDialogFields is defined in plugin.js as it is used by other plugins
+// createDialogFields is defined in plugin.js as it is used by other
+// plugins
 
 CKEDITOR.dialog.add('silvalink', function(editor) {
 
@@ -45,8 +46,9 @@ CKEDITOR.dialog.add('silvalink', function(editor) {
             var attributes = {href: 'javascript:void()'};
             var attributesToClean = [];
             var editor = this.getParentEditor();
-            data.link = {};
 
+            attributes['class'] = 'link';
+            data.link = {};
             this.commitContent(data);
 
             var addOrRemoveAttribute = function(key, value) {
