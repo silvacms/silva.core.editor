@@ -2,17 +2,70 @@
 CKEDITOR.plugins.add('silvalink', {
     requires: ['dialog', 'silvareference'],
     init: function(editor) {
-        editor.addCommand(
-            'silvalink',
-            new CKEDITOR.dialogCommand('silvalink'));
+        editor.addCommand('silvalink', new CKEDITOR.dialogCommand('silvalink'));
+        editor.addCommand('silvaunlink', new CKEDITOR.unlinkCommand());
         editor.ui.addButton('SilvaLink', {
-            label : 'Link properties',
-            command : 'silvalink',
+            label: 'Link properties',
+            command: 'silvalink',
             className: 'cke_button_link'
             });
+        editor.ui.addButton('SilvaUnlink', {
+            label: 'Remove link',
+            command: 'silvaunlink',
+            className: 'cke_button_unlink'
+        });
+        // Event
+        editor.on('selectionChange', function(event) {
+            var element = CKEDITOR.plugins.silvalink.getSelectedLink(editor);
+            var linkCommand = editor.getCommand('silvalink');
+            var unlinkCommand = editor.getCommand('silvaunlink');
+
+            if (element != null) {
+                linkCommand.setState(CKEDITOR.TRISTATE_ON);
+                unlinkCommand.setState(CKEDITOR.TRISTATE_OFF);
+            } else {
+                linkCommand.setState(CKEDITOR.TRISTATE_OFF);
+                unlinkCommand.setState(CKEDITOR.TRISTATE_DISABLED);
+            };
+        });
+        editor.on('doubleclick', function(event) {
+            var element = CKEDITOR.plugins.silvalink.getSelectedLink(editor);
+
+            if (element != null) {
+                event.data.dialog = 'silvalink';
+            };
+        });
+        // Dialog
         CKEDITOR.dialog.add('silvalink', this.path + 'dialogs/link.js');
     }
 });
+
+CKEDITOR.unlinkCommand = function(){};
+CKEDITOR.unlinkCommand.prototype = {
+    exec: function(editor) {
+        // This is taken from the official link plugins. Should use
+        // the styling system to change this. Firefox let a span when
+        // a link is removed.
+        var selection = editor.getSelection();
+        var bookmarks = selection.createBookmarks();
+        var ranges = selection.getRanges();
+        var rangeRoot;
+        var element;
+
+        for (var i=0 ; i < ranges.length ; i++) {
+            rangeRoot = ranges[i].getCommonAncestor(true);
+            element = rangeRoot.getAscendant('a', true);
+            if (!element)
+                continue;
+            ranges[i].selectNodeContents(element);
+        }
+
+        selection.selectRanges(ranges);
+        editor.document.$.execCommand('unlink', false, null);
+        selection.selectBookmarks(bookmarks);
+    },
+    startDisabled : true
+};
 
 CKEDITOR.plugins.silvalink = {
     isLink: function(element) {

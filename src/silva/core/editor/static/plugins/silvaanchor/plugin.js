@@ -18,6 +18,25 @@ CKEDITOR.plugins.add('silvaanchor', {
                 'background-color: #EEE8AA;' +
                 '}'
         );
+        // Events
+        editor.on('selectionChange', function(event) {
+            var element = CKEDITOR.plugins.silvaanchor.getSelectedAnchor(editor);
+            var anchorCommand = editor.getCommand('silvaanchor');
+
+            if (element != null) {
+                anchorCommand.setState(CKEDITOR.TRISTATE_ON);
+            } else {
+                anchorCommand.setState(CKEDITOR.TRISTATE_OFF);
+            };
+        });
+        editor.on('doubleclick', function(event) {
+            var element = CKEDITOR.plugins.silvaanchor.getSelectedAnchor(editor);
+
+            if (element != null) {
+                event.data.dialog = 'silvaanchor';
+            };
+        });
+        // Dialog
         CKEDITOR.dialog.add('silvaanchor', this.path + 'dialogs/anchor.js');
     }
 });

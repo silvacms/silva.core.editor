@@ -24,6 +24,7 @@ tools_vocabulary = SimpleVocabulary([
     SimpleTerm(title='-- group separator --', value='-'),
     SimpleTerm(title='Save in Silva', value='SilvaSave'),
     SimpleTerm(title='Link a Silva content', value='SilvaLink'),
+    SimpleTerm(title='Remove a link', value='SilvaUnlink'),
     SimpleTerm(title='Include a Silva (or remote) image', value='SilvaImage'),
     SimpleTerm(title='Include an anchor or Silva Index entry', value='SilvaAnchor'),
     SimpleTerm(title='Cut', value='Cut'),
@@ -81,7 +82,7 @@ class ICKEditorSettings(interface.Interface):
                  'Format', '-', 'Bold', 'Italic', 'Strike', '-',
                  'NumberedList', 'BulletedList', '-',
                  'Outdent', 'Indent', '-',
-                 'SilvaLink', 'SilvaAnchor', 'SilvaImage'],
+                 'SilvaLink', 'SilvaUnlink', 'SilvaAnchor', 'SilvaImage'],
         required=True)
     skin = schema.Choice(
         title=u"Editor skin",
