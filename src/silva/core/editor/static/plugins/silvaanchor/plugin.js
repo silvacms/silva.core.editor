@@ -80,8 +80,13 @@ CKEDITOR.plugins.silvaanchor = {
             var candidate = candidates.getItem(i);
 
             if (CKEDITOR.plugins.silvaanchor.isAnchor(candidate)) {
-                anchors.push([candidate.getAttribute('name'),
-                              candidate.getAttribute('title')]);
+                var name = candidate.getAttribute('name');
+                var title = name;
+
+                if (candidate.hasAttribute('title')) {
+                    title = candidate.getAttribute('title');
+                };
+                anchors.push([name, title]);
             };
         };
         return anchors;

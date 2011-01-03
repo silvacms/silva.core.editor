@@ -28,15 +28,8 @@ CKEDITOR.dialog.add('silvaanchor', function(editor) {
                   { type: 'text',
                     id: 'title',
                     label: 'Index title',
-                    required: true,
                     setup: function(data) {
                         this.setValue(data.anchor.title);
-                    },
-                    validate: function(data) {
-                        var checker = CKEDITOR.dialog.validate.notEmpty(
-                            'Missing index title');
-
-                        return checker.apply(this);
                     },
                     commit: function(data) {
                         data.anchor.title = this.getValue();
@@ -67,9 +60,16 @@ CKEDITOR.dialog.add('silvaanchor', function(editor) {
             this.commitContent(data);
 
             var attributes = { contenteditable: 'false',
-                               name: data.anchor.name,
-                               title: data.anchor.title};
-            var text = '[#' + attributes['name'] + ': ' + attributes['title'] + ']';
+                               name: data.anchor.name };
+            if (data.anchor.title) {
+                attributes['title'] = data.anchor.title;
+            };
+
+            var text = '[#' + attributes['name'];
+            if (attributes['title']) {
+                text += ': ' + attributes['title'];
+            };
+            text += ']';
 
             attributes['class'] = 'anchor';
             if (element == null) {
