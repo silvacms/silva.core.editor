@@ -11,7 +11,7 @@ CKEDITOR.dialog.add('silvalink', function(editor) {
         minHeight: 230,
         contents: [
             { id: 'link',
-              elements: CKEDITOR.plugins.silvalink.createDialogFields()
+              elements: CKEDITOR.plugins.silvalink.createDialogFields(null)
             }
         ],
         onShow: function() {

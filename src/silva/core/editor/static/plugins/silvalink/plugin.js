@@ -110,7 +110,14 @@ CKEDITOR.plugins.silvalink = {
             selection.selectRanges(ranges);
         }
     },
-    createDialogFields: function () {
+    createDialogFields: function (validatorDecorator) {
+        // validatorDecorator is used to decorate validation functions.
+        if (validatorDecorator == null) {
+            // No decorator, create a default one.
+            validatorDecorator = function(validator) {
+                return validator;
+            };
+        };
         // Define popup fields for links. They are defined here to be
         // used in other plugins.
         return [
@@ -165,17 +172,18 @@ CKEDITOR.plugins.silvalink = {
               setup: function(data) {
                   this.setValue(data.link.url);
               },
-              validate: function() {
+              validate: validatorDecorator(function() {
                   var dialog = this.getDialog();
                   var type = dialog.getContentElement('link', 'type').getValue();
 
                   if (type == 'extern') {
-                      var checker = CKEDITOR.dialog.validate.notEmpty(
-                          'Missing link external URL !');
+                      var checker = CKEDITOR.dialog.validate.regex(
+                          /^(?:http|https|ftp|ftps|ssh|news|mailto|tel|webcal|itms):.*$/,
+                          'You need to specify a valid external URL !');
                       return checker.apply(this);
                   };
                   return true;
-              },
+              }),
               commit: function(data) {
                   data.link.url = this.getValue();
               }
@@ -192,7 +200,7 @@ CKEDITOR.plugins.silvalink = {
                       title.setValue(event.data.title);
                   };
               },
-              validate: function(data) {
+              validate: validatorDecorator(function() {
                   var dialog = this.getDialog();
                   var type = dialog.getContentElement('link', 'type').getValue();
 
@@ -203,7 +211,7 @@ CKEDITOR.plugins.silvalink = {
                       return checker.apply(this);
                   };
                   return true;
-              },
+              }),
               setup: function(data) {
                   if (data.link.content != undefined) {
                       this.setValue(data.link.content);
@@ -234,7 +242,7 @@ CKEDITOR.plugins.silvalink = {
                       this.setValue(data.link.anchor);
                   };
               },
-              validate: function(data) {
+              validate: validatorDecorator(function() {
                   var dialog = this.getDialog();
                   var type = dialog.getContentElement('link', 'type').getValue();
 
@@ -244,7 +252,7 @@ CKEDITOR.plugins.silvalink = {
                       return checker.apply(this);
                   };
                   return true;
-              },
+              }),
               commit: function(data) {
                   var dialog = this.getDialog();
                   var type = dialog.getContentElement('link', 'type').getValue();
@@ -329,7 +337,7 @@ CKEDITOR.plugins.silvalink = {
               id: 'customTarget',
               label: 'Custom target',
               required: true,
-              validate: function() {
+              validate: validatorDecorator(function() {
                   var dialog = this.getDialog();
                   var target = dialog.getContentElement('link', 'target').getValue();
 
@@ -340,7 +348,7 @@ CKEDITOR.plugins.silvalink = {
                       return checker.apply(this);
                   };
                   return true;
-              }
+              })
               // Setup and commit are done by the target field.
             },
             { type: 'text',

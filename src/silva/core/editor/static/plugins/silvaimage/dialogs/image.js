@@ -24,12 +24,15 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
                         var urlField = dialog.getContentElement('image', 'url').getElement();
                         var referenceField = dialog.getContentElement('image', 'imageContent').getElement();
 
-                        if (value == 'intern') {
+                        switch (value) {
+                        case 'intern':
                             urlField.hide();
                             referenceField.show();
-                        } else {
+                            break;
+                        case 'extern':
                             referenceField.hide();
                             urlField.show();
+                            break;
                         }
                     },
                     setup: function(data) {
@@ -45,6 +48,19 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
                     required: true,
                     setup: function(data) {
                         this.setValue(data.image.url);
+                    },
+                    validate: function() {
+                        var dialog = this.getDialog();
+                        var type = dialog.getContentElement('image', 'type').getValue();
+
+                        if (type == 'extern') {
+                            var checker = CKEDITOR.dialog.validate.regex(
+                                /^(?:http|https):\/\/.*$/,
+                                'You need a specify a valid image external URL !');
+
+                            return checker.apply(this);
+                        };
+                        return true;
                     },
                     commit: function(data) {
                         data.image.url = this.getValue();
@@ -69,6 +85,18 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
                         } else {
                             this.clear();
                         };
+                    },
+                    validate: function() {
+                        var dialog = this.getDialog();
+                        var type = dialog.getContentElement('image', 'type').getValue();
+
+                        if (type == 'intern') {
+                            var checker = CKEDITOR.dialog.validate.notEmpty(
+                                'You need to select an image to insert !');
+
+                            return checker.apply(this);
+                        };
+                        return true;
                     },
                     commit: function(data) {
                         data.image.content = this.getValue();
@@ -157,18 +185,44 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
                     onChange: function() {
                         var value = this.getValue();
                         var dialog = this.getDialog();
-                        var options = dialog.getContentElement('link', 'linkOptions').getElement();
+                        var custom = dialog.getContentElement('link', 'linkCustom');
 
                         if (value) {
-                            options.hide();
-                        } else {
-                            options.show();
+                            custom.setValue(false);
                         }
                     }
                   },
+                  { type: 'checkbox',
+                    id: 'linkCustom',
+                    label: 'Link to an another content',
+                    required: false,
+                    onChange: function() {
+                        var value = this.getValue();
+                        var dialog = this.getDialog();
+                        var hires = dialog.getContentElement('link', 'linkHires');
+                        var options = dialog.getContentElement('link', 'linkCustomOptions').getElement();
+
+                        if (value) {
+                            hires.setValue(false);
+                            options.show();
+                        } else {
+                            options.hide();
+                        };
+                    }
+                  },
                   { type: 'vbox',
-                    id: 'linkOptions',
-                    children: CKEDITOR.plugins.silvalink.createDialogFields()
+                    id: 'linkCustomOptions',
+                    children: CKEDITOR.plugins.silvalink.createDialogFields(function (validator) {
+                        return function () {
+                            var dialog = this.getDialog();
+                            var activated = dialog.getContentElement('link', 'linkCustom').getValue();
+
+                            if (activated) {
+                                return validator.apply(this);
+                            }
+                            return true;
+                        };
+                    })
                   }
               ]
             }
@@ -181,6 +235,13 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
             data.image = {};
             data.image.type = 'intern';
             this.setupContent(data);
+        },
+        onOk: function() {
+            var data = {};
+
+            data.link = {};
+            data.image = {};
+            this.commitContent(data);
         }
     };
 });

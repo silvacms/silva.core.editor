@@ -10,6 +10,11 @@ CKEDITOR.plugins.add('silvaimage', {
             command : 'silvaimage',
             className: 'cke_button_image'
         });
+        // Dialog
         CKEDITOR.dialog.add('silvaimage', this.path + 'dialogs/image.js');
     }
 });
+
+CKEDITOR.plugins.silvaimage = {
+
+};
