@@ -24,7 +24,6 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
                         var urlField = dialog.getContentElement('image', 'image_url').getElement();
                         var referenceField = dialog.getContentElement('image', 'image_content').getElement();
 
-                        console.log(value);
                         switch (value) {
                         case 'intern':
                             urlField.hide();
@@ -470,6 +469,9 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
                     a.append(caption);
                 };
                 caption.setText(data.image.caption);
+            } else if (caption != null) {
+                // There was a caption, we need to remove it.
+                caption.remove();
             };
         }
     };
