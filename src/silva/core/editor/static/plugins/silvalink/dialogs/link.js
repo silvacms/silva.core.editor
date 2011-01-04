@@ -50,7 +50,7 @@ CKEDITOR.dialog.add('silvalink', function(editor) {
         onOk: function() {
             var data = {};
             var attributes = {href: 'javascript:void()'};
-            var attributesToClean = [];
+            var attributes_to_clean = [];
             var editor = this.getParentEditor();
 
             attributes['class'] = 'link';
@@ -61,7 +61,7 @@ CKEDITOR.dialog.add('silvalink', function(editor) {
                 if (value) {
                     attributes[key] = value;
                 } else {
-                    attributesToClean.push(value);
+                    attributes_to_clean.push(key);
                 };
             };
 
@@ -77,8 +77,8 @@ CKEDITOR.dialog.add('silvalink', function(editor) {
                 attributes.href = data.link.url;
                 // No break, clean the same  attributes than anchor case
             case 'anchor':
-                attributesToClean.push('silva_reference');
-                attributesToClean.push('silva_target');
+                attributes_to_clean.push('silva_reference');
+                attributes_to_clean.push('silva_target');
                 break;
             };
 
@@ -97,7 +97,7 @@ CKEDITOR.dialog.add('silvalink', function(editor) {
                 style.apply(editor.document);
             } else {
                 element.setAttributes(attributes);
-                element.removeAttributes(attributesToClean);
+                element.removeAttributes(attributes_to_clean);
             };
         }
     };
