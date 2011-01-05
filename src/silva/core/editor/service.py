@@ -34,6 +34,7 @@ class CKEditorService(SilvaService):
 
 
     toolbars = FieldProperty(ICKEditorSettings['toolbars'])
+    formats = FieldProperty(ICKEditorSettings['formats'])
     skin = FieldProperty(ICKEditorSettings['skin'])
 
     def get_toolbars_configuration(self):

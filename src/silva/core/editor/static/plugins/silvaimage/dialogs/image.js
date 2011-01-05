@@ -350,6 +350,7 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
                 var ranges = selection.getRanges(true);
 
                 div = new CKEDITOR.dom.element('div');
+                div.unselectable();
                 div_attributes['contenteditable'] = false;
                 ranges[0].insertNode(div);
                 selection.selectElement(div);

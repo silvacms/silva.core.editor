@@ -3,15 +3,17 @@
 # See also LICENSE.txt
 # $Id$
 
+from five import grok
 from silva.core import conf as silvaconf
-from silva.core.layout.jquery.interfaces import IJQueryResources
 from silva.core.interfaces import ISilvaLocalService
-from zope.schema.vocabulary import SimpleVocabulary, SimpleTerm
+from silva.core.layout.jquery.interfaces import IJQueryResources
 from zope import schema, interface
+from zope.component import IFactory
+from zope.schema.vocabulary import SimpleVocabulary, SimpleTerm
 
 
 class ICKEditorResources(IJQueryResources):
-    """ Resource for CKEditor.
+    """ Javascript resources for CKEditor.
     """
     silvaconf.resource('json-template.js')
     silvaconf.resource('ckeditor/ckeditor_source.js')
@@ -69,6 +71,65 @@ skin_vocabulary = SimpleVocabulary([
     SimpleTerm(title='v2', value='v2')])
 
 
+class ICKEditorHTMLAttribute(interface.Interface):
+    """Describe an HTML attribute.
+    """
+    name = schema.TextLine(
+        title=u"Attribute name",
+        required=True)
+    value = schema.TextLine(
+        title=u"Attribute value",
+        required=True)
+
+
+class CKEditorHTMLAttribute(object):
+    grok.implements(ICKEditorHTMLAttribute)
+
+    def __init__(self, name, value):
+        self.name = name
+        self.value = value
+
+
+grok.global_utility(
+    CKEditorHTMLAttribute,
+    provides=IFactory,
+    name=ICKEditorHTMLAttribute.__identifier__,
+    direct=True)
+
+
+class ICKEditorFormat(interface.Interface):
+    """Describe a CKEditor Format style.
+    """
+    name = schema.TextLine(
+        title=u"Format name",
+        required=True)
+    element = schema.TextLine(
+        title=u"HTML Element",
+        required=True)
+    attributes = schema.List(
+        title=u"HTML Attributes",
+        value_type=schema.Object(
+            title=u"HTML Attribute",
+            schema=ICKEditorHTMLAttribute),
+        required=False)
+
+
+class CKEditorFormat(object):
+    grok.implements(ICKEditorFormat)
+
+    def __init__(self, name, element, attributes):
+        self.name = name
+        self.element = element
+        self.attributes = attributes
+
+
+grok.global_utility(
+    CKEditorFormat,
+    provides=IFactory,
+    name=ICKEditorFormat.__identifier__,
+    direct=True)
+
+
 class ICKEditorSettings(interface.Interface):
 
     toolbars = schema.List(
@@ -84,6 +145,17 @@ class ICKEditorSettings(interface.Interface):
                  'Outdent', 'Indent', '-',
                  'SilvaLink', 'SilvaUnlink', 'SilvaAnchor', 'SilvaImage'],
         required=True)
+    formats = schema.List(
+        title=u"Formats",
+        description=u"Styling formats",
+        value_type=schema.Object(
+            title=u"Format",
+            schema=ICKEditorFormat),
+        default=[CKEditorFormat(u'Title', 'h1', []),
+                 CKEditorFormat(u'Sub Title', 'h2', []),
+                 CKEditorFormat(u'Normal', 'p', []),
+                 ],
+        required=True)
     skin = schema.Choice(
         title=u"Editor skin",
         description=u"Editor theme",
@@ -94,4 +166,9 @@ class ICKEditorSettings(interface.Interface):
 
 class ICKEditorService(ISilvaLocalService):
     """Service to store editor preferences.
+    """
+
+
+class ISavingFilter(interface.Interface):
+    """Saving filter.
     """
