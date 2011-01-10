@@ -26,10 +26,10 @@ CKEDITOR.dialog.add('silvalink', function(editor) {
 
                 data.link.title = link.getAttribute('title');
                 data.link.target = link.getAttribute('target');
-                data.link.anchor = link.getAttribute('silva_anchor');
-                if (link.hasAttribute('silva_reference')) {
+                data.link.anchor = link.getAttribute('_silva_anchor');
+                if (link.hasAttribute('_silva_reference')) {
                     data.link.type = 'intern';
-                    data.link.content = link.getAttribute('silva_target');
+                    data.link.content = link.getAttribute('_silva_target');
                 } else {
                     var href = link.getAttribute('href');
 
@@ -67,18 +67,25 @@ CKEDITOR.dialog.add('silvalink', function(editor) {
 
             addOrRemoveAttribute('target', data.link.target);
             addOrRemoveAttribute('title', data.link.title);
-            addOrRemoveAttribute('silva_anchor', data.link.anchor);
+            addOrRemoveAttribute('_silva_anchor', data.link.anchor);
 
             switch (data.link.type) {
             case 'intern':
-                attributes.silva_target = data.link.content;
+                attributes['_silva_target'] = data.link.content;
+                attributes_to_clean.push('_silva_href');
                 break;
             case 'extern':
-                attributes.href = data.link.url;
-                // No break, clean the same  attributes than anchor case
+                // We save the value into _silva_href. We set the href
+                // attribute to get the link underlined.
+                attributes['href'] = data.link.url;
+                attributes['_silva_href'] = data.link.url;
+                attributes_to_clean.push('_silva_reference');
+                attributes_to_clean.push('_silva_target');
+                break;
             case 'anchor':
-                attributes_to_clean.push('silva_reference');
-                attributes_to_clean.push('silva_target');
+                attributes_to_clean.push('_silva_href');
+                attributes_to_clean.push('_silva_reference');
+                attributes_to_clean.push('_silva_target');
                 break;
             };
 
@@ -86,7 +93,7 @@ CKEDITOR.dialog.add('silvalink', function(editor) {
 
             if (element == null) {
                 if (data.link.type == 'intern') {
-                    attributes.silva_reference = 'new';
+                    attributes['_silva_reference'] = 'new';
                 };
                 CKEDITOR.plugins.silvalink.insertAndSelectTextIfNoneSelected(
                     editor, data.link.title || data.link.url);

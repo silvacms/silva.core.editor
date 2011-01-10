@@ -168,7 +168,3 @@ class ICKEditorService(ISilvaLocalService):
     """Service to store editor preferences.
     """
 
-
-class ISavingFilter(interface.Interface):
-    """Saving filter.
-    """

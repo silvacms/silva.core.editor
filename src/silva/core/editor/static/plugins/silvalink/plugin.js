@@ -37,6 +37,40 @@ CKEDITOR.plugins.add('silvalink', {
         });
         // Dialog
         CKEDITOR.dialog.add('silvalink', this.path + 'dialogs/link.js');
+    },
+    afterInit: function(editor) {
+        // Register a filter to displaying placeholders after mode change.
+
+        var dataProcessor = editor.dataProcessor;
+        var dataFilter = dataProcessor && dataProcessor.dataFilter;
+
+        if (dataFilter) {
+            dataFilter.addRules({
+                elements: {
+                    a: function(element) {
+                        var attributes = element.attributes;
+                        if (!attributes['class']) {
+                            if (attributes['name']) {
+                                attributes['class'] = 'anchor';
+                            } else {
+                                attributes['class'] = 'link';
+                            };
+                        };
+                        if (!attributes['href']) {
+                            attributes['href'] = 'javascript:void()';
+                        } else {
+                            if (!attributes['_silva_href'] && attributes['class'] == 'link') {
+                                // Backup the href attribute into
+                                // _silva_href: href get removed in
+                                // case of copy and paste in some obscur cases.
+                                attributes['_silva_href'] = attributes['href'];
+                            };
+                        };
+                        return null;
+                    }
+                }
+            });
+        }
     }
 });
 
