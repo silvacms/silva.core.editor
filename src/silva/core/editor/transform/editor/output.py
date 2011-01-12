@@ -4,8 +4,10 @@
 # $Id$
 
 from five import grok
+from silva.core.editor.interfaces import ITextIndexEntries
 from silva.core.editor.transform.interfaces import IOutputEditorFilter
 from silva.core.editor.transform.base import ReferenceTransformer
+from silva.core.editor.transform.base import Transformer
 from silva.core.references.reference import get_content_from_id
 
 
@@ -75,3 +77,17 @@ class ImageTransfomer(SilvaReferenceTransformer):
             if '_silva_src' in image.attrib:
                 image.attrib['src'] = image.attrib['_silva_src']
             clean_editor_attributes(image)
+
+
+class AnchorCollector(Transformer):
+    grok.implements(IOutputEditorFilter)
+    grok.provides(IOutputEditorFilter)
+    grok.order(50)
+
+    def prepare(self, name, text):
+        self.entries = ITextIndexEntries(text)
+
+    def __call__(self, tree):
+        for anchor in tree.xpath('//a[@class="anchor"]'):
+            if 'name' in anchor.attrib and 'title' in anchor.attrib:
+                self.entries.add(anchor.attrib['name'], anchor.attrib['title'])

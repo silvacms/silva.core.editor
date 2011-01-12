@@ -10,6 +10,7 @@ from silva.core.layout.jquery.interfaces import IJQueryResources
 from zope import schema, interface
 from zope.component import IFactory
 from zope.schema.vocabulary import SimpleVocabulary, SimpleTerm
+from zope.annotation.interfaces import IAttributeAnnotatable
 
 
 class ICKEditorResources(IJQueryResources):
@@ -168,3 +169,30 @@ class ICKEditorService(ISilvaLocalService):
     """Service to store editor preferences.
     """
 
+
+class IText(IAttributeAnnotatable):
+    """Editor rich text.
+    """
+
+
+class ITextIndexEntry(interface.Interface):
+    """Reprensent an index entry in a text.
+    """
+    anchor = schema.TextLine(title=u"Anchor")
+    title = schema.TextLine(title=u"Index title")
+
+
+class ITextIndexEntries(interface.Interface):
+    """Reprensent index entries in a text.
+    """
+    entries = schema.List(
+        title=u"Index entries",
+        value_type=schema.Object(schema=ITextIndexEntry))
+
+    def add(anchor, title):
+        """Add an new index.
+        """
+
+    def clear():
+        """Clear all indexes.
+        """

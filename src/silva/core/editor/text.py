@@ -6,16 +6,40 @@
 from five import grok
 from infrae import rest
 from persistent import Persistent
+from silva.core.editor.interfaces import IText, ITextIndexEntries, ITextIndexEntry
 from silva.core.editor.transform import transform
 from silva.core.editor.transform.interfaces import IOutputEditorFilter
 from silva.core.interfaces import IVersionedContent
 from silva.core.messages.interfaces import IMessageService
 from zope import component
-from zope.annotation.interfaces import IAttributeAnnotatable
+
+
+class TextIndexEntry(object):
+    grok.implements(ITextIndexEntry)
+
+    def __init__(self, anchor, title):
+        self.anchor = anchor
+        self.title = title
+
+
+class TextIndexEntries(grok.Annotation):
+    grok.implements(ITextIndexEntries)
+    grok.context(IText)
+
+    def __init__(self, *args):
+        super(TextIndexEntries, self).__init__(*args)
+        self.entries = []
+
+    def add(self, anchor, title):
+        self.entries.append(TextIndexEntry(anchor, title))
+
+    def clear(self):
+        if self.entries:
+            self.entries = []
 
 
 class Text(Persistent):
-    grok.implements(IAttributeAnnotatable)
+    grok.implements(IText)
 
     def __init__(self, text=u""):
         self.__text = text
