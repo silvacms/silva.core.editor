@@ -35,6 +35,11 @@ CKEDITOR.plugins.silvaimage = {
 
 (function(){
     var API = CKEDITOR.plugins.silvaimage;
+    var remove = function(attributes, name) {
+        if (attributes[name]) {
+            delete attributes[name];
+        };
+    };
 
     CKEDITOR.plugins.add('silvaimage', {
         requires: ['dialog', 'silvareference', 'silvalink'],
@@ -137,7 +142,33 @@ CKEDITOR.plugins.silvaimage = {
                             if (attributes['class'] != undefined &&
                                 attributes['class'].match('image')) {
                                 attributes['contenteditable'] = 'false';
+                            } else {
+                                remove(attributes, 'style');
                             };
+                            return null;
+                        },
+                        img: function(element) {
+                            var parent = element.parent;
+
+                            if (parent.name != 'div' ||
+                                parent.attributes['class'] == undefined ||
+                                !parent.attributes['class'].match('image')) {
+                                // This is an image from the outside world.
+                                // Prepare a structure.
+                                var div = new CKEDITOR.htmlParser.fragment.fromHtml(
+                                    '<div class="image default"></div>').children[0];
+
+                                remove(element.attributes, 'style');
+                                div.children = [element];
+                                element.parent = div;
+                                if (!element.attributes['_silva_src']) {
+                                    element.attributes['_silva_src'] =
+                                        element.attributes['src'] ||
+                                        element.attributes['_cke_saved_src'];
+                                }
+                                return div;
+                            };
+                            return null;
                         }
                     }
                 });
@@ -150,14 +181,8 @@ CKEDITOR.plugins.silvaimage = {
 
                             if (attributes['class'] != undefined &&
                                 attributes['class'].match('image')) {
-                                var clean = function(name) {
-                                    if (attributes[name]) {
-                                        delete attributes[name];
-                                    };
-                                };
-
-                                clean('contenteditable');
-                                clean('style');
+                                remove(attributes, 'contenteditable');
+                                remove(attributes, 'style');
                             };
                         }
                     }
