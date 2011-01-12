@@ -31,7 +31,7 @@ CKEDITOR.dialog.add('silvalink', function(editor) {
                     data.link.type = 'intern';
                     data.link.content = link.getAttribute('_silva_target');
                 } else {
-                    var href = link.getAttribute('href');
+                    var href = link.getAttribute('_silva_href');
 
                     if (href == 'javascript:void()') {
                         data.link.type = 'anchor';

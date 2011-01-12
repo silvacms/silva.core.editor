@@ -121,7 +121,9 @@ CKEDITOR.plugins.silvalink = {
                   this.setValue(data.link.type);
               },
               commit: function(data) {
-                  data.link.type = this.getValue();
+                  if (data.link.type) {
+                      data.link.type = this.getValue();
+                  };
               }
             },
             { type: 'text',
@@ -144,7 +146,9 @@ CKEDITOR.plugins.silvalink = {
                   return true;
               }),
               commit: function(data) {
-                  data.link.url = this.getValue();
+                  if (!data.link.url) {
+                      data.link.url = this.getValue();
+                  };
               }
             },
             { type: 'reference',
@@ -179,7 +183,9 @@ CKEDITOR.plugins.silvalink = {
                   };
               },
               commit: function(data) {
-                  data.link.content = this.getValue();
+                  if (!data.link.content) {
+                      data.link.content = this.getValue();
+                  };
               }
             },
             { type: 'select',

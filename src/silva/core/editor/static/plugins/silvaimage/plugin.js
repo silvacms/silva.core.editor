@@ -6,7 +6,7 @@ CKEDITOR.plugins.silvaimage = {
         };
         return false;
     },
-    getSelectedImage: function(editor) {
+    getSelectedImage: function(editor, select_base_element) {
         try {
             var selection = editor.getSelection();
             var base = null;
@@ -20,6 +20,9 @@ CKEDITOR.plugins.silvaimage = {
             var element = base.getAscendant('div', true);
 
             if (CKEDITOR.plugins.silvaimage.isImage(element)) {
+                if (base.$ !== element.$ && select_base_element) {
+                    selection.selectElement(element);
+                }
                 return element;
             };
             return null;
@@ -53,7 +56,7 @@ CKEDITOR.plugins.silvaimage = {
                     'display: inline-block' +
                     '}');
             editor.addCss(
-                'div.image span.caption {' +
+                'div.image span.image-caption {' +
                     'display: block;' +
                     'padding-left: 5px' +
                     '}');
@@ -79,7 +82,7 @@ CKEDITOR.plugins.silvaimage = {
                     '}');
             // Events
             editor.on('selectionChange', function(event) {
-                var element = API.getSelectedImage(editor);
+                var element = API.getSelectedImage(editor, true);
                 var imageCommand = editor.getCommand('silvaimage');
 
                 if (element != null) {
@@ -89,7 +92,7 @@ CKEDITOR.plugins.silvaimage = {
                 };
             });
             editor.on('doubleclick', function(event){
-                var element = API.getSelectedImage(editor);
+                var element = API.getSelectedImage(editor, true);
 
                 if (element != null) {
                     event.data.dialog = 'silvaimage';
@@ -116,6 +119,48 @@ CKEDITOR.plugins.silvaimage = {
                         };
                     };
                     return null;
+                });
+            };
+        },
+        afterInit: function(editor) {
+            // Input / Output transformations
+            var dataProcessor = editor.dataProcessor;
+            var dataFilter = dataProcessor && dataProcessor.dataFilter;
+            var htmlFilter = dataProcessor && dataProcessor.htmlFilter;
+
+            if (dataFilter) {
+                dataFilter.addRules({
+                    elements: {
+                        div: function(element) {
+                            var attributes = element.attributes;
+
+                            if (attributes['class'] != undefined &&
+                                attributes['class'].match('image')) {
+                                attributes['contenteditable'] = 'false';
+                            };
+                        }
+                    }
+                });
+            };
+            if (htmlFilter) {
+                htmlFilter.addRules({
+                    elements: {
+                        div: function(element) {
+                            var attributes = element.attributes;
+
+                            if (attributes['class'] != undefined &&
+                                attributes['class'].match('image')) {
+                                var clean = function(name) {
+                                    if (attributes[name]) {
+                                        delete attributes[name];
+                                    };
+                                };
+
+                                clean('contenteditable');
+                                clean('style');
+                            };
+                        }
+                    }
                 });
             };
         }

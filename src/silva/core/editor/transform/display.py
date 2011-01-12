@@ -30,3 +30,23 @@ class LinkTransfomer(ReferenceTransformer):
             if 'anchor' in link.attrib:
                 link.attrib['href'] += '#' + link.attrib['anchor']
 
+
+class ImageTransformer(ReferenceTransformer):
+    grok.implements(IDisplayFilter)
+    grok.provides(IDisplayFilter)
+    grok.order(10)
+    grok.name('image')
+
+    _reference_tracking = False
+
+    def __call__(self, tree):
+        for block in tree.xpath('//div[contains(@class, "image")]'):
+            images = block.xpath('//img')
+            assert len(images) == 1, u"Invalid image construction"
+            image = images[0]
+            if 'reference' in image.attrib:
+                name, reference = self.get_reference(
+                    image.attrib['reference'], read_only=True)
+                if reference is not None:
+                    image.attrib['src'] = absoluteURL(reference.target, self.request)
+                    del image.attrib['reference']

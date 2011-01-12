@@ -39,7 +39,6 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
                         this.setValue(data.image.type);
                     },
                     commit: function(data) {
-                        console.log(this.getValue());
                         data.image.type = this.getValue();
                     }
                   },
@@ -198,7 +197,13 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
                         this.setValue(data.link.hires);
                     },
                     commit: function(data) {
-                        data.link.hires = this.getValue();
+                        if (this.getValue()) {
+                            var dialog = this.getDialog();
+                            var image = dialog.getContentElement('image', 'image_content');
+
+                            data.link.type = 'intern';
+                            data.link.content = image.getValue();
+                        }
                     }
                   },
                   { type: 'checkbox',
@@ -252,6 +257,8 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
             data.image = {};
 
             var defaultSettings = function() {
+                data.link = {};
+                data.image = {};
                 data.image.type = 'intern';
                 data.link.type = null;
             };
@@ -263,19 +270,47 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
                 defaultSettings();
             };
 
+            var parseImage = function(img) {
+                if (img.is('img')) {
+                    data.image.alt = img.getAttribute('alt');
+                    data.image.url = img.getAttribute('src');
+                    if (img.hasAttribute('_silva_reference')) {
+                        data.image.type = 'intern';
+                        data.image.content = img.getAttribute('_silva_target');
+                    } else {
+                        data.image.type = 'extern';
+                    };
+                    if (img.hasNext()) {
+                        var caption = img.getNext();
+
+                        if (caption.is('span') &&
+                            caption.hasClass('image-caption')) {
+                            data.image.caption = caption.getText();
+                        } else {
+                            parseError("Invalid image caption", caption);
+                        };
+                    };
+                } else {
+                    parseError("Invalid image tag", img);
+                };
+            };
+
             if (div != null) {
-                if (div.getChildCount() == 1) {
+                var parseAlignment = /^image\s+([a-z-]+)\s*$/;
+                data.image.align = parseAlignment.exec(div.$.getAttribute('class'))[1];
+
+                if (div.getChildCount()) {
                     var a = div.getChild(0);
 
                     if (a.is('a')) {
                         data.link.title = a.$.getAttribute('title');
                         data.link.target = a.$.getAttribute('target');
-                        data.link.anchor = a.$.getAttribute('silva_anchor');
-                        if (a.$.hasAttribute('silva_reference')) {
+                        data.link.anchor = a.$.getAttribute('_silva_anchor');
+                        if (a.$.hasAttribute('_silva_reference')) {
                             data.link.type = 'intern';
-                            data.link.content = a.$.getAttribute('silva_target');
+                            data.link.content = a.$.getAttribute('_silva_target');
                         } else {
-                            var href = a.$.getAttribute('href');
+                            var href = a.$.getAttribute('_silva_href');
 
                             if (href == 'javascript:void()') {
                                 data.link.type = 'anchor';
@@ -286,36 +321,11 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
                         };
 
                         if (a.getChildCount()) {
-                            var img = a.getChild(0);
-
-                            if (img.is('img')) {
-                                data.image.alt = img.$.getAttribute('alt');
-                                data.image.url = img.$.getAttribute('src');
-                                if (img.$.hasAttribute('silva_reference')) {
-                                    data.image.type = 'intern';
-                                    data.image.content = img.$.getAttribute('silva_target');
-                                } else {
-                                    data.image.type = 'extern';
-                                };
-                            } else {
-                                parseError("Invalid image tag", img);
-                            };
-
-                            if (a.getChildCount() == 2) {
-                                var caption = a.getChild(1);
-
-                                if (caption.is('span') && caption.hasClass('caption')) {
-                                    data.image.caption = caption.getText();
-                                } else {
-                                    parseError("Invalid image caption", caption);
-                                };
-                            };
-                        } else {
-                            parseError("Invalid image link content", a);
+                            parseImage(a.getChild(0));
                         };
                     } else {
-                        parseError("Invalid image link", a);
-                    }
+                        parseImage(a);
+                    };
                 } else {
                     parseError("Invalid image structure", div);
                 };
@@ -335,15 +345,13 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
             var div = CKEDITOR.plugins.silvaimage.getSelectedImage(editor);
             var div_attributes = {};
             var a = null;
-            var a_attributes = {};
-            var a_attributes_to_clean = [];
             var img = null;
             var img_attributes = {src: data.image.url};
             var img_attributes_to_clean = [];
             var caption = null;
 
             // Div tag: image container
-            div_attributes['class'] = 'image '+ data.image.align;
+            div_attributes['class'] = 'image ' + data.image.align;
             if (div == null) {
                 // We basically don't edit an image. Create a new div and select it.
                 var selection = editor.getSelection();
@@ -355,81 +363,125 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
                 ranges[0].insertNode(div);
                 selection.selectElement(div);
             } else {
-                if (div.getChildCount() == 1) {
+                var start = 0;
+
+                if (div.getChildCount()) {
                     a = div.getChild(0);
-                    if (!a.is('a')) {
+                    if (a.is('a')) {
+                        start += 1;
+                    } else {
+                        if (a.is('img')) {
+                            img = a;
+                            start += 1;
+                            if (a.hasNext()) {
+                                caption = a.getNext();
+                                if (caption.is('span') &&
+                                    caption.hasClass('image-caption')) {
+                                    start += 1;
+                                } else {
+                                    caption = null;
+                                };
+                            };
+                        };
                         a = null;
                     };
                 };
-                if (a == null) {
-                    // Ok, we have child, but there are not links: clean them
-                    for (var i=0; i < div.getChildCount();) {
-                        div.getChild(0).remove();
-                    };
+                // Ok, we have what we went, clean all other nodes.
+                for (; start < div.getChildCount();) {
+                    div.getChild(start).remove();
                 };
             };
             div.setAttributes(div_attributes);
             // Link tag
-            if (a == null) {
-                a = new CKEDITOR.dom.element('a');
-                a_attributes['href'] = 'javascript:void()';
-                div.append(a);
-            };
             if (data.link.type) {
+                var attributes = {};
+                var attributes_to_clean = [];
 
-                var addOrRemoveAttribute = function(key, value) {
+                if (a == null) {
+                    a = new CKEDITOR.dom.element('a');
+                    attributes['href'] = 'javascript:void()';
+                    attributes['class'] = 'image-link';
+                    div.append(a);
+                    if (img) {
+                        img.move(a);
+                    };
+                    if (caption) {
+                        caption.move(a);
+                    };
+                } else {
+                    if (a.getChildCount()) {
+                        var start = 0;
+
+                        img = a.getChild(0);
+                        if (img.is('img')) {
+                            start += 1;
+                            if (img.hasNext()) {
+                                caption = img.getNext();
+                                if (caption.is('span') &&
+                                    caption.hasClass('image-caption')) {
+                                    start += 1;
+                                } else {
+                                    caption = null;
+                                };
+                            }
+                        } else {
+                            img = null;
+                        }
+                        // Clean all following tags, they are faulty.
+                        for (; start < a.getChildCount();) {
+                            a.getChild(start).remove();
+                        };
+                    };
+                };
+
+                var update_attribute = function(key, value) {
                     if (value) {
-                        a_attributes[key] = value;
+                        attributes[key] = value;
                     } else {
-                        a_attributes_to_clean.push(key);
+                        attributes_to_clean.push(key);
                     }
                 };
 
-                addOrRemoveAttribute('target', data.link.target);
-                addOrRemoveAttribute('title', data.link.title);
-                addOrRemoveAttribute('silva_anchor', data.link.anchor);
+                update_attribute('target', data.link.target);
+                update_attribute('title', data.link.title);
+                update_attribute('_silva_anchor', data.link.anchor);
 
                 switch (data.link.type) {
                 case 'intern':
-                    a_attributes['silva_reference'] = 'new';
-                    a_attributes['silva_target'] = data.link.content;
+                    attributes['_silva_reference'] = 'new';
+                    attributes['_silva_target'] = data.link.content;
+                    attributes_to_clean.push('_silva_href');
                     break;
                 case 'extern':
-                    a_attributes['href'] = data.link.url;
-                    // No break, clean the same attributes than anchor case
+                    attributes['href'] = data.link.url;
+                    attributes['_silva_href'] = data.link.url;
+                    attributes_to_clean.push('_silva_reference');
+                    attributes_to_clean.push('_silva_target');
+                    break;
                 case 'anchor':
-                    a_attributes_to_clean.push('silva_reference');
-                    a_attributes_to_clean.push('silva_target');
+                    attributes_to_clean.push('_silva_reference');
+                    attributes_to_clean.push('_silva_target');
+                    attributes_to_clean.push('_silva_href');
                     break;
                 };
+                a.setAttributes(attributes);
+                if (attributes_to_clean.length) {
+                    a.removeAttributes(attributes_to_clean);
+                };
             } else {
-                // No link, but we migth had one in the past.
-                a_attributes_to_clean.push('silva_reference');
-                a_attributes_to_clean.push('silva_target');
-                a_attributes_to_clean.push('silva_anchor');
-                a_attributes_to_clean.push('target');
-                a_attributes_to_clean.push('title');
-            };
-            a.setAttributes(a_attributes);
-            if (a_attributes_to_clean.length) {
-                a.removeAttributes(a_attributes_to_clean);
+                if (a) {
+                    a.remove(true);
+                    a = null;
+                };
             };
             // Image tag
-            if (a.getChildCount()) {
-                img = a.getChild(0);
-                if (!img.is('img')) {
-                    img = null;
-                };
-                if (img == null) {
-                    // Clean all following tags, they are faulty.
-                    for (var i=0; i < a.getChildCount();) {
-                        a.getChild(0).remove();
-                    };
-                };
-            };
             if (img == null) {
                 img = new CKEDITOR.dom.element('img');
-                a.append(img);
+                if (a) {
+                    a.append(img);
+                } else {
+                    div.append(img);
+                };
             };
             if (data.image.alt) {
                 img_attributes['alt'] = data.image.alt;
@@ -437,37 +489,29 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
                 img_attributes_to_clean.push('alt');
             };
             if (data.image.type == 'intern') {
-                img_attributes['silva_reference'] = 'new';
-                img_attributes['silva_target'] = data.image.content;
+                img_attributes['_silva_reference'] = 'new';
+                img_attributes['_silva_target'] = data.image.content;
             } else {
-                img_attributes_to_clean.push('silva_reference');
-                img_attributes_to_clean.push('silva_target');
+                img_attributes_to_clean.push('_silva_reference');
+                img_attributes_to_clean.push('_silva_target');
             };
             img.setAttributes(img_attributes);
             if (img_attributes_to_clean.length) {
                 img.removeAttributes(img_attributes_to_clean);
             };
             // Span tag: caption
-            if (a.getChildCount() == 2) {
-                caption = a.getChild(1);
-                if (!caption.is('span') || !caption.hasClass('caption')) {
-                    caption = null;
-                };
-                if (caption == null) {
-                    // Clean all following tags, they are faulty.
-                    for (var i=1; i < a.getChildCount();) {
-                        a.getChild(1).remove();
-                    };
-                };
-            };
             if (data.image.caption) {
                 if (caption == null) {
-                    var caption_attributes = {};
+                    var attributes = {};
 
                     caption = new CKEDITOR.dom.element('span');
-                    caption_attributes['class'] = 'caption';
-                    caption.setAttributes(caption_attributes);
-                    a.append(caption);
+                    attributes['class'] = 'image-caption';
+                    caption.setAttributes(attributes);
+                    if (a) {
+                        a.append(caption);
+                    } else {
+                        div.append(caption);
+                    }
                 };
                 caption.setText(data.image.caption);
             } else if (caption != null) {

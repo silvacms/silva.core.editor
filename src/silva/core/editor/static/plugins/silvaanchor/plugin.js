@@ -124,8 +124,7 @@ CKEDITOR.plugins.silvaanchor = {
             };
         },
         afterInit: function(editor) {
-            // Register a filter to fill in anchor data.
-
+            // Input / Output transformations
             var dataProcessor = editor.dataProcessor;
             var dataFilter = dataProcessor && dataProcessor.dataFilter;
             var htmlFilter = dataProcessor && dataProcessor.htmlFilter;
@@ -135,6 +134,7 @@ CKEDITOR.plugins.silvaanchor = {
                     elements: {
                         a: function(element) {
                             var attributes = element.attributes;
+
                             if (attributes['class'] == 'anchor') {
                                 if (!element.children.length) {
                                     var text = API.getAnchorTextFromAttributes(attributes);
