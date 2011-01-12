@@ -5,7 +5,8 @@
 
 from five import grok
 from silva.core.editor.transform.interfaces import IOutputEditorFilter
-from silva.core.editor.transform.base import ReferenceTransformer
+from silva.core.editor.transform.base import (
+    ReferenceTransformer, Transformer)
 from silva.core.references.reference import get_content_from_id
 
 
@@ -48,10 +49,9 @@ class LinkTransfomer(ReferenceTransformer):
                 if target_id != reference.target_id:
                     reference.set_target_id(target_id)
                 link.attrib['reference'] = name
-                if 'href' in link.attrib:
-                    del link.attrib['href']
             if '_silva_href' in link.attrib:
                 link.attrib['href'] = link.attrib['_silva_href']
             if '_silva_anchor' in link.attrib:
                 link.attrib['anchor'] = link.attrib['_silva_anchor']
             clean_editor_attributes(link)
+

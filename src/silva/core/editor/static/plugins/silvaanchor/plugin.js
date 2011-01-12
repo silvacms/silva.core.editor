@@ -1,47 +1,13 @@
 
-CKEDITOR.plugins.add('silvaanchor', {
-    requires: ['dialog'],
-    init: function(editor) {
-        editor.addCommand(
-            'silvaanchor',
-            new CKEDITOR.dialogCommand('silvaanchor'));
-        editor.ui.addButton('SilvaAnchor', {
-            label : 'Anchor properties',
-            command : 'silvaanchor',
-            className: 'cke_button_anchor'
-            });
-        editor.addCss(
-            'a.anchor' +
-                '{' +
-                'padding: 1px;' +
-                'color: #444;' +
-                'background-color: #EEE8AA;' +
-                '}'
-        );
-        // Events
-        editor.on('selectionChange', function(event) {
-            var element = CKEDITOR.plugins.silvaanchor.getSelectedAnchor(editor);
-            var anchorCommand = editor.getCommand('silvaanchor');
-
-            if (element != null) {
-                anchorCommand.setState(CKEDITOR.TRISTATE_ON);
-            } else {
-                anchorCommand.setState(CKEDITOR.TRISTATE_OFF);
-            };
-        });
-        editor.on('doubleclick', function(event) {
-            var element = CKEDITOR.plugins.silvaanchor.getSelectedAnchor(editor);
-
-            if (element != null) {
-                event.data.dialog = 'silvaanchor';
-            };
-        });
-        // Dialog
-        CKEDITOR.dialog.add('silvaanchor', this.path + 'dialogs/anchor.js');
-    }
-});
-
 CKEDITOR.plugins.silvaanchor = {
+    getAnchorTextFromAttributes: function(attributes) {
+        var text = '[#' + attributes['name'];
+        if (attributes['title']) {
+            text += ': ' + attributes['title'];
+        };
+        text += ']';
+        return text;
+    },
     isAnchor: function(element) {
         if (element != null && element.is('a') && element.hasClass('anchor')) {
             return true;
@@ -92,3 +58,101 @@ CKEDITOR.plugins.silvaanchor = {
         return anchors;
     }
 };
+
+(function() {
+    var API = CKEDITOR.plugins.silvaanchor;
+
+    CKEDITOR.plugins.add('silvaanchor', {
+        requires: ['dialog', 'htmldataprocessor'],
+        init: function(editor) {
+            editor.addCommand(
+                'silvaanchor',
+                new CKEDITOR.dialogCommand('silvaanchor'));
+            editor.ui.addButton('SilvaAnchor', {
+                label : 'Anchor properties',
+                command : 'silvaanchor',
+                className: 'cke_button_anchor'
+            });
+            editor.addCss(
+                'a.anchor' +
+                    '{' +
+                    'padding: 1px;' +
+                    'color: #444;' +
+                    'background-color: #EEE8AA;' +
+                    '}'
+            );
+            // Events
+            editor.on('selectionChange', function(event) {
+                var element = API.getSelectedAnchor(editor);
+                var anchorCommand = editor.getCommand('silvaanchor');
+
+                if (element != null) {
+                    anchorCommand.setState(CKEDITOR.TRISTATE_ON);
+                } else {
+                    anchorCommand.setState(CKEDITOR.TRISTATE_OFF);
+                };
+            });
+            editor.on('doubleclick', function(event) {
+                var element = API.getSelectedAnchor(editor);
+
+                if (element != null) {
+                    event.data.dialog = 'silvaanchor';
+                };
+            });
+            // Dialog
+            CKEDITOR.dialog.add('silvaanchor', this.path + 'dialogs/anchor.js');
+        },
+        afterInit: function(editor) {
+            // Register a filter to fill in anchor data.
+
+            var dataProcessor = editor.dataProcessor;
+            var dataFilter = dataProcessor && dataProcessor.dataFilter;
+            var htmlFilter = dataProcessor && dataProcessor.htmlFilter;
+
+            if (dataFilter) {
+                dataFilter.addRules({
+                    elements: {
+                        a: function(element) {
+                            var attributes = element.attributes;
+                            if (attributes['class'] == 'anchor') {
+                                if (!element.children.length) {
+                                    var text = API.getAnchorTextFromAttributes(attributes);
+                                    element.children.push(
+                                        new CKEDITOR.htmlParser.fragment.fromHtml(text)
+                                    );
+                                };
+                                attributes['contenteditable'] = 'false';
+                            };
+                            return null;
+                        }
+                    }
+                });
+            };
+            if (htmlFilter) {
+                htmlFilter.addRules({
+                    elements: {
+                        a: function(element) {
+                            var attributes = element.attributes;
+                            if (attributes['class'] == 'anchor') {
+                                if (element.children.length) {
+                                    element.children = [];
+                                };
+
+                                var clean = function(name) {
+                                    if (attributes[name]) {
+                                        delete attributes[name];
+                                    };
+                                };
+
+                                clean('_cke_saved_href');
+                                clean('contenteditable');
+                                clean('href');
+                            };
+                            return null;
+                        }
+                    }
+                });
+            };
+        }
+    });
+})();

@@ -1,79 +1,4 @@
 
-CKEDITOR.plugins.add('silvalink', {
-    requires: ['dialog', 'silvareference'],
-    init: function(editor) {
-        editor.addCommand('silvalink', new CKEDITOR.dialogCommand('silvalink'));
-        editor.addCommand('silvaunlink', new CKEDITOR.unlinkCommand());
-        editor.ui.addButton('SilvaLink', {
-            label: 'Link properties',
-            command: 'silvalink',
-            className: 'cke_button_link'
-            });
-        editor.ui.addButton('SilvaUnlink', {
-            label: 'Remove link',
-            command: 'silvaunlink',
-            className: 'cke_button_unlink'
-        });
-        // Event
-        editor.on('selectionChange', function(event) {
-            var element = CKEDITOR.plugins.silvalink.getSelectedLink(editor);
-            var linkCommand = editor.getCommand('silvalink');
-            var unlinkCommand = editor.getCommand('silvaunlink');
-
-            if (element != null) {
-                linkCommand.setState(CKEDITOR.TRISTATE_ON);
-                unlinkCommand.setState(CKEDITOR.TRISTATE_OFF);
-            } else {
-                linkCommand.setState(CKEDITOR.TRISTATE_OFF);
-                unlinkCommand.setState(CKEDITOR.TRISTATE_DISABLED);
-            };
-        });
-        editor.on('doubleclick', function(event) {
-            var element = CKEDITOR.plugins.silvalink.getSelectedLink(editor);
-
-            if (element != null) {
-                event.data.dialog = 'silvalink';
-            };
-        });
-        // Dialog
-        CKEDITOR.dialog.add('silvalink', this.path + 'dialogs/link.js');
-    },
-    afterInit: function(editor) {
-        // Register a filter to displaying placeholders after mode change.
-
-        var dataProcessor = editor.dataProcessor;
-        var dataFilter = dataProcessor && dataProcessor.dataFilter;
-
-        if (dataFilter) {
-            dataFilter.addRules({
-                elements: {
-                    a: function(element) {
-                        var attributes = element.attributes;
-                        if (!attributes['class']) {
-                            if (attributes['name']) {
-                                attributes['class'] = 'anchor';
-                            } else {
-                                attributes['class'] = 'link';
-                            };
-                        };
-                        if (!attributes['href']) {
-                            attributes['href'] = 'javascript:void()';
-                        } else {
-                            if (!attributes['_silva_href'] && attributes['class'] == 'link') {
-                                // Backup the href attribute into
-                                // _silva_href: href get removed in
-                                // case of copy and paste in some obscur cases.
-                                attributes['_silva_href'] = attributes['href'];
-                            };
-                        };
-                        return null;
-                    }
-                }
-            });
-        }
-    }
-});
-
 CKEDITOR.unlinkCommand = function(){};
 CKEDITOR.unlinkCommand.prototype = {
     exec: function(editor) {
@@ -398,3 +323,104 @@ CKEDITOR.plugins.silvalink = {
         ];
     }
 };
+
+(function(){
+    var API = CKEDITOR.plugins.silvalink;
+
+    CKEDITOR.plugins.add('silvalink', {
+        requires: ['dialog', 'silvareference'],
+        init: function(editor) {
+            editor.addCommand('silvalink', new CKEDITOR.dialogCommand('silvalink'));
+            editor.addCommand('silvaunlink', new CKEDITOR.unlinkCommand());
+            editor.ui.addButton('SilvaLink', {
+                label: 'Link properties',
+                command: 'silvalink',
+                className: 'cke_button_link'
+            });
+            editor.ui.addButton('SilvaUnlink', {
+                label: 'Remove link',
+                command: 'silvaunlink',
+                className: 'cke_button_unlink'
+            });
+            // Event
+            editor.on('selectionChange', function(event) {
+                var element = API.getSelectedLink(editor);
+                var linkCommand = editor.getCommand('silvalink');
+                var unlinkCommand = editor.getCommand('silvaunlink');
+
+                if (element != null) {
+                    linkCommand.setState(CKEDITOR.TRISTATE_ON);
+                    unlinkCommand.setState(CKEDITOR.TRISTATE_OFF);
+                } else {
+                    linkCommand.setState(CKEDITOR.TRISTATE_OFF);
+                    unlinkCommand.setState(CKEDITOR.TRISTATE_DISABLED);
+                };
+            });
+            editor.on('doubleclick', function(event) {
+                var element = API.getSelectedLink(editor);
+
+                if (element != null) {
+                    event.data.dialog = 'silvalink';
+                };
+            });
+            // Dialog
+            CKEDITOR.dialog.add('silvalink', this.path + 'dialogs/link.js');
+        },
+        afterInit: function(editor) {
+            // Register a filter to displaying placeholders after mode change.
+
+            var dataProcessor = editor.dataProcessor;
+            var dataFilter = dataProcessor && dataProcessor.dataFilter;
+            var htmlFilter = dataProcessor && dataProcessor.htmlFilter;
+
+            if (dataFilter) {
+                dataFilter.addRules({
+                    elements: {
+                        a: function(element) {
+                            var attributes = element.attributes;
+                            if (!attributes['class']) {
+                                if (attributes['name']) {
+                                    attributes['class'] = 'anchor';
+                                } else {
+                                    attributes['class'] = 'link';
+                                };
+                            };
+                            if (!attributes['href']) {
+                                attributes['href'] = 'javascript:void()';
+                            } else {
+                                if (!attributes['_silva_href'] && attributes['class'] == 'link') {
+                                    // Backup the href attribute into
+                                    // _silva_href: href get removed in
+                                    // case of copy and paste in some obscur cases.
+                                    attributes['_silva_href'] = attributes['href'];
+                                };
+                            };
+                            return null;
+                        }
+                    }
+                });
+            };
+            if (htmlFilter) {
+                htmlFilter.addRules({
+                    elements: {
+                        a: function(element) {
+                            var attributes = element.attributes;
+                            if (attributes['class'] == 'link') {
+
+                                var clean = function(name) {
+                                    if (attributes[name]) {
+                                        delete attributes[name];
+                                    };
+                                };
+
+                                clean('_cke_saved_href');
+                                clean('href');
+                            };
+                            return null;
+                        }
+                    }
+                });
+            };
+        }
+    });
+})();

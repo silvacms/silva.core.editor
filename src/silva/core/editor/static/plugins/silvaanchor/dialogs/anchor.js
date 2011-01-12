@@ -65,11 +65,7 @@ CKEDITOR.dialog.add('silvaanchor', function(editor) {
                 attributes['title'] = data.anchor.title;
             };
 
-            var text = '[#' + attributes['name'];
-            if (attributes['title']) {
-                text += ': ' + attributes['title'];
-            };
-            text += ']';
+            var text = CKEDITOR.plugins.silvaanchor.getAnchorTextFromAttributes(attributes);
 
             attributes['class'] = 'anchor';
             if (element == null) {
