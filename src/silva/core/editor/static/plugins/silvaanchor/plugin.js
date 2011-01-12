@@ -101,6 +101,27 @@ CKEDITOR.plugins.silvaanchor = {
             });
             // Dialog
             CKEDITOR.dialog.add('silvaanchor', this.path + 'dialogs/anchor.js');
+            // Menu
+            if (editor.addMenuItems) {
+                editor.addMenuItems({
+                    anchor: {
+                        label: editor.lang.anchor.menu,
+                        command : 'silvaanchor',
+                        group : 'link',
+                        order: 5
+                    }
+                });
+            };
+            if (editor.contextMenu) {
+                editor.contextMenu.addListener(function(element, selection) {
+                    if (API.isAnchor(element)) {
+                        return  {
+                            anchor: CKEDITOR.TRISTATE_OFF
+                        };
+                    };
+                    return null;
+                });
+            };
         },
         afterInit: function(editor) {
             // Register a filter to fill in anchor data.

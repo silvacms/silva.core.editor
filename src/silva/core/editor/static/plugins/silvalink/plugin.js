@@ -365,6 +365,34 @@ CKEDITOR.plugins.silvalink = {
             });
             // Dialog
             CKEDITOR.dialog.add('silvalink', this.path + 'dialogs/link.js');
+            // Menu
+            if (editor.addMenuItems) {
+                editor.addMenuItems({
+                    link: {
+                        label: editor.lang.link.menu,
+                        command : 'silvalink',
+                        group : 'link',
+                        order: 10
+                    },
+                    unlink: {
+                        label: editor.lang.unlink,
+                        command: 'silvaunlink',
+                        group: 'link',
+                        order: 15
+                    }
+                });
+            };
+            if (editor.contextMenu) {
+                editor.contextMenu.addListener(function(element, selection) {
+                    if (API.isLink(element)) {
+                        return  {
+                            link: CKEDITOR.TRISTATE_OFF,
+                            unlink: CKEDITOR.TRISTATE_OFF
+                        };
+                    };
+                    return null;
+                });
+            };
         },
         afterInit: function(editor) {
             // Register a filter to displaying placeholders after mode change.
