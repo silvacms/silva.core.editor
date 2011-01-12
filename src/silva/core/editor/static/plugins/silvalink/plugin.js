@@ -379,16 +379,17 @@ CKEDITOR.plugins.silvalink = {
                         a: function(element) {
                             var attributes = element.attributes;
                             if (!attributes['class']) {
-                                if (attributes['name']) {
+                                if (attributes['name'] && attributes['href']) {
                                     attributes['class'] = 'anchor';
                                 } else {
                                     attributes['class'] = 'link';
                                 };
                             };
-                            if (!attributes['href']) {
-                                attributes['href'] = 'javascript:void()';
-                            } else {
-                                if (!attributes['_silva_href'] && attributes['class'] == 'link') {
+                            if (attributes['class'] == 'link') {
+                                if (!attributes['href']) {
+                                    attributes['href'] = 'javascript:void()';
+                                }
+                                if (!attributes['_silva_href']) {
                                     // Backup the href attribute into
                                     // _silva_href: href get removed in
                                     // case of copy and paste in some obscur cases.
