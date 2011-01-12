@@ -1,71 +1,4 @@
 
-CKEDITOR.plugins.add('silvaimage', {
-    requires: ['dialog', 'silvareference', 'silvalink'],
-    init: function(editor) {
-        editor.addCommand(
-            'silvaimage',
-            new CKEDITOR.dialogCommand('silvaimage'));
-        editor.ui.addButton('SilvaImage', {
-            label : 'Image properties',
-            command : 'silvaimage',
-            className: 'cke_button_image'
-        });
-        editor.addCss(
-            'div.image' +
-                '{' +
-                'padding: 1px;' +
-                'color: #444;' +
-                'background-color: #EEE8AA;' +
-                'display: inline-block' +
-                '}');
-        editor.addCss(
-            'div.image span.caption {' +
-                'display: block;' +
-                'padding-left: 5px' +
-                '}');
-        editor.addCss(
-            'div.float-left {' +
-                'float: left;' +
-                '}');
-        editor.addCss(
-            'div.float-right {' +
-                'float: right;' +
-                '}');
-        editor.addCss(
-            'div.image-left {' +
-                'text-align: left;' +
-                '}');
-        editor.addCss(
-            'div.image-right {' +
-                'text-align: right;' +
-                '}');
-        editor.addCss(
-            'div.image-center {' +
-                'text-align: center;' +
-                '}');
-        // Events
-        editor.on('selectionChange', function(event) {
-            var element = CKEDITOR.plugins.silvaimage.getSelectedImage(editor);
-            var imageCommand = editor.getCommand('silvaimage');
-
-            if (element != null) {
-                imageCommand.setState(CKEDITOR.TRISTATE_ON);
-            } else {
-                imageCommand.setState(CKEDITOR.TRISTATE_OFF);
-            };
-        });
-        editor.on('doubleclick', function(event){
-            var element = CKEDITOR.plugins.silvaimage.getSelectedImage(editor);
-
-            if (element != null) {
-                event.data.dialog = 'silvaimage';
-            };
-        });
-        // Dialog
-        CKEDITOR.dialog.add('silvaimage', this.path + 'dialogs/image.js');
-    }
-});
-
 CKEDITOR.plugins.silvaimage = {
     isImage: function(element) {
         if (element != null && element.is('div') && element.hasClass('image')) {
@@ -76,20 +9,18 @@ CKEDITOR.plugins.silvaimage = {
     getSelectedImage: function(editor) {
         try {
             var selection = editor.getSelection();
+            var base = null;
+
             if (selection.getType() == CKEDITOR.SELECTION_ELEMENT) {
-                var selectedElement = selection.getSelectedElement().getAscendant('div', true);
-                if (CKEDITOR.plugins.silvaimage.isImage(selectedElement)) {
-                    return selectedElement;
-                };
+                base = selection.getSelectedElement();
+            } else {
+                base = selection.getStartElement();
             };
 
-            var ranges = selection.getRanges(true)[0];
-            ranges.shrink(CKEDITOR.SHRINK_TEXT);
+            var element = base.getAscendant('div', true);
 
-            var base = ranges.getCommonAncestor();
-            var selectedElement = base.getAscendant('div', true);
-            if (CKEDITOR.plugins.silvaimage.isImage(selectedElement)) {
-                return selectedElement;
+            if (CKEDITOR.plugins.silvaimage.isImage(element)) {
+                return element;
             };
             return null;
         }
@@ -98,3 +29,95 @@ CKEDITOR.plugins.silvaimage = {
         }
     }
 };
+
+(function(){
+    var API = CKEDITOR.plugins.silvaimage;
+
+    CKEDITOR.plugins.add('silvaimage', {
+        requires: ['dialog', 'silvareference', 'silvalink'],
+        init: function(editor) {
+            editor.addCommand(
+                'silvaimage',
+                new CKEDITOR.dialogCommand('silvaimage'));
+            editor.ui.addButton('SilvaImage', {
+                label : 'Image properties',
+                command : 'silvaimage',
+                className: 'cke_button_image'
+            });
+            editor.addCss(
+                'div.image' +
+                    '{' +
+                    'padding: 1px;' +
+                    'color: #444;' +
+                    'background-color: #EEE8AA;' +
+                    'display: inline-block' +
+                    '}');
+            editor.addCss(
+                'div.image span.caption {' +
+                    'display: block;' +
+                    'padding-left: 5px' +
+                    '}');
+            editor.addCss(
+                'div.float-left {' +
+                    'float: left;' +
+                    '}');
+            editor.addCss(
+                'div.float-right {' +
+                    'float: right;' +
+                    '}');
+            editor.addCss(
+                'div.image-left {' +
+                    'text-align: left;' +
+                    '}');
+            editor.addCss(
+                'div.image-right {' +
+                    'text-align: right;' +
+                    '}');
+            editor.addCss(
+                'div.image-center {' +
+                    'text-align: center;' +
+                    '}');
+            // Events
+            editor.on('selectionChange', function(event) {
+                var element = API.getSelectedImage(editor);
+                var imageCommand = editor.getCommand('silvaimage');
+
+                if (element != null) {
+                    imageCommand.setState(CKEDITOR.TRISTATE_ON);
+                } else {
+                    imageCommand.setState(CKEDITOR.TRISTATE_OFF);
+                };
+            });
+            editor.on('doubleclick', function(event){
+                var element = API.getSelectedImage(editor);
+
+                if (element != null) {
+                    event.data.dialog = 'silvaimage';
+                };
+            });
+            // Dialog
+            CKEDITOR.dialog.add('silvaimage', this.path + 'dialogs/image.js');
+            // Menu
+            if (editor.addMenuItems) {
+                editor.addMenuItems({
+                    image: {
+                        label: editor.lang.image.menu,
+                        command : 'silvaimage',
+                        group : 'image',
+                        order: 1
+                    }
+                });
+            };
+            if (editor.contextMenu) {
+                editor.contextMenu.addListener(function(element, selection) {
+                    if (API.isImage(element.getAscendant('div', true))) {
+                        return  {
+                            image: CKEDITOR.TRISTATE_OFF
+                        };
+                    };
+                    return null;
+                });
+            };
+        }
+    });
+})();
