@@ -12,10 +12,20 @@
                         type: 'POST',
                         data: data,
                         success: function(data) {
-                            $(document).trigger('smi-refresh-feedback');
+                            if (data['status'] == 'success') {
+                                $(document).trigger('smi-refresh-feedback');
+                            };
+                            if (data['status'] == 'failure') {
+                                var message = 'Error while saving document';
+                                if (data['alert']) {
+                                    message += ': ' + data['alert'];
+                                };
+                                alert(message);
+                            };
                         },
                         error: function() {
-                            alert('You lost all your work. Courage ! This was only the beginning.');
+                            alert('Error on the server while saving document, ' +
+                                  'Please consult log server for detail');
                         }
                     });
                 }
