@@ -7,7 +7,8 @@ from five import grok
 from infrae import rest
 from persistent import Persistent
 from silva.core.editor.interfaces import IText, ITextIndexEntries, ITextIndexEntry
-from silva.core.editor.transform.interfaces import ITransformer, ISaveEditorFilter
+from silva.core.editor.transform.interfaces import ITransformer
+from silva.core.editor.transform.interfaces import ISaveEditorFilter, IInputEditorFilter
 from silva.core.interfaces import IVersionedContent
 from silva.core.messages.interfaces import IMessageService
 from silva.translations import translate as _
@@ -67,9 +68,12 @@ class CKEditorRESTSave(rest.REST):
         if version is None:
             return self.json_response(
                 {'status': 'failure', 'alert': 'No editable version !'})
+
+        # Transform and save text.
         transformer = getMultiAdapter((version, self.request), ITransformer)
         for key in self.request.form.keys():
             text = getattr(version, key)
+            assert IText.providedBy(text), u'Trying to save text to non text attribute'
             text.save(transformer.data(
                 key,
                 text,
@@ -78,4 +82,10 @@ class CKEditorRESTSave(rest.REST):
         notify(ObjectModifiedEvent(version))
         service = getUtility(IMessageService)
         service.send(_("Changes saved."), self.request, namespace=u'feedback')
-        return self.json_response({'status': 'success'})
+
+        # Transform and input saved text (needed to get update to date
+        # reference information)
+        response = {'status': 'success'}
+        for key in self.request.form.keys():
+            response[key] = transformer.attribute(key, IInputEditorFilter)
+        return self.json_response(response)

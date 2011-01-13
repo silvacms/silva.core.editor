@@ -93,7 +93,7 @@ CKEDITOR.plugins.silvalink = {
                   var value = this.getValue();
                   var dialog = this.getDialog();
                   var urlField = dialog.getContentElement('link', 'url').getElement();
-                  var referenceField = dialog.getContentElement('link', 'linkedContent').getElement();
+                  var referenceField = dialog.getContentElement('link', 'link_content').getElement();
                   var documentAnchor = dialog.getContentElement('link', 'documentAnchor').getElement();
                   var anchor = dialog.getContentElement('link', 'anchor').getElement();
 
@@ -121,7 +121,7 @@ CKEDITOR.plugins.silvalink = {
                   this.setValue(data.link.type);
               },
               commit: function(data) {
-                  if (data.link.type) {
+                  if (data.link.type == undefined) {
                       data.link.type = this.getValue();
                   };
               }
@@ -146,13 +146,13 @@ CKEDITOR.plugins.silvalink = {
                   return true;
               }),
               commit: function(data) {
-                  if (!data.link.url) {
+                  if (data.link.url == undefined) {
                       data.link.url = this.getValue();
                   };
               }
             },
             { type: 'reference',
-              id: 'linkedContent',
+              id: 'link_content',
               label: 'Link target',
               required: true,
               onReferenceUpdate: function(event) {
@@ -183,7 +183,7 @@ CKEDITOR.plugins.silvalink = {
                   };
               },
               commit: function(data) {
-                  if (!data.link.content) {
+                  if (data.link.content == undefined) {
                       data.link.content = this.getValue();
                   };
               }

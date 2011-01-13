@@ -14,8 +14,10 @@
                         success: function(data) {
                             if (data['status'] == 'success') {
                                 $(document).trigger('smi-refresh-feedback');
-                            };
-                            if (data['status'] == 'failure') {
+                                if (data[editor.name] != undefined) {
+                                    editor.setData(data[editor.name]);
+                                };
+                            } else {
                                 var message = 'Error while saving document';
                                 if (data['alert']) {
                                     message += ': ' + data['alert'];

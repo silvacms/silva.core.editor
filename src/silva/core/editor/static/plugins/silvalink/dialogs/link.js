@@ -52,12 +52,14 @@ CKEDITOR.dialog.add('silvalink', function(editor) {
             var attributes = {href: 'javascript:void()'};
             var attributes_to_clean = [];
             var editor = this.getParentEditor();
+            var element = CKEDITOR.plugins.silvalink.getSelectedLink(editor);
 
             attributes['class'] = 'link';
             data.link = {};
             this.commitContent(data);
+            console.log(data);
 
-            var addOrRemoveAttribute = function(key, value) {
+            var update_attribute = function(key, value) {
                 if (value) {
                     attributes[key] = value;
                 } else {
@@ -65,13 +67,16 @@ CKEDITOR.dialog.add('silvalink', function(editor) {
                 };
             };
 
-            addOrRemoveAttribute('target', data.link.target);
-            addOrRemoveAttribute('title', data.link.title);
-            addOrRemoveAttribute('_silva_anchor', data.link.anchor);
+            update_attribute('target', data.link.target);
+            update_attribute('title', data.link.title);
+            update_attribute('_silva_anchor', data.link.anchor);
 
             switch (data.link.type) {
             case 'intern':
                 attributes['_silva_target'] = data.link.content;
+                if (element == null || !element.hasAttribute('_silva_reference')) {
+                    attributes['_silva_reference'] = 'new';
+                }
                 attributes_to_clean.push('_silva_href');
                 break;
             case 'extern':
@@ -89,12 +94,7 @@ CKEDITOR.dialog.add('silvalink', function(editor) {
                 break;
             };
 
-            var element = CKEDITOR.plugins.silvalink.getSelectedLink(editor);
-
             if (element == null) {
-                if (data.link.type == 'intern') {
-                    attributes['_silva_reference'] = 'new';
-                };
                 CKEDITOR.plugins.silvalink.insertAndSelectTextIfNoneSelected(
                     editor, data.link.title || data.link.url);
 
