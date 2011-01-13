@@ -4,16 +4,44 @@
 # $Id$
 
 import uuid
+import lxml
 
 from five import grok
+from silva.core.editor.transform.interfaces import ITransformer
 from silva.core.editor.transform.interfaces import ITransformationFilter
-from silva.core.references.interfaces import IReferenceService
 from silva.core.interfaces import IVersion
+from silva.core.references.interfaces import IReferenceService
 from zope import component
 from zope.publisher.interfaces.browser import IBrowserRequest
 
 
-class Transformer(grok.MultiSubscriber):
+class Transfomer(grok.MultiAdapter):
+    grok.implements(ITransformer)
+    grok.provides(ITransformer)
+    grok.adapts(IVersion, IBrowserRequest)
+
+    def __init__(self, context, request):
+        self.context = context
+        self.request = request
+
+    def data(self, name, text, data, interface):
+        transformers = grok.queryOrderedSubscribers(
+            (self.context, self.request), interface)
+        tree = lxml.html.fromstring(data)
+        for transformer in transformers:
+            transformer.prepare(name, text)
+        for transformer in transformers:
+            transformer(tree)
+        for transformer in transformers:
+            transformer.finalize()
+        return lxml.html.tostring(tree)
+
+    def attribute(self, name, interface):
+        text = getattr(self.context, name)
+        return self.data(name, text, unicode(text), interface)
+
+
+class TransformationFilter(grok.MultiSubscriber):
     grok.baseclass()
     grok.implements(ITransformationFilter)
     grok.provides(ITransformationFilter)
@@ -34,14 +62,14 @@ class Transformer(grok.MultiSubscriber):
         pass
 
 
-class ReferenceTransformer(Transformer):
+class ReferenceTransformationFilter(TransformationFilter):
     grok.baseclass()
     grok.name('reference')
 
     _reference_tracking = True
 
     def __init__(self, context, request):
-        super(ReferenceTransformer, self).__init__(context, request)
+        super(ReferenceTransformationFilter, self).__init__(context, request)
         self._reference_service = component.getUtility(IReferenceService)
         self._references_used = set()
         self._references = {}
@@ -81,7 +109,7 @@ class ReferenceTransformer(Transformer):
         return link_name, reference
 
     def prepare(self, name, text):
-        super(ReferenceTransformer, self).prepare(name, text)
+        super(ReferenceTransformationFilter, self).prepare(name, text)
         self._reference_name = u' '.join(
             (name, grok.name.bind().get(self.__class__)))
         self._references_used = set()
@@ -96,7 +124,7 @@ class ReferenceTransformer(Transformer):
         pass
 
     def finalize(self):
-        super(ReferenceTransformer, self).finalize()
+        super(ReferenceTransformationFilter, self).finalize()
         if self._reference_tracking:
             for link_name, reference in self._references.items():
                 if link_name not in self._references_used:

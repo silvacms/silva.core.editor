@@ -5,11 +5,11 @@
 
 from five import grok
 from silva.core.editor.transform.interfaces import IInputEditorFilter
-from silva.core.editor.transform.base import ReferenceTransformer
+from silva.core.editor.transform.base import ReferenceTransformationFilter
 from zope.traversing.browser import absoluteURL
 
 
-class LinkTransfomer(ReferenceTransformer):
+class LinkTransfomer(ReferenceTransformationFilter):
     grok.implements(IInputEditorFilter)
     grok.provides(IInputEditorFilter)
     grok.order(10)
@@ -33,7 +33,7 @@ class LinkTransfomer(ReferenceTransformer):
                 link.attrib['href'] = 'javascript:void()'
 
 
-class ImageTransformer(ReferenceTransformer):
+class ImageTransformationFilter(ReferenceTransformationFilter):
     grok.implements(IInputEditorFilter)
     grok.provides(IInputEditorFilter)
     grok.order(10)

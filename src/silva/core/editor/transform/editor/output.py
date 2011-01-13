@@ -5,9 +5,9 @@
 
 from five import grok
 from silva.core.editor.interfaces import ITextIndexEntries
-from silva.core.editor.transform.interfaces import IOutputEditorFilter
-from silva.core.editor.transform.base import ReferenceTransformer
-from silva.core.editor.transform.base import Transformer
+from silva.core.editor.transform.interfaces import ISaveEditorFilter
+from silva.core.editor.transform.base import ReferenceTransformationFilter
+from silva.core.editor.transform.base import TransformationFilter
 from silva.core.references.reference import get_content_from_id
 
 
@@ -22,10 +22,13 @@ def clean_editor_attributes(tag):
         del tag.attrib[name]
 
 
-class SilvaReferenceTransformer(ReferenceTransformer):
+class SilvaReferenceTransformationFilter(ReferenceTransformationFilter):
+    """Base class to update a reference information out of _silva_
+    tags.
+    """
     grok.baseclass()
-    grok.implements(IOutputEditorFilter)
-    grok.provides(IOutputEditorFilter)
+    grok.implements(ISaveEditorFilter)
+    grok.provides(ISaveEditorFilter)
 
     def update_reference_for(self, attributes):
         name, reference = self.get_reference(attributes['_silva_reference'])
@@ -47,7 +50,9 @@ class SilvaReferenceTransformer(ReferenceTransformer):
         attributes['reference'] = name
 
 
-class LinkTransfomer(SilvaReferenceTransformer):
+class LinkTransfomer(SilvaReferenceTransformationFilter):
+    """Handle link reference.
+    """
     grok.order(10)
     grok.name('link')
 
@@ -62,7 +67,9 @@ class LinkTransfomer(SilvaReferenceTransformer):
             clean_editor_attributes(link)
 
 
-class ImageTransfomer(SilvaReferenceTransformer):
+class ImageTransfomer(SilvaReferenceTransformationFilter):
+    """Handle image reference.
+    """
     grok.order(10)
     grok.name('image')
 
@@ -79,9 +86,12 @@ class ImageTransfomer(SilvaReferenceTransformer):
             clean_editor_attributes(image)
 
 
-class AnchorCollector(Transformer):
-    grok.implements(IOutputEditorFilter)
-    grok.provides(IOutputEditorFilter)
+class AnchorCollector(TransformationFilter):
+    """Collect text anchors to save indexes on a text object's
+    annotation.
+    """
+    grok.implements(ISaveEditorFilter)
+    grok.provides(ISaveEditorFilter)
     grok.order(50)
 
     def prepare(self, name, text):

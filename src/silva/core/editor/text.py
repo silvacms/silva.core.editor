@@ -7,11 +7,13 @@ from five import grok
 from infrae import rest
 from persistent import Persistent
 from silva.core.editor.interfaces import IText, ITextIndexEntries, ITextIndexEntry
-from silva.core.editor.transform import transform
-from silva.core.editor.transform.interfaces import IOutputEditorFilter
+from silva.core.editor.transform.interfaces import ITransformer, ISaveEditorFilter
 from silva.core.interfaces import IVersionedContent
 from silva.core.messages.interfaces import IMessageService
-from zope import component
+from silva.translations import translate as _
+from zope.component import getMultiAdapter, getUtility
+from zope.event import notify
+from zope.lifecycleevent import ObjectModifiedEvent
 
 
 class TextIndexEntry(object):
@@ -62,16 +64,18 @@ class CKEditorRESTSave(rest.REST):
 
     def POST(self):
         version = self.context.get_editable()
-        assert version is not None
+        if version is None:
+            return self.json_response(
+                {'status': 'failure', 'alert': 'No editable version !'})
+        transformer = getMultiAdapter((version, self.request), ITransformer)
         for key in self.request.form.keys():
             text = getattr(version, key)
-            text.save(transform(
+            text.save(transformer.data(
                 key,
-                self.request.form[key],
                 text,
-                version,
-                self.request,
-                IOutputEditorFilter))
-        service = component.getUtility(IMessageService)
-        service.send("Changes saved.", self.request, namespace='feedback')
+                unicode(self.request.form[key], 'utf-8'),
+                ISaveEditorFilter))
+        notify(ObjectModifiedEvent(version))
+        service = getUtility(IMessageService)
+        service.send(_("Changes saved."), self.request, namespace='feedback')
         return self.json_response({'status': 'success'})
