@@ -77,5 +77,5 @@ class CKEditorRESTSave(rest.REST):
                 ISaveEditorFilter))
         notify(ObjectModifiedEvent(version))
         service = getUtility(IMessageService)
-        service.send(_("Changes saved."), self.request, namespace='feedback')
+        service.send(_("Changes saved."), self.request, namespace=u'feedback')
         return self.json_response({'status': 'success'})
