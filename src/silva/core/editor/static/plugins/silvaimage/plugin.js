@@ -53,12 +53,11 @@ CKEDITOR.plugins.silvaimage = {
                 className: 'cke_button_image'
             });
             editor.addCss(
-                'div.image' +
-                    '{' +
+                'div.image {' +
                     'padding: 1px;' +
                     'color: #444;' +
                     'background-color: #EEE8AA;' +
-                    'display: inline-block' +
+                    'display: inline-block;' +
                     '}');
             editor.addCss(
                 'div.image span.image-caption {' +
@@ -76,14 +75,17 @@ CKEDITOR.plugins.silvaimage = {
             editor.addCss(
                 'div.image-left {' +
                     'text-align: left;' +
+                    'display: block;' +
                     '}');
             editor.addCss(
                 'div.image-right {' +
                     'text-align: right;' +
+                    'display: block;' +
                     '}');
             editor.addCss(
                 'div.image-center {' +
                     'text-align: center;' +
+                    'display: block;' +
                     '}');
             // Events
             editor.on('selectionChange', function(event) {
