@@ -35,11 +35,6 @@ CKEDITOR.plugins.silvaimage = {
 
 (function(){
     var API = CKEDITOR.plugins.silvaimage;
-    var remove = function(attributes, name) {
-        if (attributes[name]) {
-            delete attributes[name];
-        };
-    };
 
     CKEDITOR.plugins.add('silvaimage', {
         requires: ['dialog', 'silvareference', 'silvalink'],
@@ -135,14 +130,31 @@ CKEDITOR.plugins.silvaimage = {
             var dataFilter = dataProcessor && dataProcessor.dataFilter;
             var htmlFilter = dataProcessor && dataProcessor.htmlFilter;
 
+            var remove = function(attributes, name) {
+                // Remove an attribute from an object.
+                if (attributes[name]) {
+                    delete attributes[name];
+                };
+            };
+            var is_img_div = function(element) {
+                // Test if the given element is an image div.
+                return (element.name == 'div' &&
+                        element.attributes['class'] != undefined &&
+                        element.attributes['class'].match('image'));
+            };
+            var is_img_a = function(element) {
+                // Test if the given element is image link.
+                return (element.name == 'a' &&
+                        element.attributes['class'] == 'image-link');
+            };
+
             if (dataFilter) {
                 dataFilter.addRules({
                     elements: {
                         div: function(element) {
                             var attributes = element.attributes;
 
-                            if (attributes['class'] != undefined &&
-                                attributes['class'].match('image')) {
+                            if (is_img_div(element)) {
                                 attributes['contenteditable'] = 'false';
                             } else {
                                 remove(attributes, 'style');
@@ -151,23 +163,29 @@ CKEDITOR.plugins.silvaimage = {
                         },
                         img: function(element) {
                             var parent = element.parent;
+                            var attributes = element.attributes;
 
-                            if (parent.name != 'div' ||
-                                parent.attributes['class'] == undefined ||
-                                !parent.attributes['class'].match('image')) {
+                            if (!is_img_div(parent) && !is_img_a(parent)) {
                                 // This is an image from the outside world.
                                 // Prepare a structure.
                                 var div = new CKEDITOR.htmlParser.fragment.fromHtml(
                                     '<div class="image default"></div>').children[0];
 
-                                remove(element.attributes, 'style');
+                                // Insert the div before the image.
                                 div.children = [element];
+                                div.parent = element.parent;
                                 element.parent = div;
-                                if (!element.attributes['_silva_src']) {
-                                    element.attributes['_silva_src'] =
-                                        element.attributes['src'] ||
-                                        element.attributes['_cke_saved_src'];
-                                }
+
+                                // Clean attributes
+                                remove(attributes, 'style');
+                                remove(attributes, 'height');
+                                remove(attributes, 'width');
+                                // Save the src tag
+                                if (!attributes['_silva_src']) {
+                                    attributes['_silva_src'] =
+                                        attributes['src'] ||
+                                        attributes['_cke_saved_src'];
+                                };
                                 return div;
                             };
                             return null;
@@ -179,10 +197,9 @@ CKEDITOR.plugins.silvaimage = {
                 htmlFilter.addRules({
                     elements: {
                         div: function(element) {
-                            var attributes = element.attributes;
+                            if (is_img_div(element)) {
+                                var attributes = element.attributes;
 
-                            if (attributes['class'] != undefined &&
-                                attributes['class'].match('image')) {
                                 remove(attributes, 'contenteditable');
                                 remove(attributes, 'style');
                             };

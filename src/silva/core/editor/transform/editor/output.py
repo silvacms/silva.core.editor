@@ -86,6 +86,27 @@ class ImageTransfomer(SilvaReferenceTransformationFilter):
             clean_editor_attributes(image)
 
 
+class ImageLinkTransformer(SilvaReferenceTransformationFilter):
+    """Handle image link reference.
+    """
+    grok.order(10)
+    grok.name('image link')
+
+    def __call__(self, tree):
+        for block in tree.xpath('//div[contains(@class, "image")]'):
+            links = block.xpath('//a[@class="image-link"]')
+            assert len(links) <= 1, u"Invalid image construction"
+            if links:
+                link = links[0]
+                if '_silva_reference' in link.attrib:
+                    self.update_reference_for(link.attrib)
+                if '_silva_href' in link.attrib:
+                    link.attrib['href'] = link.attrib['_silva_href']
+                if '_silva_anchor' in link.attrib:
+                    link.attrib['anchor'] = link.attrib['_silva_anchor']
+                clean_editor_attributes(link)
+
+
 class AnchorCollector(TransformationFilter):
     """Collect text anchors to save indexes on a text object's
     annotation.

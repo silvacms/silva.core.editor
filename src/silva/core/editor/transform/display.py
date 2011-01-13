@@ -50,3 +50,29 @@ class ImageTransformationFilter(ReferenceTransformationFilter):
                 if reference is not None:
                     image.attrib['src'] = absoluteURL(reference.target, self.request)
                     del image.attrib['reference']
+
+
+class ImageLinkTransformationFilter(ReferenceTransformationFilter):
+    grok.implements(IDisplayFilter)
+    grok.provides(IDisplayFilter)
+    grok.order(10)
+    grok.name('image link')
+
+    _reference_tracking = False
+
+    def __call__(self, tree):
+        for block in tree.xpath('//div[contains(@class, "image")]'):
+            links = block.xpath('//a[@class="image-link"]')
+            assert len(links) <= 1, u"Invalid image construction"
+            if links:
+                link = links[0]
+                if 'reference' in link.attrib:
+                    name, reference = self.get_reference(
+                        link.attrib['reference'], read_only=True)
+                    if reference is not None and reference.target_id:
+                        link.attrib['href'] = absoluteURL(reference.target, self.request)
+                        del link.attrib['reference']
+                if 'href' not in link.attrib:
+                    link.attrib['href'] = ''
+                if 'anchor' in link.attrib:
+                    link.attrib['href'] += '#' + link.attrib['anchor']

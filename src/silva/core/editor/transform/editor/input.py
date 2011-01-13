@@ -33,7 +33,7 @@ class LinkTransfomer(ReferenceTransformationFilter):
                 link.attrib['href'] = 'javascript:void()'
 
 
-class ImageTransformationFilter(ReferenceTransformationFilter):
+class ImageTransformer(ReferenceTransformationFilter):
     grok.implements(IInputEditorFilter)
     grok.provides(IInputEditorFilter)
     grok.order(10)
@@ -55,3 +55,30 @@ class ImageTransformationFilter(ReferenceTransformationFilter):
             elif 'src' in image.attrib:
                 image.attrib['_silva_src'] = image.attrib['src']
 
+
+class ImageLinkTransformer(ReferenceTransformationFilter):
+    grok.implements(IInputEditorFilter)
+    grok.provides(IInputEditorFilter)
+    grok.order(10)
+    grok.name('image link')
+
+    def __call__(self, tree):
+        for block in tree.xpath('//div[contains(@class, "image")]'):
+            links = block.xpath('//a[@class="image-link"]')
+            assert len(links) <= 1, u"Invalid image construction"
+            if links:
+                link = links[0]
+                if 'reference' in link.attrib:
+                    name, reference = self.get_reference(
+                        link.attrib['reference'], read_only=True)
+                    if reference is not None:
+                        link.attrib['_silva_reference'] = name
+                        link.attrib['_silva_target'] = str(reference.target_id)
+                        del link.attrib['reference']
+                if 'href' in link.attrib:
+                    link.attrib['_silva_href'] = link.attrib['href']
+                if 'anchor' in link.attrib:
+                    link.attrib['_silva_anchor'] = link.attrib['anchor']
+                    del link.attrib['anchor']
+                if 'href' not in link.attrib:
+                    link.attrib['href'] = 'javascript:void()'
