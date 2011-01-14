@@ -33,7 +33,7 @@ CKEDITOR.dialog.add('silvalink', function(editor) {
                 } else {
                     var href = link.getAttribute('_silva_href');
 
-                    if (href == 'javascript:void()') {
+                    if (!href || href == 'javascript:void()') {
                         data.link.type = 'anchor';
                     } else {
                         data.link.type = 'extern';
@@ -57,7 +57,6 @@ CKEDITOR.dialog.add('silvalink', function(editor) {
             attributes['class'] = 'link';
             data.link = {};
             this.commitContent(data);
-            console.log(data);
 
             var update_attribute = function(key, value) {
                 if (value) {

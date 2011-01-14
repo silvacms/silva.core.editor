@@ -81,7 +81,7 @@ CKEDITOR.plugins.silvalink = {
         // used in other plugins.
         return [
             { type: 'radio',
-              id: 'type',
+              id: 'link_type',
               label: 'Link type',
               items: [
                   ['internal link', 'intern'],
@@ -92,42 +92,46 @@ CKEDITOR.plugins.silvalink = {
               onChange: function () {
                   var value = this.getValue();
                   var dialog = this.getDialog();
-                  var urlField = dialog.getContentElement('link', 'url').getElement();
-                  var referenceField = dialog.getContentElement('link', 'link_content').getElement();
-                  var documentAnchor = dialog.getContentElement('link', 'documentAnchor').getElement();
-                  var anchor = dialog.getContentElement('link', 'anchor').getElement();
+                  var url_input = dialog.getContentElement(
+                      'link', 'link_url').getElement();
+                  var reference_input = dialog.getContentElement(
+                      'link', 'link_content').getElement();
+                  var anchor_input = dialog.getContentElement(
+                      'link', 'link_anchor').getElement();
+                  var extra_anchor_input = dialog.getContentElement(
+                      'link', 'link_extra_anchor').getElement();
 
                   switch(value) {
                   case 'intern':
-                      urlField.hide();
-                      documentAnchor.hide();
-                      referenceField.show();
-                      anchor.show();
+                      url_input.hide();
+                      anchor_input.hide();
+                      reference_input.show();
+                      extra_anchor_input.show();
                       break;
                   case 'extern':
-                      referenceField.hide();
-                      documentAnchor.hide();
-                      urlField.show();
-                      anchor.show();
+                      reference_input.hide();
+                      anchor_input.hide();
+                      url_input.show();
+                      extra_anchor_input.show();
                       break;
                   default:
-                      urlField.hide();
-                      referenceField.hide();
-                      anchor.hide();
-                      documentAnchor.show();
+                      url_input.hide();
+                      reference_input.hide();
+                      extra_anchor_input.hide();
+                      anchor_input.show();
                   };
               },
               setup: function(data) {
                   this.setValue(data.link.type);
               },
               commit: function(data) {
-                  if (data.link.type == undefined) {
+                  if (data.link.type === undefined) {
                       data.link.type = this.getValue();
                   };
               }
             },
             { type: 'text',
-              id: 'url',
+              id: 'link_url',
               label: 'External URL',
               required: true,
               setup: function(data) {
@@ -135,18 +139,20 @@ CKEDITOR.plugins.silvalink = {
               },
               validate: validatorDecorator(function() {
                   var dialog = this.getDialog();
-                  var type = dialog.getContentElement('link', 'type').getValue();
+                  var type_value = dialog.getContentElement(
+                      'link', 'link_type').getValue();
 
-                  if (type == 'extern') {
+                  if (type_value == 'extern') {
                       var checker = CKEDITOR.dialog.validate.regex(
                           /^(?:http|https|ftp|ftps|ssh|news|mailto|tel|webcal|itms):.*$/,
                           'You need to specify a valid external URL !');
+
                       return checker.apply(this);
                   };
                   return true;
               }),
               commit: function(data) {
-                  if (data.link.url == undefined) {
+                  if (data.link.url === undefined) {
                       data.link.url = this.getValue();
                   };
               }
@@ -157,7 +163,7 @@ CKEDITOR.plugins.silvalink = {
               required: true,
               onReferenceUpdate: function(event) {
                   var dialog = this.getDialog();
-                  var title = dialog.getContentElement('link', 'title');
+                  var title = dialog.getContentElement('link', 'link_title');
 
                   if (!title.getValue()) {
                       title.setValue(event.data.title);
@@ -165,9 +171,10 @@ CKEDITOR.plugins.silvalink = {
               },
               validate: validatorDecorator(function() {
                   var dialog = this.getDialog();
-                  var type = dialog.getContentElement('link', 'type').getValue();
+                  var type_value = dialog.getContentElement(
+                      'link', 'link_type').getValue();
 
-                  if (type == 'intern') {
+                  if (type_value == 'intern') {
                       var checker = CKEDITOR.dialog.validate.notEmpty(
                           'You need to select a content to link to !');
 
@@ -176,20 +183,20 @@ CKEDITOR.plugins.silvalink = {
                   return true;
               }),
               setup: function(data) {
-                  if (data.link.content != undefined) {
+                  if (data.link.content !== undefined) {
                       this.setValue(data.link.content);
                   } else {
                       this.clear();
                   };
               },
               commit: function(data) {
-                  if (data.link.content == undefined) {
+                  if (data.link.content === undefined) {
                       data.link.content = this.getValue();
                   };
               }
             },
             { type: 'select',
-              id: 'documentAnchor',
+              id: 'link_anchor',
               label: 'Anchor',
               items: [],
               required: true,
@@ -209,41 +216,45 @@ CKEDITOR.plugins.silvalink = {
               },
               validate: validatorDecorator(function() {
                   var dialog = this.getDialog();
-                  var type = dialog.getContentElement('link', 'type').getValue();
+                  var type_value = dialog.getContentElement(
+                      'link', 'link_type').getValue();
 
-                  if (type == 'anchor') {
+                  if (type_value == 'anchor') {
                       var checker = CKEDITOR.dialog.validate.notEmpty(
                           'You need to select a document anchor !');
+
                       return checker.apply(this);
                   };
                   return true;
               }),
               commit: function(data) {
                   var dialog = this.getDialog();
-                  var type = dialog.getContentElement('link', 'type').getValue();
+                  var type_value = dialog.getContentElement(
+                      'link', 'link_type').getValue();
 
-                  if (type == 'anchor') {
+                  if (type_value == 'anchor') {
                       data.link.anchor = this.getValue();
                   };
               }
             },
             { type: 'text',
-              id: 'anchor',
+              id: 'link_extra_anchor',
               label: 'Anchor',
               setup: function(data) {
                   this.setValue(data.link.anchor);
               },
               commit: function(data) {
                   var dialog = this.getDialog();
-                  var type = dialog.getContentElement('link', 'type').getValue();
+                  var type_value = dialog.getContentElement(
+                      'link', 'link_type').getValue();
 
-                  if (type != 'anchor') {
+                  if (type_value != 'anchor') {
                       data.link.anchor = this.getValue();
                   };
               }
             },
             { type: 'select',
-              id: 'target',
+              id: 'link_target',
               label: 'Window target',
               items: [
                   ['same window', '_self'],
@@ -255,31 +266,33 @@ CKEDITOR.plugins.silvalink = {
               required: true,
               onChange: function() {
                   var dialog = this.getDialog();
-                  var target = dialog.getContentElement('link', 'target');
-                  var input = dialog.getContentElement('link', 'customTarget');
+                  var target_value = dialog.getContentElement(
+                      'link', 'link_target').getValue();
+                  var input = dialog.getContentElement(
+                      'link', 'link_custom_target');
 
-                  if (target.getValue() == 'input') {
+                  if (target_value == 'input') {
                       input.getElement().show();
                   } else {
                       input.getElement().hide();
                   };
               },
               setup: function(data) {
-                  var isCustom = true;
+                  var is_custom = true;
                   var items = this._.select.items;
 
                   for (var i = 0; i < items.length; i++) {
                       if (items[i][1] == data.link.target) {
-                          isCustom = false;
+                          is_custom = false;
                           break;
                       };
                   };
-                  if (isCustom) {
+                  if (is_custom) {
                       var dialog = this.getDialog();
-                      var customTarget = dialog.getContentElement(
-                          'link', 'customTarget');
+                      var custom_target = dialog.getContentElement(
+                          'link', 'link_custom_target');
 
-                      customTarget.setValue(data.link.target);
+                      custom_target.setValue(data.link.target);
                       this.setValue('input');
                   } else {
                       this.setValue(data.link.target);
@@ -290,26 +303,28 @@ CKEDITOR.plugins.silvalink = {
 
                   if (target == 'input') {
                       var dialog = this.getDialog();
-                      var customTarget = dialog.getContentElement('link', 'customTarget');
+                      var custom_target = dialog.getContentElement(
+                          'link', 'link_custom_target');
 
-                      target = customTarget.getValue();
-                  } else {
-                      data.link.target = target;
-                  }
+                      target = custom_target.getValue();
+                  };
+                  data.link.target = target;
               }
             },
             { type: 'text',
-              id: 'customTarget',
+              id: 'link_custom_target',
               label: 'Custom target',
               required: true,
               validate: validatorDecorator(function() {
                   var dialog = this.getDialog();
-                  var target = dialog.getContentElement('link', 'target').getValue();
+                  var target_value = dialog.getContentElement(
+                      'link', 'link_target').getValue();
 
-                  if (target == 'input') {
+                  if (target_value == 'input') {
                       var checker = CKEDITOR.dialog.validate.notEmpty(
                           'Custom window target is selected for the link, ' +
                               'but no custom target is filled !');
+
                       return checker.apply(this);
                   };
                   return true;
@@ -317,7 +332,7 @@ CKEDITOR.plugins.silvalink = {
               // Setup and commit are done by the target field.
             },
             { type: 'text',
-              id: 'title',
+              id: 'link_title',
               label: 'Link title',
               setup: function(data) {
                   this.setValue(data.link.title);

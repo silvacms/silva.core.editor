@@ -17,21 +17,24 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
                         ['internal image', 'intern'],
                         ['external image', 'extern']
                     ],
+                    default: 'intern',
                     required: true,
                     onChange: function() {
                         var value = this.getValue();
                         var dialog = this.getDialog();
-                        var urlField = dialog.getContentElement('image', 'image_url').getElement();
-                        var referenceField = dialog.getContentElement('image', 'image_content').getElement();
+                        var url_input = dialog.getContentElement(
+                            'image', 'image_url').getElement();
+                        var reference_input = dialog.getContentElement(
+                            'image', 'image_content').getElement();
 
                         switch (value) {
                         case 'intern':
-                            urlField.hide();
-                            referenceField.show();
+                            url_input.hide();
+                            reference_input.show();
                             break;
                         case 'extern':
-                            referenceField.hide();
-                            urlField.show();
+                            reference_input.hide();
+                            url_input.show();
                             break;
                         }
                     },
@@ -51,9 +54,10 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
                     },
                     validate: function() {
                         var dialog = this.getDialog();
-                        var type = dialog.getContentElement('image', 'image_type').getValue();
+                        var type_value = dialog.getContentElement(
+                            'image', 'image_type').getValue();
 
-                        if (type == 'extern') {
+                        if (type_value == 'extern') {
                             var checker = CKEDITOR.dialog.validate.regex(
                                 /^(?:http|https):\/\/.*$/,
                                 'You need a specify a valid image external URL !');
@@ -197,13 +201,25 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
                         this.setValue(data.link.hires);
                     },
                     commit: function(data) {
+                        var dialog = this.getDialog();
+
                         if (this.getValue()) {
-                            var dialog = this.getDialog();
-                            var image = dialog.getContentElement('image', 'image_content');
+                            var image = dialog.getContentElement(
+                                'image', 'image_content');
 
                             data.link.type = 'intern';
                             data.link.content = image.getValue();
-                        }
+                        } else {
+                            var custom = dialog.getContentElement(
+                                'link', 'link_custom');
+
+                            if (!custom.getValue()) {
+                                // None of the two check box are checked.
+                                // Set link type to none to prevent
+                                // link fields to be used.
+                                data.link.type = null;
+                            };
+                        };
                     }
                   },
                   { type: 'checkbox',
@@ -236,7 +252,8 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
                     children: CKEDITOR.plugins.silvalink.createDialogFields(function (validator) {
                         return function () {
                             var dialog = this.getDialog();
-                            var activated = dialog.getContentElement('link', 'link_custom').getValue();
+                            var activated = dialog.getContentElement(
+                                'link', 'link_custom').getValue();
 
                             if (activated) {
                                 return validator.apply(this);
@@ -253,15 +270,14 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
             var editor = this.getParentEditor();
             var div = CKEDITOR.plugins.silvaimage.getSelectedImage(editor);
 
-            data.link = {};
-            data.image = {};
-
             var defaultSettings = function() {
                 data.link = {};
                 data.image = {};
                 data.image.type = 'intern';
                 data.link.type = null;
+                data.link.target = '_self';
             };
+            defaultSettings();
 
             var parseError = function(msg, element) {
                 if (window.console && console.log) {
@@ -313,7 +329,7 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
                         } else {
                             var href = a.$.getAttribute('_silva_href');
 
-                            if (href == 'javascript:void()') {
+                            if (!href || href == 'javascript:void()') {
                                 data.link.type = 'anchor';
                             } else {
                                 data.link.type = 'extern';
@@ -330,8 +346,6 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
                 } else {
                     parseError("Invalid image structure", div);
                 };
-            } else {
-                defaultSettings();
             };
             this.setupContent(data);
         },
@@ -394,6 +408,29 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
             };
             div.setAttributes(div_attributes);
             // Link tag
+            if (a != null && a.getChildCount()) {
+                var start = 0;
+
+                img = a.getChild(0);
+                if (img.is('img')) {
+                    start += 1;
+                    if (img.hasNext()) {
+                        caption = img.getNext();
+                        if (caption.is('span') &&
+                            caption.hasClass('image-caption')) {
+                            start += 1;
+                        } else {
+                            caption = null;
+                        };
+                    }
+                } else {
+                    img = null;
+                }
+                // Clean all following tags, they are faulty.
+                for (; start < a.getChildCount();) {
+                    a.getChild(start).remove();
+                };
+            };
             if (data.link.type) {
                 var attributes = {};
                 var attributes_to_clean = [];
@@ -408,30 +445,6 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
                     };
                     if (caption) {
                         caption.move(a);
-                    };
-                } else {
-                    if (a.getChildCount()) {
-                        var start = 0;
-
-                        img = a.getChild(0);
-                        if (img.is('img')) {
-                            start += 1;
-                            if (img.hasNext()) {
-                                caption = img.getNext();
-                                if (caption.is('span') &&
-                                    caption.hasClass('image-caption')) {
-                                    start += 1;
-                                } else {
-                                    caption = null;
-                                };
-                            }
-                        } else {
-                            img = null;
-                        }
-                        // Clean all following tags, they are faulty.
-                        for (; start < a.getChildCount();) {
-                            a.getChild(start).remove();
-                        };
                     };
                 };
 
