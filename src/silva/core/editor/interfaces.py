@@ -30,13 +30,13 @@ tools_vocabulary = SimpleVocabulary([
     SimpleTerm(title='Remove a link', value='SilvaUnlink'),
     SimpleTerm(title='Include a Silva (or remote) image', value='SilvaImage'),
     SimpleTerm(title='Include an anchor or Silva Index entry', value='SilvaAnchor'),
+    SimpleTerm(title='Format using service settings', value='SilvaFormat'),
     SimpleTerm(title='Cut', value='Cut'),
     SimpleTerm(title='Copy', value='Copy'),
     SimpleTerm(title='Paste', value='Paste'),
     SimpleTerm(title='Paste Plain Text', value='PasteText'),
     SimpleTerm(title='Paste from Word', value='PasteFromWord'),
     SimpleTerm(title='Styles', value='Styles'),
-    SimpleTerm(title='Format', value='Format'),
     SimpleTerm(title='Font', value='Font'),
     SimpleTerm(title='Font Size', value='FontSize'),
     SimpleTerm(title='Bold', value='Bold'),
@@ -137,14 +137,16 @@ class ICKEditorSettings(interface.Interface):
         title=u"Toolbars",
         description=u"Select tools to appear in the toolbars",
         value_type=schema.Choice(source=tools_vocabulary),
-        default=['SilvaSave', 'Source', '-',
-                 'Cut', 'Copy', 'Paste', '-',
-                 'Undo', 'Redo', '-',
-                 'Find', 'Replace', '/',
-                 'Format', '-', 'Bold', 'Italic', 'Strike', '-',
-                 'NumberedList', 'BulletedList', '-',
-                 'Outdent', 'Indent', '-',
-                 'SilvaLink', 'SilvaUnlink', 'SilvaAnchor', 'SilvaImage'],
+        default=[
+            'SilvaSave', 'Source', '-',
+            'Cut', 'Copy', 'Paste', 'PasteFromWord', '-',
+            'Undo', 'Redo', '-',
+            'Find', 'Replace', '-', 'Maximize', '/',
+            'SilvaFormat', '-', 'Bold', 'Italic', 'Strike', '-',
+            'NumberedList', 'BulletedList', '-',
+            'Outdent', 'Indent', '-',
+            'SilvaLink', 'SilvaUnlink', 'SilvaAnchor', 'SilvaImage', 'Table',
+            ],
         required=True)
     formats = schema.List(
         title=u"Formats",
@@ -152,10 +154,29 @@ class ICKEditorSettings(interface.Interface):
         value_type=schema.Object(
             title=u"Format",
             schema=ICKEditorFormat),
-        default=[CKEditorFormat(u'Title', 'h1', []),
-                 CKEditorFormat(u'Sub Title', 'h2', []),
-                 CKEditorFormat(u'Normal', 'p', []),
-                 ],
+        default=[
+            CKEditorFormat(
+                u'Title', 'h1', []),
+            CKEditorFormat(
+                u'Heading', 'h2', []),
+            CKEditorFormat(
+                u'Sub Heading', 'h3', []),
+            CKEditorFormat(
+                u'Paragraph Heading', 'h4', []),
+            CKEditorFormat(
+                u'Sub Paragraph Heading', 'h5', []),
+            CKEditorFormat(
+                u'Plain', 'p', [CKEditorHTMLAttribute('class', 'plain')]),
+            CKEditorFormat(
+                u'Lead', 'p', [CKEditorHTMLAttribute('class', 'lead')]),
+            CKEditorFormat(
+                u'Annotation', 'p', [CKEditorHTMLAttribute('class', 'annotation')]),
+            ],
+        required=True)
+    contents_css = schema.TextLine(
+        title=u"Contents CSS",
+        description=u"CSS to apply to edited content in the editor",
+        default=u'++resource++silva.core.editor/content.css',
         required=True)
     skin = schema.Choice(
         title=u"Editor skin",

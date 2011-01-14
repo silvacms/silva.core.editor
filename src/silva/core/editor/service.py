@@ -19,6 +19,8 @@ from zeam.form import silva as silvaforms
 
 logger = logging.getLogger('silva.core.editor')
 
+FORMAT_IDENTIFIER_BASE = 'format%0004d'
+
 
 class CKEditorService(SilvaService):
     """Configure the editor service.
@@ -35,6 +37,7 @@ class CKEditorService(SilvaService):
 
     toolbars = FieldProperty(ICKEditorSettings['toolbars'])
     formats = FieldProperty(ICKEditorSettings['formats'])
+    contents_css = FieldProperty(ICKEditorSettings['contents_css'])
     skin = FieldProperty(ICKEditorSettings['skin'])
 
     def get_toolbars_configuration(self):
@@ -71,6 +74,25 @@ class CKEditorService(SilvaService):
                 extra_paths[name] = '/'.join((base, path))
         return extra_paths
 
+    def get_formats(self):
+        count = 0
+        order = []
+        result = {'order': order}
+        for format in self.formats:
+            attributes_result = {}
+            format_result = {
+                'name': format.name,
+                'element': format.element}
+            for attribute in format.attributes:
+                attributes_result[attribute.name] = attribute.value
+            if attributes_result:
+                format_result['attributes'] = attributes_result
+            format_identifier = FORMAT_IDENTIFIER_BASE % count
+            result[format_identifier] =  format_result
+            order.append(format_identifier)
+            count += 1
+        return result
+
 
 class CKEditorSettings(silvaforms.ZMIForm):
     """Update the settings.
@@ -78,7 +100,7 @@ class CKEditorSettings(silvaforms.ZMIForm):
     grok.name('manage_settings')
     grok.context(ICKEditorService)
 
-    label = u"CKEditor setttings"
+    label = u"CKEditor settings"
     description = u"You can from here modify the WYSIYG editor settings."
     ignoreContent = False
     fields = silvaforms.Fields(ICKEditorSettings)
@@ -94,5 +116,7 @@ class CKEditorRESTConfiguration(rest.REST):
         return self.json_response(
             {'toolbars': service.get_toolbars_configuration(),
              'paths': service.get_extra_paths(self.request),
-             'extraPlugins': 'silvaimage,silvalink,silvaanchor,silvasave',
+             'contents_css': service.contents_css,
+             'formats': service.get_formats(),
+             'plugins': 'silvaimage,silvalink,silvaanchor,silvasave,silvaformat',
              'skin': service.skin})
