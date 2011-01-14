@@ -40,6 +40,10 @@ CKEDITOR.plugins.add('silvaformat', {
                 }
             },
             onClick: function(value) {
+                if (CKEDITOR.plugins.silvaimage.getSelectedImage(editor)) {
+                    return;
+                };
+
                 editor.focus();
                 editor.fire('saveSnapshot');
 
