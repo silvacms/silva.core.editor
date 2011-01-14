@@ -56,7 +56,7 @@ class CKEditorService(SilvaService):
             splitted_list.append(raw_list)
         return splitted_list
 
-    def get_extra_paths(self, request=None):
+    def get_custom_plugins(self, request=None):
         """Return a list of plugin to enable, with their loading path.
         """
         base = ''
@@ -113,10 +113,11 @@ class CKEditorRESTConfiguration(rest.REST):
 
     def GET(self):
         service = getUtility(ICKEditorService)
+        plugins_path = service.get_custom_plugins(self.request)
         return self.json_response(
             {'toolbars': service.get_toolbars_configuration(),
-             'paths': service.get_extra_paths(self.request),
+             'paths': plugins_path,
              'contents_css': service.contents_css,
              'formats': service.get_formats(),
-             'plugins': 'silvaimage,silvalink,silvaanchor,silvasave,silvaformat',
+             'plugins': ','.join(plugins_path.keys()),
              'skin': service.skin})
