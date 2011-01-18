@@ -1,4 +1,4 @@
-(function($) {
+(function($, CKEDITOR) {
     CKEDITOR.plugins.add('silvareference', {
         init: function(editor) {
             var templateURL = $('#content-url').attr('href') + '/++rest++silva.core.editor.widget.reference';
@@ -69,4 +69,4 @@
             });
         }
     });
-})(jQuery);
+})(jQuery, CKEDITOR);

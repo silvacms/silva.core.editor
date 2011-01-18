@@ -1,39 +1,42 @@
 
-CKEDITOR.plugins.silvaimage = {
-    isImage: function(element) {
-        if (element != null && element.is('div') && element.hasClass('image')) {
-            return true;
-        };
-        return false;
-    },
-    getSelectedImage: function(editor, select_base_element) {
-        try {
-            var selection = editor.getSelection();
-            var base = null;
+(function(CKEDITOR){
 
-            if (selection.getType() == CKEDITOR.SELECTION_ELEMENT) {
-                base = selection.getSelectedElement();
-            } else {
-                base = selection.getStartElement();
+    CKEDITOR.plugins.silvaimage = {
+        isImage: function(element) {
+            if (element != null &&
+                element.is('div') &&
+                element.hasClass('image')) {
+                return true;
             };
+            return false;
+        },
+        getSelectedImage: function(editor, select_base_element) {
+            try {
+                var selection = editor.getSelection();
+                var base = null;
 
-            var element = base.getAscendant('div', true);
+                if (selection.getType() == CKEDITOR.SELECTION_ELEMENT) {
+                    base = selection.getSelectedElement();
+                } else {
+                    base = selection.getStartElement();
+                };
 
-            if (CKEDITOR.plugins.silvaimage.isImage(element)) {
-                if (base.$ !== element.$ && select_base_element) {
-                    selection.selectElement(element);
-                }
-                return element;
-            };
-            return null;
+                var element = base.getAscendant('div', true);
+
+                if (CKEDITOR.plugins.silvaimage.isImage(element)) {
+                    if (base.$ !== element.$ && select_base_element) {
+                        selection.selectElement(element);
+                    }
+                    return element;
+                };
+                return null;
+            }
+            catch(e) {
+                return null;
+            }
         }
-        catch(e) {
-            return null;
-        }
-    }
-};
+    };
 
-(function(){
     var API = CKEDITOR.plugins.silvaimage;
 
     CKEDITOR.plugins.add('silvaimage', {
@@ -138,13 +141,15 @@ CKEDITOR.plugins.silvaimage = {
             };
             var is_img_div = function(element) {
                 // Test if the given element is an image div.
-                return (element.name == 'div' &&
+                return (element &&
+                        element.name == 'div' &&
                         element.attributes['class'] != undefined &&
                         element.attributes['class'].match('image'));
             };
             var is_img_a = function(element) {
                 // Test if the given element is image link.
-                return (element.name == 'a' &&
+                return (element &&
+                        element.name == 'a' &&
                         element.attributes['class'] == 'image-link');
             };
 
@@ -184,7 +189,7 @@ CKEDITOR.plugins.silvaimage = {
                                 if (!attributes['_silva_src']) {
                                     attributes['_silva_src'] =
                                         attributes['src'] ||
-                                        attributes['_cke_saved_src'];
+                                        attributes['data-cke-saved-src'];
                                 };
                                 return div;
                             };
@@ -209,4 +214,4 @@ CKEDITOR.plugins.silvaimage = {
             };
         }
     });
-})();
+})(CKEDITOR);

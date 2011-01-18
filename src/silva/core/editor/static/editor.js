@@ -1,3 +1,4 @@
+
 $(document).ready(function(){
     var content_url = $('#content-url').attr('href');
     var text = $('#editor textarea');
@@ -24,7 +25,7 @@ $(document).ready(function(){
                 contentsCss: configuration['contents_css'],
                 silvaFormats: configuration['formats'],
                 extraPlugins: configuration['plugins'],
-                removePlugins: 'save,link,flash,image,filebrowser,forms',
+                removePlugins: 'save,link,flash,image,filebrowser,iframe,forms',
                 skin: configuration['skin'],
                 toolbar: 'Silva',
                 toolbar_Silva: configuration['toolbars']

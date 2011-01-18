@@ -31,6 +31,7 @@ tools_vocabulary = SimpleVocabulary([
     SimpleTerm(title='Include a Silva (or remote) image', value='SilvaImage'),
     SimpleTerm(title='Include an anchor or Silva Index entry', value='SilvaAnchor'),
     SimpleTerm(title='Format using service settings', value='SilvaFormat'),
+    SimpleTerm(title='Add an External Source', value='SilvaExternalSource'),
     SimpleTerm(title='Cut', value='Cut'),
     SimpleTerm(title='Copy', value='Copy'),
     SimpleTerm(title='Paste', value='Paste'),
@@ -144,8 +145,10 @@ class ICKEditorSettings(interface.Interface):
             'Find', 'Replace', '-', 'Maximize', '/',
             'SilvaFormat', '-', 'Bold', 'Italic', 'Strike', '-',
             'NumberedList', 'BulletedList', '-',
+            'Subscript', 'Superscript', '-',
             'Outdent', 'Indent', '-',
-            'SilvaLink', 'SilvaUnlink', 'SilvaAnchor', 'SilvaImage', 'Table',
+            'SilvaLink', 'SilvaUnlink', 'SilvaAnchor', 'SilvaImage',
+            'SilvaExternalSource', 'Table',
             ],
         required=True)
     formats = schema.List(
