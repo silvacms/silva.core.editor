@@ -186,8 +186,9 @@
                                 remove(attributes, 'height');
                                 remove(attributes, 'width');
                                 // Save the src tag
-                                if (!attributes['_silva_src']) {
-                                    attributes['_silva_src'] =
+                                if (!attributes['data-silva-src'] &&
+                                    !attributes['data-silva-reference']) {
+                                    attributes['data-silva-src'] =
                                         attributes['src'] ||
                                         attributes['data-cke-saved-src'];
                                 };
@@ -208,6 +209,21 @@
                                 remove(attributes, 'contenteditable');
                                 remove(attributes, 'style');
                             };
+                        },
+                        a: function(element) {
+                            var attributes = element.attributes;
+
+                            if (attributes['class'] == 'image-link') {
+                                remove(attributes, 'data-cke-saved-href');
+                                remove(attributes, 'href');
+                            };
+                            return null;
+                        },
+                        img: function(element) {
+                            var attributes = element.attributes;
+
+                            remove(attributes, 'src');
+                            return null;
                         }
                     }
                 });

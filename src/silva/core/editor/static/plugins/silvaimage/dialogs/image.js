@@ -290,12 +290,12 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
                 if (img.is('img')) {
                     data.image.alt = img.$.getAttribute('alt');
                     data.image.url = img.$.getAttribute('src');
-                    if (img.$.hasAttribute('_silva_reference')) {
+                    if (img.$.hasAttribute('data-silva-reference')) {
                         data.image.type = 'intern';
-                        data.image.content = img.$.getAttribute('_silva_target');
+                        data.image.content = img.$.getAttribute('data-silva-target');
                     } else {
                         data.image.type = 'extern';
-                        data.image.url = img.$.getAttribute('_silva_src');
+                        data.image.url = img.$.getAttribute('data-silva-src');
                     };
                     if (img.hasNext()) {
                         var caption = img.getNext();
@@ -322,12 +322,12 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
                     if (a.is('a')) {
                         data.link.title = a.$.getAttribute('title');
                         data.link.target = a.$.getAttribute('target');
-                        data.link.anchor = a.$.getAttribute('_silva_anchor');
-                        if (a.$.hasAttribute('_silva_reference')) {
+                        data.link.anchor = a.$.getAttribute('data-silva-anchor');
+                        if (a.$.hasAttribute('data-silva-reference')) {
                             data.link.type = 'intern';
-                            data.link.content = a.$.getAttribute('_silva_target');
+                            data.link.content = a.$.getAttribute('data-silva-target');
                         } else {
-                            var href = a.$.getAttribute('_silva_href');
+                            var href = a.$.getAttribute('data-silva-href');
 
                             if (!href || href == 'javascript:void()') {
                                 data.link.type = 'anchor';
@@ -458,24 +458,24 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
 
                 update_attribute('target', data.link.target);
                 update_attribute('title', data.link.title);
-                update_attribute('_silva_anchor', data.link.anchor);
+                update_attribute('data-silva-anchor', data.link.anchor);
 
                 switch (data.link.type) {
                 case 'intern':
-                    attributes['_silva_reference'] = 'new';
-                    attributes['_silva_target'] = data.link.content;
-                    attributes_to_clean.push('_silva_href');
+                    attributes['data-silva-reference'] = 'new';
+                    attributes['data-silva-target'] = data.link.content;
+                    attributes_to_clean.push('data-silva-href');
                     break;
                 case 'extern':
                     attributes['href'] = data.link.url;
-                    attributes['_silva_href'] = data.link.url;
-                    attributes_to_clean.push('_silva_reference');
-                    attributes_to_clean.push('_silva_target');
+                    attributes['data-silva-href'] = data.link.url;
+                    attributes_to_clean.push('data-silva-reference');
+                    attributes_to_clean.push('data-silva-target');
                     break;
                 case 'anchor':
-                    attributes_to_clean.push('_silva_reference');
-                    attributes_to_clean.push('_silva_target');
-                    attributes_to_clean.push('_silva_href');
+                    attributes_to_clean.push('data-silva-reference');
+                    attributes_to_clean.push('data-silva-target');
+                    attributes_to_clean.push('data-silva-href');
                     break;
                 };
                 a.setAttributes(attributes);
@@ -503,13 +503,13 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
                 img_attributes_to_clean.push('alt');
             };
             if (data.image.type == 'intern') {
-                img_attributes['_silva_reference'] = 'new';
-                img_attributes['_silva_target'] = data.image.content;
-                img_attributes_to_clean.push('_silva_src');
+                img_attributes['data-silva-reference'] = 'new';
+                img_attributes['data-silva-target'] = data.image.content;
+                img_attributes_to_clean.push('data-silva-src');
             } else {
-                img_attributes['_silva_src'] = data.image.url;
-                img_attributes_to_clean.push('_silva_reference');
-                img_attributes_to_clean.push('_silva_target');
+                img_attributes['data-silva-src'] = data.image.url;
+                img_attributes_to_clean.push('data-silva-reference');
+                img_attributes_to_clean.push('data-silva-target');
             };
             img.setAttributes(img_attributes);
             if (img_attributes_to_clean.length) {

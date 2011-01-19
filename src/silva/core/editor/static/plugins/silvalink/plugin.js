@@ -422,11 +422,18 @@ CKEDITOR.plugins.silvalink = {
             var dataFilter = dataProcessor && dataProcessor.dataFilter;
             var htmlFilter = dataProcessor && dataProcessor.htmlFilter;
 
+            var remove = function(attributes, name) {
+                if (attributes[name]) {
+                    delete attributes[name];
+                };
+            };
+
             if (dataFilter) {
                 dataFilter.addRules({
                     elements: {
                         a: function(element) {
                             var attributes = element.attributes;
+
                             if (!attributes['class']) {
                                 if (attributes['name'] && attributes['href']) {
                                     attributes['class'] = 'anchor';
@@ -438,11 +445,14 @@ CKEDITOR.plugins.silvalink = {
                                 if (!attributes['href']) {
                                     attributes['href'] = 'javascript:void()';
                                 }
-                                if (!attributes['_silva_href']) {
+                                if (!attributes['data-silva-href'] &&
+                                    !attributes['data-silva-reference']) {
                                     // Backup the href attribute into
-                                    // _silva_href: href get removed in
+                                    // data-silva-href: href get removed in
                                     // case of copy and paste in some obscur cases.
-                                    attributes['_silva_href'] = attributes['href'];
+                                    attributes['data-silva-href'] =
+                                        attributes['href'] ||
+                                        attributes['data-cke-saved-href'];
                                 };
                             };
                             return null;
@@ -455,16 +465,10 @@ CKEDITOR.plugins.silvalink = {
                     elements: {
                         a: function(element) {
                             var attributes = element.attributes;
+
                             if (attributes['class'] == 'link') {
-
-                                var clean = function(name) {
-                                    if (attributes[name]) {
-                                        delete attributes[name];
-                                    };
-                                };
-
-                                clean('_cke_saved_href');
-                                clean('href');
+                                remove(attributes, 'data-cke-saved-href');
+                                remove(attributes, 'href');
                             };
                             return null;
                         }

@@ -26,12 +26,12 @@ CKEDITOR.dialog.add('silvalink', function(editor) {
 
                 data.link.title = link.getAttribute('title');
                 data.link.target = link.getAttribute('target');
-                data.link.anchor = link.getAttribute('_silva_anchor');
-                if (link.hasAttribute('_silva_reference')) {
+                data.link.anchor = link.getAttribute('data-silva-anchor');
+                if (link.hasAttribute('data-silva-reference')) {
                     data.link.type = 'intern';
-                    data.link.content = link.getAttribute('_silva_target');
+                    data.link.content = link.getAttribute('data-silva-target');
                 } else {
-                    var href = link.getAttribute('_silva_href');
+                    var href = link.getAttribute('data-silva-href');
 
                     if (!href || href == 'javascript:void()') {
                         data.link.type = 'anchor';
@@ -68,28 +68,28 @@ CKEDITOR.dialog.add('silvalink', function(editor) {
 
             update_attribute('target', data.link.target);
             update_attribute('title', data.link.title);
-            update_attribute('_silva_anchor', data.link.anchor);
+            update_attribute('data-silva-anchor', data.link.anchor);
 
             switch (data.link.type) {
             case 'intern':
-                attributes['_silva_target'] = data.link.content;
-                if (element == null || !element.hasAttribute('_silva_reference')) {
-                    attributes['_silva_reference'] = 'new';
+                attributes['data-silva-target'] = data.link.content;
+                if (element == null || !element.hasAttribute('data-silva-reference')) {
+                    attributes['data-silva-reference'] = 'new';
                 }
-                attributes_to_clean.push('_silva_href');
+                attributes_to_clean.push('data-silva-href');
                 break;
             case 'extern':
-                // We save the value into _silva_href. We set the href
+                // We save the value into data-silva-href. We set the href
                 // attribute to get the link underlined.
                 attributes['href'] = data.link.url;
-                attributes['_silva_href'] = data.link.url;
-                attributes_to_clean.push('_silva_reference');
-                attributes_to_clean.push('_silva_target');
+                attributes['data-silva-href'] = data.link.url;
+                attributes_to_clean.push('data-silva-reference');
+                attributes_to_clean.push('data-silva-target');
                 break;
             case 'anchor':
-                attributes_to_clean.push('_silva_href');
-                attributes_to_clean.push('_silva_reference');
-                attributes_to_clean.push('_silva_target');
+                attributes_to_clean.push('data-silva-href');
+                attributes_to_clean.push('data-silva-reference');
+                attributes_to_clean.push('data-silva-target');
                 break;
             };
 

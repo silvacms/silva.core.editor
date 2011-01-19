@@ -21,13 +21,13 @@ class LinkTransfomer(ReferenceTransformationFilter):
                 name, reference = self.get_reference(
                     link.attrib['reference'], read_only=True)
                 if reference is not None:
-                    link.attrib['_silva_reference'] = name
-                    link.attrib['_silva_target'] = str(reference.target_id)
+                    link.attrib['data-silva-reference'] = name
+                    link.attrib['data-silva-target'] = str(reference.target_id)
                     del link.attrib['reference']
             if 'href' in link.attrib:
-                link.attrib['_silva_href'] = link.attrib['href']
+                link.attrib['data-silva-href'] = link.attrib['href']
             if 'anchor' in link.attrib:
-                link.attrib['_silva_anchor'] = link.attrib['anchor']
+                link.attrib['data-silva-anchor'] = link.attrib['anchor']
                 del link.attrib['anchor']
             if 'href' not in link.attrib:
                 link.attrib['href'] = 'javascript:void()'
@@ -48,12 +48,12 @@ class ImageTransformer(ReferenceTransformationFilter):
                 name, reference = self.get_reference(
                     image.attrib['reference'], read_only=True)
                 if reference is not None:
-                    image.attrib['_silva_reference'] = name
-                    image.attrib['_silva_target'] = str(reference.target_id)
+                    image.attrib['data-silva-reference'] = name
+                    image.attrib['data-silva-target'] = str(reference.target_id)
                     image.attrib['src'] = absoluteURL(reference.target, self.request)
                     del image.attrib['reference']
             elif 'src' in image.attrib:
-                image.attrib['_silva_src'] = image.attrib['src']
+                image.attrib['data-silva-src'] = image.attrib['src']
 
 
 class ImageLinkTransformer(ReferenceTransformationFilter):
@@ -72,13 +72,13 @@ class ImageLinkTransformer(ReferenceTransformationFilter):
                     name, reference = self.get_reference(
                         link.attrib['reference'], read_only=True)
                     if reference is not None:
-                        link.attrib['_silva_reference'] = name
-                        link.attrib['_silva_target'] = str(reference.target_id)
+                        link.attrib['data-silva-reference'] = name
+                        link.attrib['data-silva-target'] = str(reference.target_id)
                         del link.attrib['reference']
                 if 'href' in link.attrib:
-                    link.attrib['_silva_href'] = link.attrib['href']
+                    link.attrib['data-silva-href'] = link.attrib['href']
                 if 'anchor' in link.attrib:
-                    link.attrib['_silva_anchor'] = link.attrib['anchor']
+                    link.attrib['data-silva-anchor'] = link.attrib['anchor']
                     del link.attrib['anchor']
                 if 'href' not in link.attrib:
                     link.attrib['href'] = 'javascript:void()'
