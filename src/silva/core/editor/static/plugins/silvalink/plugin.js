@@ -351,8 +351,12 @@ CKEDITOR.plugins.silvalink = {
     CKEDITOR.plugins.add('silvalink', {
         requires: ['dialog', 'silvareference'],
         init: function(editor) {
-            editor.addCommand('silvalink', new CKEDITOR.dialogCommand('silvalink'));
-            editor.addCommand('silvaunlink', new CKEDITOR.unlinkCommand());
+            editor.addCommand(
+                'silvalink',
+                new CKEDITOR.dialogCommand('silvalink'));
+            editor.addCommand(
+                'silvaunlink',
+                new CKEDITOR.unlinkCommand());
             editor.ui.addButton('SilvaLink', {
                 label: 'Link properties',
                 command: 'silvalink',
