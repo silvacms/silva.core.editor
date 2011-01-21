@@ -63,11 +63,11 @@
                     'padding-left: 5px' +
                     '}');
             editor.addCss(
-                'div.float-left {' +
+                'div.image-float-left {' +
                     'float: left;' +
                     '}');
             editor.addCss(
-                'div.float-right {' +
+                'div.image-float-right {' +
                     'float: right;' +
                     '}');
             editor.addCss(

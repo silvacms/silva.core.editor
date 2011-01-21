@@ -6,265 +6,265 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
         title: 'Image properties',
         minWidth: 350,
         minHeight: 230,
-        contents: [
-            { id: 'image',
-              label: 'Image',
-              elements: [
-                  { type: 'radio',
-                    id: 'image_type',
-                    label: 'Image type',
-                    items: [
-                        ['internal image', 'intern'],
-                        ['external image', 'extern']
-                    ],
-                    default: 'intern',
-                    required: true,
-                    onChange: function() {
-                        var value = this.getValue();
-                        var dialog = this.getDialog();
-                        var url_input = dialog.getContentElement(
-                            'image', 'image_url').getElement();
-                        var reference_input = dialog.getContentElement(
-                            'image', 'image_content').getElement();
+        contents: [{
+            id: 'image',
+            label: 'Image',
+            elements: [{
+                type: 'radio',
+                id: 'image_type',
+                label: 'Image type',
+                items: [
+                    ['internal image', 'intern'],
+                    ['external image', 'extern']
+                ],
+                default: 'intern',
+                required: true,
+                onChange: function() {
+                    var value = this.getValue();
+                    var dialog = this.getDialog();
+                    var url_input = dialog.getContentElement(
+                        'image', 'image_url').getElement();
+                    var reference_input = dialog.getContentElement(
+                        'image', 'image_content').getElement();
 
-                        switch (value) {
-                        case 'intern':
-                            url_input.hide();
-                            reference_input.show();
-                            break;
-                        case 'extern':
-                            reference_input.hide();
-                            url_input.show();
-                            break;
-                        }
-                    },
-                    setup: function(data) {
-                        this.setValue(data.image.type);
-                    },
-                    commit: function(data) {
-                        data.image.type = this.getValue();
+                    switch (value) {
+                    case 'intern':
+                        url_input.hide();
+                        reference_input.show();
+                        break;
+                    case 'extern':
+                        reference_input.hide();
+                        url_input.show();
+                        break;
                     }
-                  },
-                  { type: 'text',
-                    id: 'image_url',
-                    label: 'Image URL',
-                    required: true,
-                    setup: function(data) {
-                        this.setValue(data.image.url);
-                    },
-                    validate: function() {
-                        var dialog = this.getDialog();
-                        var type_value = dialog.getContentElement(
-                            'image', 'image_type').getValue();
+                },
+                setup: function(data) {
+                    this.setValue(data.image.type);
+                },
+                commit: function(data) {
+                    data.image.type = this.getValue();
+                }
+            }, {
+                type: 'text',
+                id: 'image_url',
+                label: 'Image URL',
+                required: true,
+                setup: function(data) {
+                    this.setValue(data.image.url);
+                },
+                validate: function() {
+                    var dialog = this.getDialog();
+                    var type_value = dialog.getContentElement(
+                        'image', 'image_type').getValue();
 
-                        if (type_value == 'extern') {
-                            var checker = CKEDITOR.dialog.validate.regex(
+                    if (type_value == 'extern') {
+                        var checker = CKEDITOR.dialog.validate.regex(
                                 /^(?:http|https):\/\/.*$/,
-                                'You need a specify a valid image external URL !');
+                            'You need a specify a valid image external URL !');
 
-                            return checker.apply(this);
-                        };
-                        return true;
-                    },
-                    commit: function(data) {
-                        data.image.url = this.getValue();
+                        return checker.apply(this);
+                    };
+                    return true;
+                },
+                commit: function(data) {
+                    data.image.url = this.getValue();
+                }
+            }, {
+                type: 'reference',
+                id: 'image_content',
+                label: 'Image',
+                content: 'silva.core.interfaces.content.IImage',
+                required: true,
+                onReferenceUpdate: function(event) {
+                    var dialog = this.getDialog();
+                    var alt = dialog.getContentElement('image', 'image_alt');
+                    var url = dialog.getContentElement('image', 'image_url');
+
+                    if (!alt.getValue()) {
+                        alt.setValue(event.data.title);
+                    };
+                    url.setValue(event.data.url);
+                },
+                setup: function(data) {
+                    if (data.image.content != undefined) {
+                        this.setValue(data.image.content);
+                    } else {
+                        this.clear();
+                    };
+                },
+                validate: function() {
+                    var dialog = this.getDialog();
+                    var type = dialog.getContentElement('image', 'image_type').getValue();
+
+                    if (type == 'intern') {
+                        var checker = CKEDITOR.dialog.validate.notEmpty(
+                            'You need to select an image to insert !');
+
+                        return checker.apply(this);
+                    };
+                    return true;
+                },
+                commit: function(data) {
+                    data.image.content = this.getValue();
+                }
+            },{
+                type: 'select',
+                id: 'image_align',
+                label: 'Image alignement',
+                required: true,
+                items: [
+                    ['default', 'default'],
+                    ['align left', 'image-left'],
+                    ['align center', 'image-center'],
+                    ['align right', 'image-right'],
+                    ['float left', 'image-float-left'],
+                    ['float right', 'image-float-right']
+                ],
+                setup: function(data) {
+                    this.setValue(data.image.align);
+                },
+                commit: function(data) {
+                    data.image.align = this.getValue();
+                }
+            }, {
+                type: 'text',
+                id: 'image_alt',
+                label: 'Image alternative text',
+                required: false,
+                setup: function(data) {
+                    this.setValue(data.image.alt);
+                },
+                commit: function(data) {
+                    data.image.alt = this.getValue();
+                }
+            }, {
+                type: 'text',
+                id: 'image_caption',
+                label: 'Image caption',
+                required: false,
+                setup: function(data) {
+                    this.setValue(data.image.caption);
+                },
+                commit: function(data) {
+                    var dialog = this.getDialog();
+                    var altAsCaption = dialog.getContentElement('image', 'image_altAsCaption').getValue();
+
+                    if (altAsCaption) {
+                        var alt = dialog.getContentElement('image', 'image_alt').getValue();
+
+                        data.image.caption = alt;
+                    } else {
+                        data.image.caption = this.getValue();
+                    };
+                }
+            }, {
+                type: 'checkbox',
+                id: 'image_altAsCaption',
+                label: 'Use image alternative text as caption',
+                required: false,
+                onChange: function() {
+                    var value = this.getValue();
+                    var dialog = this.getDialog();
+                    var caption = dialog.getContentElement('image', 'image_caption').getElement();
+
+                    if (value) {
+                        caption.hide();
+                    } else {
+                        caption.show();
                     }
-                  },
-                  { type: 'reference',
-                    id: 'image_content',
-                    label: 'Image',
-                    content: 'silva.core.interfaces.content.IImage',
-                    required: true,
-                    onReferenceUpdate: function(event) {
-                        var dialog = this.getDialog();
-                        var alt = dialog.getContentElement('image', 'image_alt');
-                        var url = dialog.getContentElement('image', 'image_url');
-
-                        if (!alt.getValue()) {
-                            alt.setValue(event.data.title);
-                        };
-                        url.setValue(event.data.url);
-                    },
-                    setup: function(data) {
-                        if (data.image.content != undefined) {
-                            this.setValue(data.image.content);
-                        } else {
-                            this.clear();
-                        };
-                    },
-                    validate: function() {
-                        var dialog = this.getDialog();
-                        var type = dialog.getContentElement('image', 'image_type').getValue();
-
-                        if (type == 'intern') {
-                            var checker = CKEDITOR.dialog.validate.notEmpty(
-                                'You need to select an image to insert !');
-
-                            return checker.apply(this);
-                        };
-                        return true;
-                    },
-                    commit: function(data) {
-                        data.image.content = this.getValue();
-                    }
-                  },
-                  { type: 'select',
-                    id: 'image_align',
-                    label: 'Image alignement',
-                    required: true,
-                    items: [
-                        ['default', 'default'],
-                        ['align left', 'image-left'],
-                        ['align center', 'image-center'],
-                        ['align right', 'image-right'],
-                        ['float left', 'float-left'],
-                        ['float right', 'float-right']
-                    ],
-                    setup: function(data) {
-                        this.setValue(data.image.align);
-                    },
-                    commit: function(data) {
-                        data.image.align = this.getValue();
-                    }
-                  },
-                  { type: 'text',
-                    id: 'image_alt',
-                    label: 'Image alternative text',
-                    required: false,
-                    setup: function(data) {
-                        this.setValue(data.image.alt);
-                    },
-                    commit: function(data) {
-                        data.image.alt = this.getValue();
-                    }
-                  },
-                  { type: 'text',
-                    id: 'image_caption',
-                    label: 'Image caption',
-                    required: false,
-                    setup: function(data) {
-                        this.setValue(data.image.caption);
-                    },
-                    commit: function(data) {
-                        var dialog = this.getDialog();
-                        var altAsCaption = dialog.getContentElement('image', 'image_altAsCaption').getValue();
-
-                        if (altAsCaption) {
-                            var alt = dialog.getContentElement('image', 'image_alt').getValue();
-
-                            data.image.caption = alt;
-                        } else {
-                            data.image.caption = this.getValue();
-                        };
-                    }
-                  },
-                  { type: 'checkbox',
-                    id: 'image_altAsCaption',
-                    label: 'Use image alternative text as caption',
-                    required: false,
-                    onChange: function() {
-                        var value = this.getValue();
-                        var dialog = this.getDialog();
-                        var caption = dialog.getContentElement('image', 'image_caption').getElement();
-
-                        if (value) {
-                            caption.hide();
-                        } else {
-                            caption.show();
-                        }
-                    },
-                    setup: function(data) {
-                        var value = data.image.alt == data.image.caption;
-                        this.setValue(value);
-                    }
-                    // Commit is done in caption field
-                  }
-              ]
-            },
-            { id: 'link',
-              label: 'Link',
-              elements: [
-                  { type: 'checkbox',
-                    id: 'link_hires',
-                    label: 'Link to the hires version of the image',
-                    required: false,
-                    onChange: function() {
-                        var value = this.getValue();
-                        var dialog = this.getDialog();
-                        var custom = dialog.getContentElement('link', 'link_custom');
-
-                        if (value) {
-                            custom.setValue(false);
-                        }
-                    },
-                    setup: function(data) {
-                        this.setValue(data.link.hires);
-                    },
-                    commit: function(data) {
-                        var dialog = this.getDialog();
-
-                        if (this.getValue()) {
-                            var image = dialog.getContentElement(
-                                'image', 'image_content');
-
-                            data.link.type = 'intern';
-                            data.link.content = image.getValue();
-                        } else {
-                            var custom = dialog.getContentElement(
-                                'link', 'link_custom');
-
-                            if (!custom.getValue()) {
-                                // None of the two check box are checked.
-                                // Set link type to none to prevent
-                                // link fields to be used.
-                                data.link.type = null;
-                            };
-                        };
-                    }
-                  },
-                  { type: 'checkbox',
-                    id: 'link_custom',
-                    label: 'Link to an another content',
-                    required: false,
-                    onChange: function() {
-                        var value = this.getValue();
-                        var dialog = this.getDialog();
-                        var hires = dialog.getContentElement('link', 'link_hires');
-                        var options = dialog.getContentElement('link', 'link_options').getElement();
-
-                        if (value) {
-                            hires.setValue(false);
-                            options.show();
-                        } else {
-                            options.hide();
-                        };
-                    },
-                    setup: function(data) {
-                        if (data.link.type != null) {
-                            this.setValue(true);
-                        } else {
-                            this.setValue(false);
-                        };
-                    }
-                  },
-                  { type: 'vbox',
-                    id: 'link_options',
-                    children: CKEDITOR.plugins.silvalink.createDialogFields(function (validator) {
-                        return function () {
-                            var dialog = this.getDialog();
-                            var activated = dialog.getContentElement(
-                                'link', 'link_custom').getValue();
-
-                            if (activated) {
-                                return validator.apply(this);
-                            }
-                            return true;
-                        };
-                    })
-                  }
-              ]
+                },
+                setup: function(data) {
+                    var value = data.image.alt == data.image.caption;
+                    this.setValue(value);
+                }
+                // Commit is done in caption field
             }
-        ],
+                      ]
+        }, {
+            id: 'link',
+            label: 'Link',
+            elements: [{
+                type: 'checkbox',
+                id: 'link_hires',
+                label: 'Link to the hires version of the image',
+                required: false,
+                onChange: function() {
+                    var value = this.getValue();
+                    var dialog = this.getDialog();
+                    var custom = dialog.getContentElement('link', 'link_custom');
+
+                    if (value) {
+                        custom.setValue(false);
+                    }
+                },
+                setup: function(data) {
+                    this.setValue(data.link.hires);
+                },
+                commit: function(data) {
+                    var dialog = this.getDialog();
+
+                    if (this.getValue()) {
+                        var image = dialog.getContentElement(
+                            'image', 'image_content');
+
+                        data.link.type = 'intern';
+                        data.link.content = image.getValue();
+                    } else {
+                        var custom = dialog.getContentElement(
+                            'link', 'link_custom');
+
+                        if (!custom.getValue()) {
+                            // None of the two check box are checked.
+                            // Set link type to none to prevent
+                            // link fields to be used.
+                            data.link.type = null;
+                        };
+                    };
+                }
+            }, {
+                type: 'checkbox',
+                id: 'link_custom',
+                label: 'Link to an another content',
+                required: false,
+                onChange: function() {
+                    var value = this.getValue();
+                    var dialog = this.getDialog();
+                    var hires = dialog.getContentElement('link', 'link_hires');
+                    var options = dialog.getContentElement('link', 'link_options').getElement();
+
+                    if (value) {
+                        hires.setValue(false);
+                        options.show();
+                    } else {
+                        options.hide();
+                    };
+                },
+                setup: function(data) {
+                    if (data.link.type != null) {
+                        this.setValue(true);
+                    } else {
+                        this.setValue(false);
+                    };
+                }
+            }, {
+                type: 'vbox',
+                id: 'link_options',
+                children: CKEDITOR.plugins.silvalink.createDialogFields(function (validator) {
+                    return function () {
+                        var dialog = this.getDialog();
+                        var activated = dialog.getContentElement(
+                            'link', 'link_custom').getValue();
+
+                        if (activated) {
+                            return validator.apply(this);
+                        }
+                        return true;
+                    };
+                })
+            }
+                      ]
+        }
+                  ],
         onShow: function() {
             var data = {};
             var editor = this.getParentEditor();
@@ -313,21 +313,25 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
             };
 
             if (div != null) {
-                var parseAlignment = /^image\s+([a-z-]+)\s*$/;
-                data.image.align = parseAlignment.exec(div.$.getAttribute('class'))[1];
+                var parse_alignment = /^image\s+([a-z-]+)\s*$/;
+                var info_alignment = parse_alignment.exec(
+                    div.getAttribute('class'));
 
+                if (info_alignment != null) {
+                    data.image.align = info_alignment[1];
+                }
                 if (div.getChildCount()) {
                     var a = div.getChild(0);
 
                     if (a.is('a')) {
-                        data.link.title = a.$.getAttribute('title');
-                        data.link.target = a.$.getAttribute('target');
-                        data.link.anchor = a.$.getAttribute('data-silva-anchor');
+                        data.link.title = a.getAttribute('title');
+                        data.link.target = a.getAttribute('target');
+                        data.link.anchor = a.getAttribute('data-silva-anchor');
                         if (a.$.hasAttribute('data-silva-reference')) {
                             data.link.type = 'intern';
-                            data.link.content = a.$.getAttribute('data-silva-target');
+                            data.link.content = a.getAttribute('data-silva-target');
                         } else {
-                            var href = a.$.getAttribute('data-silva-href');
+                            var href = a.getAttribute('data-silva-href');
 
                             if (!href || href == 'javascript:void()') {
                                 data.link.type = 'anchor';
