@@ -1,9 +1,26 @@
 <div class="reference-widget" id="{id|html-attr-value}"
      i18n:domain="silva">
-     <div id="{id|html-attr-value}-dialog" title="select link reference" class="reference-dialog"
+     <div id="{id|html-attr-value}-dialog"
+          title="select link reference"
+          class="ui-widget reference-dialog"
+          style="display:none"
           i18n:attributes="title">
-       <ul class="reference-dialog-data">
-       </ul>
+       <div class="content-list-actions">
+         <div class="content-list-action content-list-action-refresh">
+           <button name="refresh" i18n:translate="">refresh</button>
+         </div>
+         <div class="content-list-action content-list-action-add">
+           <select disabled="disabled">
+             <option value="" i18n:translate="">select:</option>
+           </select>
+           <button name="add" i18n:translate="">add</button>
+         </div>
+       </div>
+       <div class="path-list"></div>
+       <table class="content-list source-list">
+       </table>
+       <table class="content-list selection-list">
+       </table>
      </div>
      <button class="reference-dialog-trigger"
              title="Lookup a content in Silva"
