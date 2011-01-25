@@ -33,7 +33,7 @@ setup(name='silva.core.editor',
         'setuptools',
         ],
       entry_points="""
-      [silva.core.editor.plugins]
-      core = silva.core.editor:PLUGINS
+      [silva.core.editor.extension]
+      core = silva.core.editor:extension
       """,
       )

@@ -9,11 +9,18 @@ silvaconf.extension_title(u"Silva CORE Editor")
 silvaconf.extension_system()
 
 
-PLUGINS = {
-    'silvareference': '++resource++silva.core.editor/plugins/silvareference',
-    'silvalink': '++resource++silva.core.editor/plugins/silvalink',
-    'silvaimage': '++resource++silva.core.editor/plugins/silvaimage',
-    'silvaanchor': '++resource++silva.core.editor/plugins/silvaanchor',
-    'silvasave': '++resource++silva.core.editor/plugins/silvasave',
-    'silvaformat': '++resource++silva.core.editor/plugins/silvaformat'
-    }
+class CKEditorExtension(object):
+    base = '++resource++silva.core.editor'
+    plugins =  {
+        'silvareference': 'plugins/silvareference',
+        'silvalink': 'plugins/silvalink',
+        'silvaimage': 'plugins/silvaimage',
+        'silvaanchor': 'plugins/silvaanchor',
+        'silvasave': 'plugins/silvasave',
+        'silvaformat': 'plugins/silvaformat'
+        }
+    skins = {
+        'silva': {'title': 'Silva default', 'path': 'skins/silva'}
+        }
+
+extension = CKEditorExtension()

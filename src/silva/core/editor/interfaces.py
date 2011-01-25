@@ -3,14 +3,17 @@
 # See also LICENSE.txt
 # $Id$
 
+from AccessControl import getSecurityManager
+
 from five import grok
 from silva.core import conf as silvaconf
 from silva.core.interfaces import ISilvaLocalService
 from silva.core.layout.jquery.interfaces import IJQueryResources
 from zope import schema, interface
-from zope.component import IFactory
-from zope.schema.vocabulary import SimpleVocabulary, SimpleTerm
 from zope.annotation.interfaces import IAttributeAnnotatable
+from zope.component import IFactory, getUtility
+from zope.schema.interfaces import IContextSourceBinder
+from zope.schema.vocabulary import SimpleVocabulary, SimpleTerm
 
 
 class ICKEditorResources(IJQueryResources):
@@ -67,10 +70,33 @@ tools_vocabulary = SimpleVocabulary([
     SimpleTerm(title='Online Spell Checker', value='Scayt'),
     SimpleTerm(title='About', value='About')])
 
-skin_vocabulary = SimpleVocabulary([
-    SimpleTerm(title='Kama', value='kama'),
-    SimpleTerm(title='Office 2003', value='office2003'),
-    SimpleTerm(title='v2', value='v2')])
+
+def get_request():
+    """!#@!$#!$#!@#!$!!!
+    """
+    return getSecurityManager().getUser().REQUEST
+
+
+@grok.provider(IContextSourceBinder)
+def skin_vocabulary(context):
+    skins = [
+            SimpleTerm(title='Kama', value='kama'),
+            SimpleTerm(title='Office 2003', value='office2003'),
+            SimpleTerm(title='v2', value='v2')]
+    service = getUtility(ICKEditorService)
+    # zope.schema sucks big times.
+    request = get_request()
+    for extension, base in service.get_custom_extensions(request):
+        if hasattr(extension, 'skins'):
+            for name, info in extension.skins.iteritems():
+                path = info['path']
+                if not path.endswith('/'):
+                    path += '/'
+                skins.append(
+                    SimpleTerm(
+                        title=info['title'],
+                        value='%s,%s/%s' % (name, base, path)))
+    return SimpleVocabulary(skins)
 
 
 class ICKEditorHTMLAttribute(interface.Interface):
@@ -185,13 +211,18 @@ class ICKEditorSettings(interface.Interface):
         title=u"Editor skin",
         description=u"Editor theme",
         source=skin_vocabulary,
-        default='kama',
+        default='silva',
         required=True)
 
 
 class ICKEditorService(ISilvaLocalService):
     """Service to store editor preferences.
     """
+
+    def get_custom_extensions(request=None):
+        """Return a generator, extension definition, base resource
+        path for all CKEditor registered extension.
+        """
 
 
 class IText(IAttributeAnnotatable):

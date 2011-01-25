@@ -56,23 +56,31 @@ class CKEditorService(SilvaService):
             splitted_list.append(raw_list)
         return splitted_list
 
-    def get_custom_plugins(self, request=None):
-        """Return a list of plugin to enable, with their loading path.
+    def get_custom_extensions(self, request=None):
+        """Return the custom extensions, and the base URL to their
+        resource folder.
         """
         base = ''
         if request is not None:
             base = IVirtualSite(request).get_root().absolute_url_path()
-        extra_paths = {}
-        for load_entry in iter_entry_points('silva.core.editor.plugins'):
-            entry_paths = load_entry.load()
-            if not isinstance(entry_paths, dict):
-                logger.error("Invalid plugin settings.")
-                continue
-            for name, path in entry_paths.iteritems():
-                if not path.endswith('/'):
-                    path += '/'
-                extra_paths[name] = '/'.join((base, path))
-        return extra_paths
+        for load_entry in iter_entry_points('silva.core.editor.extension'):
+            extension = load_entry.load()
+            extension_base = base
+            if hasattr(extension, 'base'):
+                extension_base = '/'.join((base, extension.base))
+            yield extension, extension_base
+
+    def get_custom_plugins(self, request=None):
+        """Return a list of plugin to enable, with their loading path.
+        """
+        extra_plugins = {}
+        for extension, base in self.get_custom_extensions(request):
+            if hasattr(extension, 'plugins'):
+                for name, path in extension.plugins.iteritems():
+                    if not path.endswith('/'):
+                        path += '/'
+                    extra_plugins[name] = '/'.join((base, path))
+        return extra_plugins
 
     def get_formats(self):
         count = 0
