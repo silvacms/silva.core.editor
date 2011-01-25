@@ -7,13 +7,23 @@
           i18n:attributes="title">
        <div class="content-list-actions">
          <div class="content-list-action content-list-action-refresh">
-           <button name="refresh" i18n:translate="">refresh</button>
+           <button name="refresh"
+                   title="Refresh content listing"
+                   i18n:attributes="title"
+                   i18n:translate="">
+             refresh
+           </button>
          </div>
          <div class="content-list-action content-list-action-add">
            <select disabled="disabled">
              <option value="" i18n:translate="">select:</option>
            </select>
-           <button name="add" i18n:translate="">add</button>
+           <button name="add"
+                   title="Add a new content in Silva to refer it"
+                   i18n:attributes="title"
+                   i18n:translate="">
+             add
+           </button>
          </div>
        </div>
        <div class="path-list"></div>
@@ -26,14 +36,12 @@
              title="Lookup a content in Silva"
              i18n:attributes="title">
      </button>
-     <a target="_blank" id="{id|html-attr-value}-link"></a>
-     <a class="kupu-reference-edit-link" target="_blank" id="{id|html-attr-value}-edit-link"
+     <a class="reference-dialog-edit-link" target="_blank"
         title="Edit content"
+        id="{id|html-attr-value}-edit-link"
         i18n:attributes="title">
-       <img src="#" alt="Edit content"
-            tal:attributes="src string:${rest/root_url}/++resource++Products.Silva/edit.png"
-            i18n:attributes="alt" />
      </a>
+     <a target="_blank" id="{id|html-attr-value}-link"></a>
      <input type="hidden" value=""
             id="{id|html-attr-value}-value"
             name="{id|html-attr-value}_value" />
