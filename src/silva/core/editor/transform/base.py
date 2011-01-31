@@ -41,7 +41,7 @@ class Transfomer(grok.MultiAdapter):
         return self.data(name, text, unicode(text), interface)
 
 
-class TransformationFilter(grok.MultiSubscriber):
+class TransformationFilter(grok.MultiSubscription):
     grok.baseclass()
     grok.implements(ITransformationFilter)
     grok.provides(ITransformationFilter)
