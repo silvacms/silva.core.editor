@@ -25,7 +25,7 @@ class Transfomer(grok.MultiAdapter):
         self.request = request
 
     def data(self, name, text, data, interface):
-        transformers = grok.queryOrderedSubscribers(
+        transformers = grok.queryOrderedSubscriptions(
             (self.context, self.request), interface)
         tree = lxml.html.fromstring(data)
         for transformer in transformers:
