@@ -8,7 +8,8 @@ from AccessControl import getSecurityManager
 from five import grok
 from silva.core import conf as silvaconf
 from silva.core.interfaces import ISilvaLocalService
-from silva.core.layout.jquery.interfaces import IJQueryResources
+from silva.core.layout.jquery import IJQueryResources
+from silva.core.layout.jsontemplate import IJsonTemplateResources
 from zope import schema, interface
 from zope.annotation.interfaces import IAttributeAnnotatable
 from zope.component import IFactory, getUtility
@@ -16,12 +17,16 @@ from zope.schema.interfaces import IContextSourceBinder
 from zope.schema.vocabulary import SimpleVocabulary, SimpleTerm
 
 
-class ICKEditorResources(IJQueryResources):
+class ICKEditorResources(IJQueryResources, IJsonTemplateResources):
     """ Javascript resources for CKEditor.
     """
-    silvaconf.resource('json-template.js')
     silvaconf.resource('ckeditor/ckeditor_source.js')
     silvaconf.resource('ckeditor/adapters/jquery.js')
+
+
+class ICKEditorViewResources(ICKEditorResources):
+    """Javascript resources to load a CKEditor in a view.
+    """
     silvaconf.resource('editor.js')
 
 
