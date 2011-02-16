@@ -13,7 +13,7 @@
                         data: data,
                         success: function(data) {
                             if (data['status'] == 'success') {
-                                $(document).trigger('smi-refresh-feedback');
+                                $(document).trigger('refresh-feedback.smi');
                                 if (data[editor.name] != undefined) {
                                     editor.setData(data[editor.name]);
                                 };
