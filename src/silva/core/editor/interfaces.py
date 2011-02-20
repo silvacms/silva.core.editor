@@ -21,12 +21,12 @@ class ICKEditorResources(IJQueryResources, IJsonTemplateResources):
     """ Javascript resources for CKEditor.
     """
     silvaconf.resource('ckeditor/ckeditor_source.js')
-    silvaconf.resource('ckeditor/adapters/jquery.js')
 
 
 class ICKEditorViewResources(ICKEditorResources):
     """Javascript resources to load a CKEditor in a view.
     """
+    silvaconf.resource('ckeditor/adapters/jquery.js')
     silvaconf.resource('editor.js')
 
 
