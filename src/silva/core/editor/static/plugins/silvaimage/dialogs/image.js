@@ -17,7 +17,7 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
                     ['internal image', 'intern'],
                     ['external image', 'extern']
                 ],
-                default: 'intern',
+                'default': 'intern',
                 required: true,
                 onChange: function() {
                     var value = this.getValue();
