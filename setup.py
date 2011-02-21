@@ -35,5 +35,7 @@ setup(name='silva.core.editor',
       entry_points="""
       [silva.core.editor.extension]
       core = silva.core.editor:extension
+      [fanstatic.libraries]
+      silva.core.editor = silva.core.editor.interfaces:library
       """,
       )

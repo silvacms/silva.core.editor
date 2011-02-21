@@ -15,12 +15,19 @@ from zope.annotation.interfaces import IAttributeAnnotatable
 from zope.component import IFactory, getUtility
 from zope.schema.interfaces import IContextSourceBinder
 from zope.schema.vocabulary import SimpleVocabulary, SimpleTerm
+import fanstatic
+
+library = fanstatic.Library('silva.core.editor', 'static')
 
 
 class ICKEditorResources(IJQueryResources, IJsonTemplateResources):
     """ Javascript resources for CKEditor.
     """
-    silvaconf.resource('ckeditor/ckeditor_source.js')
+    silvaconf.resource(
+        fanstatic.Resource(
+            library, 'ckeditor/ckeditor_source.js',
+            minified=fanstatic.Resource(
+                library, 'ckeditor/ckeditor.js')))
 
 
 class ICKEditorViewResources(ICKEditorResources):
