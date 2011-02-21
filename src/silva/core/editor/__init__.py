@@ -10,7 +10,7 @@ silvaconf.extension_system()
 
 
 class CKEditorExtension(object):
-    base = '++resource++silva.core.editor'
+    base = '++static++/silva.core.editor'
     plugins =  {
         'silvareference': 'plugins/silvareference',
         'silvalink': 'plugins/silvalink',

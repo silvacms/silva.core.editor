@@ -210,13 +210,13 @@ class ICKEditorSettings(interface.Interface):
     contents_css = schema.TextLine(
         title=u"Contents CSS",
         description=u"CSS to apply to edited content in the editor",
-        default=u'++resource++silva.core.editor/content.css',
+        default=u'++static++silva.core.editor/content.css',
         required=True)
     skin = schema.Choice(
         title=u"Editor skin",
         description=u"Editor theme",
         source=skin_vocabulary,
-        default='silva',
+        default=u'++static++/silva.core.editor/skins/silva',
         required=True)
 
 

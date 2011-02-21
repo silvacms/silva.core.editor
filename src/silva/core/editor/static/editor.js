@@ -1,4 +1,3 @@
-
 $(document).ready(function(){
     var content_url = $('#content-url').attr('href');
     var text = $('#editor textarea');
