@@ -240,6 +240,15 @@ class IText(IAttributeAnnotatable):
     """Editor rich text.
     """
 
+    def save_raw_text(text):
+        """Set the raw text as current text without any transformation.
+        """
+
+    def render(context, request, type=None):
+        """Transform the text to the given type and return it. Context
+        must be the content or version on which the text is set.
+        """
+
 
 class ITextIndexEntry(interface.Interface):
     """Reprensent an index entry in a text.

@@ -19,11 +19,6 @@ class ITransformer(interface.Interface):
         using the filters specified by interface.
         """
 
-    def attribute(name, interface):
-        """Transform the attribute named name from the content using
-        the filters specified by interface.
-        """
-
 
 class ITransformationFilter(interface.Interface):
     """Transformation filter.

@@ -7,7 +7,7 @@ from five import grok
 from infrae import rest
 from persistent import Persistent
 from silva.core.editor.interfaces import IText, ITextIndexEntries, ITextIndexEntry
-from silva.core.editor.transform.interfaces import ITransformer
+from silva.core.editor.transform.interfaces import ITransformer, IDisplayFilter
 from silva.core.editor.transform.interfaces import ISaveEditorFilter, IInputEditorFilter
 from silva.core.interfaces import IVersionedContent
 from silva.core.messages.interfaces import IMessageService
@@ -44,10 +44,17 @@ class TextIndexEntries(grok.Annotation):
 class Text(Persistent):
     grok.implements(IText)
 
-    def __init__(self, text=u""):
+    def __init__(self, name, text=u""):
+        self.__name = name
         self.__text = text
 
-    def save(self, text):
+    def render(self, context, request, type=None):
+        if type is None:
+            type = IDisplayFilter
+        transformer = getMultiAdapter((context, request), ITransformer)
+        return transformer.data(self.__name, self, unicode(self), type)
+
+    def save_raw_text(self, text):
         self.__text = text
 
     def __str__(self):
@@ -74,7 +81,7 @@ class CKEditorRESTSave(rest.REST):
         for key in self.request.form.keys():
             text = getattr(version, key)
             assert IText.providedBy(text), u'Trying to save text to non text attribute'
-            text.save(transformer.data(
+            text.save_raw_text(transformer.data(
                 key,
                 text,
                 unicode(self.request.form[key], 'utf-8'),
@@ -87,5 +94,6 @@ class CKEditorRESTSave(rest.REST):
         # reference information)
         response = {'status': 'success'}
         for key in self.request.form.keys():
-            response[key] = transformer.attribute(key, IInputEditorFilter)
+            text = getattr(version, key)
+            response[key] = transformer.data(key, text, unicode(text), IInputEditorFilter)
         return self.json_response(response)

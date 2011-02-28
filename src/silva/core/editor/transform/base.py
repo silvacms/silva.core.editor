@@ -36,10 +36,6 @@ class Transfomer(grok.MultiAdapter):
             transformer.finalize()
         return lxml.html.tostring(tree)
 
-    def attribute(self, name, interface):
-        text = getattr(self.context, name)
-        return self.data(name, text, unicode(text), interface)
-
 
 class TransformationFilter(grok.MultiSubscription):
     grok.baseclass()
