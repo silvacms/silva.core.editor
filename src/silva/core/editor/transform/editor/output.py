@@ -80,6 +80,7 @@ class ImageTransfomer(SilvaReferenceTransformationFilter):
             image = images[0]
             if 'data-silva-reference' in image.attrib:
                 self.update_reference_for(image.attrib)
+            if 'src' in image.attrib:
                 del image.attrib['src']
             if 'data-silva-src' in image.attrib:
                 image.attrib['src'] = image.attrib['data-silva-src']
