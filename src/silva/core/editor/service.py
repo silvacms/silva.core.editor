@@ -63,6 +63,11 @@ class CKEditorService(SilvaService):
         base = ''
         if request is not None:
             base = IVirtualSite(request).get_root().absolute_url_path()
+            if base.endswith('/'):
+                # If base is only '/', we will end up with two '/',
+                # creating an invalid URL for CKEditor resource
+                # manager.
+                base = base[:-1]
         for load_entry in iter_entry_points('silva.core.editor.extension'):
             extension = load_entry.load()
             extension_base = base
