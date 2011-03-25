@@ -6,10 +6,6 @@
 from AccessControl import getSecurityManager
 
 from five import grok
-from silva.core import conf as silvaconf
-from silva.core.interfaces import ISilvaLocalService
-from silva.core.layout.jquery import IJQueryResources
-from silva.core.layout.jsontemplate import IJsonTemplateResources
 from zope import schema, interface
 from zope.annotation.interfaces import IAttributeAnnotatable
 from zope.component import IFactory, getUtility
@@ -17,10 +13,18 @@ from zope.schema.interfaces import IContextSourceBinder
 from zope.schema.vocabulary import SimpleVocabulary, SimpleTerm
 import fanstatic
 
+from silva.core import conf as silvaconf
+from silva.ui.interfaces import ISilvaUIDependencies
+from silva.core.interfaces import ISilvaLocalService
+from silva.core.layout.jquery import IJQueryResources
+from silva.core.layout.jsontemplate import IJsonTemplateResources
+from silva.core.references.widgets import IReferenceUIResources
+
+
 library = fanstatic.Library('silva.core.editor', 'static')
 
 
-class ICKEditorResources(IJQueryResources, IJsonTemplateResources):
+class ICKEditorResources(IJQueryResources, IJsonTemplateResources, IReferenceUIResources):
     """ Javascript resources for CKEditor.
     """
     silvaconf.resource(
@@ -35,6 +39,12 @@ class ICKEditorViewResources(ICKEditorResources):
     """
     silvaconf.resource('ckeditor/adapters/jquery.js')
     silvaconf.resource('editor.js')
+
+
+class ICKEditorSilvaUIResources(ISilvaUIDependencies, ICKEditorResources):
+    """Javascript resources to load a CKEditor in silva.ui.
+    """
+    silvaconf.resource('editor-smiui.js')
 
 
 tools_vocabulary = SimpleVocabulary([

@@ -30,11 +30,25 @@ setup(name='silva.core.editor',
       include_package_data=True,
       zip_safe=False,
       install_requires=[
+        'fanstatic',
+        'five.grok',
+        'infrae.rest',
+        'lxml',
         'setuptools',
+        'silva.core.conf',
+        'silva.core.interfaces',
+        'silva.core.references',
+        'silva.core.views',
+        'silva.ui',
+        'zope.component',
+        'zope.interface',
+        'zope.schema',
         ],
       entry_points="""
       [silva.core.editor.extension]
       core = silva.core.editor:extension
+      [silva.ui.resources]
+      editor = silva.core.editor.interfaces:ICKEditorSilvaUIResources
       [fanstatic.libraries]
       silva.core.editor = silva.core.editor.interfaces:library
       """,
