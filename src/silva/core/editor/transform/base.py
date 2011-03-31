@@ -24,17 +24,28 @@ class Transfomer(grok.MultiAdapter):
         self.context = context
         self.request = request
 
-    def data(self, name, text, data, interface):
+    def __transform(self, name, text, tree, interface):
         transformers = grok.queryOrderedMultiSubscriptions(
             (self.context, self.request), interface)
-        tree = lxml.html.fromstring(data)
         for transformer in transformers:
             transformer.prepare(name, text)
         for transformer in transformers:
             transformer(tree)
         for transformer in transformers:
             transformer.finalize()
+
+    def data(self, name, text, data, interface):
+        tree = lxml.html.fromstring(data)
+        self.__transform(name, text, tree, interface)
         return lxml.html.tostring(tree)
+
+    def part(self, name, text, data, xpath, interface):
+        trees = lxml.html.fromstring(data).xpath(xpath)
+        results = []
+        for tree in trees:
+            self.__transform(name, text, tree, interface)
+            results.append(lxml.html.tostring(tree))
+        return results
 
 
 class TransformationFilter(grok.MultiSubscription):
