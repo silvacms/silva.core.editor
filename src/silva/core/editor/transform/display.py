@@ -9,7 +9,7 @@ from silva.core.editor.transform.base import ReferenceTransformationFilter
 from zope.traversing.browser import absoluteURL
 
 
-class LinkTransfomer(ReferenceTransformationFilter):
+class LinkTransformer(ReferenceTransformationFilter):
     grok.implements(IDisplayFilter)
     grok.provides(IDisplayFilter)
     grok.order(10)

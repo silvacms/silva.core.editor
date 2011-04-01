@@ -50,7 +50,7 @@ class SilvaReferenceTransformationFilter(ReferenceTransformationFilter):
         attributes['reference'] = name
 
 
-class LinkTransfomer(SilvaReferenceTransformationFilter):
+class LinkTransformer(SilvaReferenceTransformationFilter):
     """Handle link reference.
     """
     grok.order(10)
@@ -67,7 +67,7 @@ class LinkTransfomer(SilvaReferenceTransformationFilter):
             clean_editor_attributes(link)
 
 
-class ImageTransfomer(SilvaReferenceTransformationFilter):
+class ImageTransformer(SilvaReferenceTransformationFilter):
     """Handle image reference.
     """
     grok.order(10)

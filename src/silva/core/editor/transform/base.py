@@ -15,7 +15,7 @@ from zope import component
 from zope.publisher.interfaces.browser import IBrowserRequest
 
 
-class Transfomer(grok.MultiAdapter):
+class Transformer(grok.MultiAdapter):
     grok.implements(ITransformer)
     grok.provides(ITransformer)
     grok.adapts(IVersion, IBrowserRequest)

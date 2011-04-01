@@ -16,6 +16,8 @@ from zope.component import getMultiAdapter, getUtility
 from zope.event import notify
 from zope.lifecycleevent import ObjectModifiedEvent
 
+from silva.core.editor.utils import html_truncate
+
 
 class TextIndexEntry(object):
     grok.implements(ITextIndexEntry)
@@ -53,6 +55,16 @@ class Text(Persistent):
             type = IDisplayFilter
         transformer = getMultiAdapter((context, request), ITransformer)
         return transformer.data(self.__name, self, unicode(self), type)
+
+    def render_intro(self, context, request, type=None, max_length=None):
+        if type is None:
+            type = IDisplayFilter
+        transformer = getMultiAdapter((context, request), ITransformer)
+        rendered = transformer.part(
+            self.__name, self, unicode(self), '//p[1]', type)
+        if max_length is not None:
+            return html_truncate(max_length, rendered)
+        return rendered
 
     def save_raw_text(self, text):
         self.__text = text
