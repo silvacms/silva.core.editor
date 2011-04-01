@@ -29,6 +29,16 @@ class TestStrip(unittest.TestCase):
                 """<p>some text<img src="#somewhere" /> and some tail</p>"""))
 
 
+    def test_spaces_does_not_count(self):
+        html = """<p>some     text<a href="#somelink">link</a>
+        \t\n\t\n  and some
+        	<span> tail<div></div></span>as      df</p>"""
+
+        self.assertEquals(
+            '<p>some     text<a href="#somelink">link</a> and&#8230;</p>',
+            html_truncate(17, html))
+
+
 def test_suite():
     suite = unittest.TestSuite()
     suite.addTest(unittest.makeSuite(TestStrip))
