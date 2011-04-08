@@ -12,27 +12,12 @@ html_chunk = \
 <html>
 <head></head>
 <body>
-    <p></p>
-    <span>some span text</span>
     <h3>Title</h3>
     <p>
         First paragraph of text, this is <strong>important</strong>
         <a href="http://infrae.com">and there is a link</a> in it.
     </p>
-    <p></p>
-</body>
-</html>"""
-
-html_chunk_simple = \
-"""
-<html>
-<head></head>
-<body>
-    <h3>Title</h3>
-    <p>
-        First paragraph of text, this is <strong>important</strong>
-        <a href="http://infrae.com">and there is a link</a> in it.
-    </p>
+    <p> Second paragraph</p>
 </body>
 </html>"""
 
@@ -40,23 +25,24 @@ html_chunk_simple = \
 class TestIntro(unittest.TestCase):
     layer = ZCMLLayer(silva.core.editor)
 
-    def test_text_intro_simple(self):
-        text = Text("test_intro", html_chunk_simple)
+    def test_text_intro(self):
+        text = Text("test_intro", html_chunk)
         intro = text.render_intro(FakeTarget(), TestRequest())
         self.assertEquals(intro,
 """<p>
         First paragraph of text, this is <strong>important</strong>
         <a href="http://infrae.com">and there is a link</a> in it.
     </p>
-""")
+    """)
 
-    def test_text_intro_simple_truncate(self):
-        text = Text("test_intro", html_chunk_simple)
+    def test_text_intro_truncate(self):
+        text = Text("test_intro", html_chunk)
         intro = text.render_intro(FakeTarget(), TestRequest(), max_length=50)
         self.assertEquals(intro,
 """<p>
         First paragraph of text, this is <strong>important</strong>
         <a href="http://infrae.com">and th&#8230;</a></p>""")
+
 
 
 def test_suite():

@@ -1,15 +1,16 @@
 # -*- coding: utf-8 -*-
+import lxml
 import lxml.html
 import re
 
+norm_whitespace_re = re.compile(r'[ \t\n][ \t\n]+')
 
-def html_text_strip(text):
-    text = text or ''
-    text = re.sub(r'\s\s+', ' ', text)
-    return text
+def normalize_space(text):
+    return re.sub(norm_whitespace_re, ' ', text)
+
 
 def html_truncate_node(el, remaining_length, append=u""):
-    text = html_text_strip(el.text)
+    text = normalize_space(el.text)
     if el.text and len(text) >= remaining_length:
         el.text = text[0:remaining_length] + append
         el.tail = None
@@ -30,7 +31,7 @@ def html_truncate_node(el, remaining_length, append=u""):
     if remaining_length <= 0:
         return 0
 
-    tail = html_text_strip(el.tail)
+    tail = normalize_space(el.tail)
     if el.tail and len(tail) >= remaining_length:
         el.tail = tail[0:remaining_length] + append
         return 0
