@@ -62,9 +62,11 @@ class Text(Persistent):
         transformer = getMultiAdapter((context, request), ITransformer)
         rendered = transformer.part(
             self.__name, self, unicode(self), '//p[1]', type)
-        if max_length is not None:
-            return html_truncate(max_length, rendered)
-        return rendered
+        if len(rendered):
+            if max_length is not None:
+                return html_truncate(max_length, rendered[0])
+            return rendered[0]
+        return u""
 
     def save_raw_text(self, text):
         self.__text = text

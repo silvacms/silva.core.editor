@@ -8,6 +8,11 @@ import os
 
 version = '1.0dev'
 
+tests_require = [
+    'infrae.testing',
+    ]
+
+
 setup(name='silva.core.editor',
       version=version,
       description="Support for the WYSIWYG editor CKEditor for Silva",
@@ -44,6 +49,8 @@ setup(name='silva.core.editor',
         'zope.interface',
         'zope.schema',
         ],
+      tests_require = tests_require,
+      extras_require = {'test': tests_require},
       entry_points="""
       [silva.core.editor.extension]
       core = silva.core.editor:extension
