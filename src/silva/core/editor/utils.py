@@ -6,12 +6,14 @@ import re
 norm_whitespace_re = re.compile(r'[ \t\n][ \t\n]+')
 
 def normalize_space(text):
-    return re.sub(norm_whitespace_re, ' ', text)
+    if text is not None:
+        return re.sub(norm_whitespace_re, ' ', text)
+    return u''
 
 
 def html_truncate_node(el, remaining_length, append=u""):
     text = normalize_space(el.text)
-    if el.text and len(text) >= remaining_length:
+    if text and len(text) >= remaining_length:
         el.text = text[0:remaining_length] + append
         el.tail = None
         for child in el.iterchildren():
@@ -32,7 +34,7 @@ def html_truncate_node(el, remaining_length, append=u""):
         return 0
 
     tail = normalize_space(el.tail)
-    if el.tail and len(tail) >= remaining_length:
+    if tail and len(tail) >= remaining_length:
         el.tail = tail[0:remaining_length] + append
         return 0
 
