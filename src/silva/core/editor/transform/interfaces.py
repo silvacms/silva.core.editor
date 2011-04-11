@@ -42,14 +42,13 @@ class ITransformationFilter(interface.Interface):
         """
 
 
-
-class IDisplayFilter(ITransformationFilter):
-    """Filter to display text to the user.
+class IIntroductionFilter(ITransformationFilter):
+    """Filter to display truncated text.
     """
 
 
-class IIntroFilter(IDisplayFilter):
-    """ Filter to display truncated text
+class IDisplayFilter(IIntroductionFilter):
+    """Filter to display text to the user.
     """
 
 

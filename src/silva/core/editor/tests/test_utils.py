@@ -1,5 +1,6 @@
+
 import unittest
-from silva.core.editor.text import html_truncate
+from silva.core.editor.utils import html_truncate
 
 
 class TestStrip(unittest.TestCase):

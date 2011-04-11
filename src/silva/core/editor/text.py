@@ -9,7 +9,7 @@ from persistent import Persistent
 from silva.core.editor.interfaces import (IText,
     ITextIndexEntries, ITextIndexEntry)
 from silva.core.editor.transform.interfaces import (ITransformer,
-    IDisplayFilter, IIntroFilter)
+    IDisplayFilter, IIntroductionFilter)
 from silva.core.editor.transform.interfaces import (ISaveEditorFilter,
     IInputEditorFilter)
 from silva.core.interfaces import IVersionedContent
@@ -19,7 +19,6 @@ from zope.component import getMultiAdapter, getUtility
 from zope.event import notify
 from zope.lifecycleevent import ObjectModifiedEvent
 
-from silva.core.editor.utils import html_truncate
 
 
 class TextIndexEntry(object):
@@ -61,7 +60,7 @@ class Text(Persistent):
 
     def render_intro(self, context, request, max_length=None, type=None):
         if type is None:
-            type = IIntroFilter
+            type = IIntroductionFilter
         transformer = getMultiAdapter((context, request), ITransformer)
         return transformer.part(
             self.__name, self, unicode(self), '//p[1]', type)

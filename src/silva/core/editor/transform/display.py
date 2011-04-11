@@ -5,7 +5,7 @@
 
 from five import grok
 from silva.core.editor.transform.interfaces import (IDisplayFilter,
-    IIntroFilter)
+    IIntroductionFilter)
 from silva.core.editor.transform.base import (ReferenceTransformationFilter,
     TransformationFilter)
 from silva.core.editor.utils import html_truncate_node
@@ -82,10 +82,10 @@ class ImageLinkTransformationFilter(ReferenceTransformationFilter):
                     link.attrib['href'] += '#' + link.attrib['anchor']
 
 
-class IntroTransformationFilter(TransformationFilter):
-    grok.implements(IIntroFilter)
-    grok.provides(IIntroFilter)
-    grok.order(100000)
+class IntroductionTransformationFilter(TransformationFilter):
+    grok.implements(IIntroductionFilter)
+    grok.provides(IIntroductionFilter)
+    grok.order(1000)
     grok.name('intro')
 
     max_length = 300

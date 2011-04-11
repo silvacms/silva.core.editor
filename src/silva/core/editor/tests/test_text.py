@@ -1,12 +1,15 @@
+
+import operator
 import unittest
 
 from five import grok
 from zope.publisher.browser import TestRequest
 
+from infrae.testing import ZCMLLayer
 from silva.core.editor.text import Text
 from silva.core.editor.testing import FakeTarget
-from silva.core.editor.transform.interfaces import IDisplayFilter, IIntroFilter
-from infrae.testing import ZCMLLayer
+from silva.core.editor.transform.interfaces import (
+    IDisplayFilter, IIntroductionFilter)
 import silva.core.editor
 from Products.Silva.testing import FunctionalLayer
 
@@ -28,14 +31,25 @@ html_chunk = \
 class TestText(unittest.TestCase):
     layer = FunctionalLayer
 
-    def test_no_intro(self):
+    def test_display(self):
         transformers = grok.queryOrderedMultiSubscriptions(
             (FakeTarget(), TestRequest()), IDisplayFilter)
-        self.assertTrue(transformers)
-        for transformer in transformers:
-            self.assertTrue(IDisplayFilter.providedBy(transformer))
-            self.assertFalse(IIntroFilter.providedBy(transformer),
-                "%r provide Intro" % transformer)
+        self.assertNotEqual(len(transformers), 0)
+        self.assertTrue(
+            reduce(operator.and_,
+                   map(IDisplayFilter.providedBy,
+                       transformers)),
+            "only display filter")
+
+    def test_intro(self):
+        transformers = grok.queryOrderedMultiSubscriptions(
+            (FakeTarget(), TestRequest()), IIntroductionFilter)
+        self.assertNotEqual(len(transformers), 0)
+        self.assertFalse(
+            reduce(operator.and_,
+                   map(IDisplayFilter.providedBy,
+                       transformers)),
+            "not all display filter")
 
 
 class TestIntro(unittest.TestCase):
