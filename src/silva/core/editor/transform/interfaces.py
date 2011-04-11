@@ -48,6 +48,11 @@ class IDisplayFilter(ITransformationFilter):
     """
 
 
+class IIntroFilter(IDisplayFilter):
+    """ Filter to display truncated text
+    """
+
+
 class IEditorFilter(ITransformationFilter):
     """Filter to edit text with the editor.
     """

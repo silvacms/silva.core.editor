@@ -11,7 +11,7 @@ def normalize_space(text):
     return u''
 
 
-def html_truncate_node(el, remaining_length, append=u""):
+def html_truncate_node(el, remaining_length, append=u"…"):
     text = normalize_space(el.text)
     if text and len(text) >= remaining_length:
         el.text = text[0:remaining_length] + append

@@ -4,8 +4,12 @@
 # $Id$
 
 from five import grok
-from silva.core.editor.transform.interfaces import IDisplayFilter
-from silva.core.editor.transform.base import ReferenceTransformationFilter
+from silva.core.editor.transform.interfaces import (IDisplayFilter,
+    IIntroFilter)
+from silva.core.editor.transform.base import (ReferenceTransformationFilter,
+    TransformationFilter)
+from silva.core.editor.utils import html_truncate_node
+
 from zope.traversing.browser import absoluteURL
 
 
@@ -76,3 +80,17 @@ class ImageLinkTransformationFilter(ReferenceTransformationFilter):
                     link.attrib['href'] = ''
                 if 'anchor' in link.attrib:
                     link.attrib['href'] += '#' + link.attrib['anchor']
+
+
+class IntroTransformationFilter(TransformationFilter):
+    grok.implements(IIntroFilter)
+    grok.provides(IIntroFilter)
+    grok.order(100000)
+    grok.name('intro')
+
+    max_length = 300
+
+    def __call__(self, tree):
+        return html_truncate_node(tree, self.max_length)
+
+

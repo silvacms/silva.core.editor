@@ -3,6 +3,7 @@ import lxml
 
 from zope.interface import Interface
 from silva.core.editor.transform.interfaces import ITransformer
+from silva.core.interfaces import IVersion
 
 
 class IFakeTarget(Interface):
@@ -10,7 +11,7 @@ class IFakeTarget(Interface):
 
 
 class FakeTarget(object):
-    grok.implements(IFakeTarget)
+    grok.implements(IFakeTarget, IVersion)
 
 
 class Transformer(grok.MultiAdapter):

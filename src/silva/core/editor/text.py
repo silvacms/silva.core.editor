@@ -6,9 +6,12 @@
 from five import grok
 from infrae import rest
 from persistent import Persistent
-from silva.core.editor.interfaces import IText, ITextIndexEntries, ITextIndexEntry
-from silva.core.editor.transform.interfaces import ITransformer, IDisplayFilter
-from silva.core.editor.transform.interfaces import ISaveEditorFilter, IInputEditorFilter
+from silva.core.editor.interfaces import (IText,
+    ITextIndexEntries, ITextIndexEntry)
+from silva.core.editor.transform.interfaces import (ITransformer,
+    IDisplayFilter, IIntroFilter)
+from silva.core.editor.transform.interfaces import (ISaveEditorFilter,
+    IInputEditorFilter)
 from silva.core.interfaces import IVersionedContent
 from silva.core.messages.interfaces import IMessageService
 from silva.translations import translate as _
@@ -56,17 +59,12 @@ class Text(Persistent):
         transformer = getMultiAdapter((context, request), ITransformer)
         return transformer.data(self.__name, self, unicode(self), type)
 
-    def render_intro(self, context, request, type=None, max_length=None):
+    def render_intro(self, context, request, max_length=None, type=None):
         if type is None:
-            type = IDisplayFilter
+            type = IIntroFilter
         transformer = getMultiAdapter((context, request), ITransformer)
-        rendered = transformer.part(
+        return transformer.part(
             self.__name, self, unicode(self), '//p[1]', type)
-        if len(rendered):
-            if max_length is not None:
-                return html_truncate(max_length, rendered[0])
-            return rendered[0]
-        return u""
 
     def save_raw_text(self, text):
         self.__text = text
