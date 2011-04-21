@@ -5,13 +5,13 @@ import unittest
 from five import grok
 from zope.publisher.browser import TestRequest
 
-from infrae.testing import ZCMLLayer
 from silva.core.editor.text import Text
-from silva.core.editor.testing import FakeTarget
 from silva.core.editor.transform.interfaces import (
     IDisplayFilter, IIntroductionFilter)
-import silva.core.editor
+
 from Products.Silva.testing import FunctionalLayer
+from Products.Silva.tests.mockers import MockupVersion
+
 
 html_chunk = \
 """
@@ -33,7 +33,7 @@ class TestText(unittest.TestCase):
 
     def test_display(self):
         transformers = grok.queryOrderedMultiSubscriptions(
-            (FakeTarget(), TestRequest()), IDisplayFilter)
+            (MockupVersion('0'), TestRequest()), IDisplayFilter)
         self.assertNotEqual(len(transformers), 0)
         self.assertTrue(
             reduce(operator.and_,
@@ -43,7 +43,7 @@ class TestText(unittest.TestCase):
 
     def test_intro(self):
         transformers = grok.queryOrderedMultiSubscriptions(
-            (FakeTarget(), TestRequest()), IIntroductionFilter)
+            (MockupVersion('0'), TestRequest()), IIntroductionFilter)
         self.assertNotEqual(len(transformers), 0)
         self.assertFalse(
             reduce(operator.and_,
@@ -53,11 +53,17 @@ class TestText(unittest.TestCase):
 
 
 class TestIntro(unittest.TestCase):
-    layer = ZCMLLayer(silva.core.editor)
+    layer = FunctionalLayer
+
+    def setUp(self):
+        self.root = self.layer.get_application()
+        factory = self.root.manage_addProduct['Silva']
+        factory.manage_addMockupVersionedContent('test', 'Test Content')
 
     def test_text_intro(self):
         text = Text("test_intro", html_chunk)
-        intro = text.render_intro(FakeTarget(), TestRequest())
+        intro = text.render_intro(
+            self.root.test.get_editable(), TestRequest())
         self.assertEquals(intro,
 """<p>
         First paragraph of text, this is <strong>important</strong>
@@ -67,12 +73,12 @@ class TestIntro(unittest.TestCase):
 
     def test_text_intro_truncate(self):
         text = Text("test_intro", html_chunk)
-        intro = text.render_intro(FakeTarget(), TestRequest(), max_length=50)
+        intro = text.render_intro(
+            self.root.test.get_editable(), TestRequest(), max_length=50)
         self.assertEquals(intro,
 """<p>
         First paragraph of text, this is <strong>important</strong>
         <a href="http://infrae.com">and th&#8230;</a></p>""")
-
 
 
 def test_suite():

@@ -91,6 +91,6 @@ class IntroductionTransformationFilter(TransformationFilter):
     max_length = 300
 
     def __call__(self, tree):
-        return html_truncate_node(tree, self.max_length)
+        html_truncate_node(tree, self.max_length)
 
 
