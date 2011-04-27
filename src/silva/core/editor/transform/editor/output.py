@@ -77,7 +77,7 @@ class ImageTransformer(SilvaReferenceTransformationFilter):
 
     def __call__(self, tree):
         for block in tree.xpath('//div[contains(@class, "image")]'):
-            images = block.xpath('//img')
+            images = block.xpath('descendant::img')
             assert len(images) == 1, u"Invalid image construction"
             image = images[0]
             if 'data-silva-reference' in image.attrib:
@@ -97,7 +97,7 @@ class ImageLinkTransformer(SilvaReferenceTransformationFilter):
 
     def __call__(self, tree):
         for block in tree.xpath('//div[contains(@class, "image")]'):
-            links = block.xpath('//a[@class="image-link"]')
+            links = block.xpath('descendant::a[@class="image-link"]')
             assert len(links) <= 1, u"Invalid image construction"
             if links:
                 link = links[0]
