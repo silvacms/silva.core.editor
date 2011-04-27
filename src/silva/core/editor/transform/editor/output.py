@@ -58,6 +58,8 @@ class LinkTransformer(SilvaReferenceTransformationFilter):
 
     def __call__(self, tree):
         for link in tree.xpath('//a[@class="link"]'):
+            if 'href' in link.attrib:
+                del link.attrib['href']
             if 'data-silva-reference' in link.attrib:
                 self.update_reference_for(link.attrib)
             if 'data-silva-href' in link.attrib:
