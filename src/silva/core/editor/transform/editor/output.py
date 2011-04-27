@@ -120,6 +120,7 @@ class AnchorCollector(TransformationFilter):
 
     def prepare(self, name, text):
         self.entries = ITextIndexEntries(text)
+        self.entries.clear()
 
     def __call__(self, tree):
         for anchor in tree.xpath('//a[@class="anchor"]'):

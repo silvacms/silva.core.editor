@@ -6,10 +6,10 @@
 
 import unittest
 
-from Acquisition import aq_chain
 from Products.Silva.testing import TestCase
 
-from zope.component import getMultiAdapter, getUtility
+from zope.interface.verify import verifyObject
+from zope.component import getMultiAdapter
 from zope.publisher.browser import TestRequest
 
 from silva.core.editor.testing import FunctionalLayer
@@ -17,8 +17,7 @@ from silva.core.editor.text import Text
 from silva.core.editor.transform.interfaces import IInputEditorFilter
 from silva.core.editor.transform.interfaces import ISaveEditorFilter
 from silva.core.editor.transform.interfaces import ITransformer
-from silva.core.references.reference import get_content_id
-from silva.core.references.interfaces import IReferenceService
+from silva.core.editor.interfaces import ITextIndexEntries
 
 
 class InputTransformTestCase(TestCase):
@@ -61,123 +60,43 @@ class InputTransformTestCase(TestCase):
             extern_format,
             "<p>Simple text<i>Italic</i></p>")
 
-    def test_external_link(self):
-        """On input, an external link is slightly modified.
-        """
-        intern_format = self.transform(
-            """
-<p>
-   <a class="link"
-      href="http://somewhere.com"
-      data-silva-href="http://infrae.com/products/silva">
-      <i>To Silva</i></a>
-</p>
-""", ISaveEditorFilter)
-
-        self.assertXMLEqual(
-            intern_format,
-"""
-<p>
-   <a class="link"
-       href="http://infrae.com/products/silva"><i>To Silva</i></a>
-</p>
-""")
-
-        # And changing it back to the editor format.
-        extern_format = self.transform(
-            intern_format,
-            IInputEditorFilter)
-        self.assertXMLEqual(
-            extern_format,
-            """
-<p>
-   <a class="link"
-      href="http://infrae.com/products/silva"
-      data-silva-href="http://infrae.com/products/silva">
-      <i>To Silva</i></a>
-</p>
-""")
-
-    def test_anchor_link(self):
-        """On input, an external link is slightly modified.
-        """
-        intern_format = self.transform(
-            """
-<p>
-   <a class="link"
-      href="#foo"
-      data-silva-anchor="bar">
-      <b>To the nearest local bar</b></a>
-</p>
-""", ISaveEditorFilter)
-
-        self.assertXMLEqual(
-            intern_format,
-"""
-<p>
-   <a class="link"
-      anchor="bar"><b>To the nearest local bar</b></a>
-</p>
-""")
-
-        # And changing it back to the editor format.
-        extern_format = self.transform(
-            intern_format,
-            IInputEditorFilter)
-        self.assertXMLEqual(
-            extern_format,
-            """
-<p>
-   <a class="link"
-      data-silva-anchor="bar"
-      href="javascript:void()">
-      <b>To the nearest local bar</b></a>
-</p>
-""")
-
-    def test_new_reference_link(self):
-        """On input, a new link creates a new reference.
+    def test_new_anchor(self):
+        """On input, anchors are collected, and the HTML stays the same.
         """
         version = self.root.document.get_editable()
-        service = getUtility(IReferenceService)
-        target_id = get_content_id(self.root.target)
-        # By default the document as no reference
-        self.assertEqual(list(service.get_references_from(version)), [])
+        index = ITextIndexEntries(version.test)
+        self.assertTrue(verifyObject(ITextIndexEntries, index))
+        self.assertEqual(len(index.entries), 0)
 
         intern_format = self.transform(
             """
 <p>
-   <a class="link"
-      href="http://somewhere.com"
-      data-silva-reference="new"
-      data-silva-target="%s">To Target</a>
+   <a class="anchor" name="simple" title="Simple Anchor">Simple Anchor</a>
+   The ultimate store of the anchors.
+
+   <a class="anchor" name="advanced" title="Advanced Anchor">Advanced Anchor</a>
+
 </p>
-""" % (target_id),
+""",
             ISaveEditorFilter)
-
-        # After transformation a reference is created to target
-        references = list(service.get_references_from(version))
-        self.assertEqual(len(references), 1)
-        reference = references[0]
-        self.assertEqual(reference.source, version)
-        self.assertEqual(aq_chain(reference.source), aq_chain(version))
-        self.assertEqual(reference.target, self.root.target)
-        self.assertEqual(aq_chain(reference.target), aq_chain(self.root.target))
-        self.assertEqual(len(reference.tags), 2)
-        reference_name = reference.tags[1]
-        self.assertEqual(reference.tags, [u'test link', reference_name])
-
-        # And the HTML is changed
         self.assertXMLEqual(
             intern_format,
 """
 <p>
-   <a class="link"
-      reference="%s">To Target</a>
-</p>
-""" % (reference_name))
+   <a class="anchor" name="simple" title="Simple Anchor">Simple Anchor</a>
+   The ultimate store of the anchors.
 
-        # Now we can rerender this for the editor
+   <a class="anchor" name="advanced" title="Advanced Anchor">Advanced Anchor</a>
+</p>
+""")
+
+        index = ITextIndexEntries(version.test)
+        self.assertEqual(len(index.entries), 2)
+        self.assertEqual(index.entries[0].anchor, u'simple')
+        self.assertEqual(index.entries[0].title, u'Simple Anchor')
+        self.assertEqual(index.entries[1].anchor, u'advanced')
+        self.assertEqual(index.entries[1].title, u'Advanced Anchor')
+
         extern_format = self.transform(
             intern_format,
             IInputEditorFilter)
@@ -185,60 +104,46 @@ class InputTransformTestCase(TestCase):
             extern_format,
             """
 <p>
-   <a class="link"
-      data-silva-reference="%s"
-      data-silva-target="%s"
-      href="javascript:void()">
-      To Target</a>
-</p>
-""" % (reference_name, target_id))
+   <a class="anchor" name="simple" title="Simple Anchor">Simple Anchor</a>
+   The ultimate store of the anchors.
 
-    def test_edit_reference_link(self):
-        """On input, a existing link sees its reference updated.
+   <a class="anchor" name="advanced" title="Advanced Anchor">Advanced Anchor</a>
+</p>
+""")
+
+    def test_edit_anchor(self):
+        """On input, unused anchors are removed.
         """
         version = self.root.document.get_editable()
-        service = getUtility(IReferenceService)
-        reference = service.new_reference(version, name=u"test link")
-        reference.set_target(self.root.other)
-        reference.add_tag(u"original-link-id")
-        target_id = get_content_id(self.root.target)
-        # So we have a reference, the one we will edit
-        self.assertEqual(list(service.get_references_from(version)), [reference])
+        index = ITextIndexEntries(version.test)
+        index.add(u'simple', u'Simple Anchor')
+        index.add(u'useless', u'Useless Anchor')
+        index.add(u'really_useless', u'Really Useless Anchor')
+        self.assertTrue(verifyObject(ITextIndexEntries, index))
+        self.assertEqual(len(index.entries), 3)
 
         intern_format = self.transform(
             """
 <p>
-   <a class="link"
-      data-silva-reference="original-link-id"
-      data-silva-anchor="world"
-      data-silva-target="%s">Access the world</a>
+   <a class="anchor" name="simple" title="Simple Anchor">Simple Anchor</a>
+   The ultimate survivor.
 </p>
-""" % (target_id),
+""",
             ISaveEditorFilter)
-
-        # After transformation a reference is created to target
-        references = list(service.get_references_from(version))
-        self.assertEqual(len(references), 1)
-        reference = references[0]
-        self.assertEqual(reference.source, version)
-        self.assertEqual(aq_chain(reference.source), aq_chain(version))
-        self.assertEqual(reference.target, self.root.target)
-        self.assertEqual(aq_chain(reference.target), aq_chain(self.root.target))
-        self.assertEqual(len(reference.tags), 2)
-        self.assertEqual(reference.tags, [u'test link', u'original-link-id'])
-
-        # And the HTML is changed
         self.assertXMLEqual(
             intern_format,
 """
 <p>
-   <a class="link"
-      reference="original-link-id"
-      anchor="world">Access the world</a>
+   <a class="anchor" name="simple" title="Simple Anchor">Simple Anchor</a>
+   The ultimate survivor.
 </p>
 """)
 
-        # Now we can rerender this for the editor
+        index = ITextIndexEntries(version.test)
+        self.assertEqual(len(index.entries), 1)
+        self.assertEqual(index.entries[0].anchor, u'simple')
+        self.assertEqual(index.entries[0].title, u'Simple Anchor')
+
         extern_format = self.transform(
             intern_format,
             IInputEditorFilter)
@@ -246,114 +151,10 @@ class InputTransformTestCase(TestCase):
             extern_format,
             """
 <p>
-   <a class="link"
-      data-silva-reference="original-link-id"
-      data-silva-target="%s"
-      data-silva-anchor="world"
-      href="javascript:void()">
-      Access the world</a>
-</p>
-""" % (target_id))
-
-    def test_delete_reference_link(self):
-        """On input, any existing references matching a delete link is
-        removed.
-        """
-        version = self.root.document.get_editable()
-        service = getUtility(IReferenceService)
-        reference = service.new_reference(version, name=u"test link")
-        reference.set_target(self.root.other)
-        reference.add_tag(u"original-link-id")
-        # So we have a reference, the one we will edit
-        self.assertEqual(list(service.get_references_from(version)), [reference])
-
-        intern_format = self.transform(
-            """
-<p>
-    <b>In the past, there was a wonderful link.</b>
-</p>
-""", ISaveEditorFilter)
-
-        # The reference is gone now.
-        self.assertEqual(list(service.get_references_from(version)), [])
-
-        # Now we can rerender this for the editor
-        extern_format = self.transform(
-            intern_format,
-            IInputEditorFilter)
-        self.assertXMLEqual(
-            extern_format,
-            """
-<p>
-    <b>In the past, there was a wonderful link.</b>
+   <a class="anchor" name="simple" title="Simple Anchor">Simple Anchor</a>
+   The ultimate survivor.
 </p>
 """)
-
-        # Nope, still gone.
-        self.assertEqual(list(service.get_references_from(version)), [])
-
-    def test_copy_reference_link(self):
-        """On input, if a link is copied, a new reference is created
-        for the copy.
-        """
-        version = self.root.document.get_editable()
-        service = getUtility(IReferenceService)
-        reference = service.new_reference(version, name=u"test link")
-        reference.set_target(self.root.other)
-        reference.add_tag(u"original-link-id")
-        target_id = get_content_id(self.root.target)
-        # So we have a reference, the one we will edit
-        self.assertEqual(list(service.get_references_from(version)), [reference])
-
-        intern_format = self.transform(
-            """
-<p>
-   <a class="link"
-      data-silva-reference="original-link-id"
-      data-silva-anchor="world"
-      data-silva-target="%s">Access the world</a>
-   <a class="link"
-      href="http://somewhere.com"
-      data-silva-reference="original-link-id"
-      data-silva-target="%s">Other part of the world</a>
-</p>
-""" % (target_id, target_id),
-            ISaveEditorFilter)
-
-        # After transformation an extra reference is created to target
-        references = list(service.get_references_from(version))
-        self.assertEqual(len(references), 2)
-        reference_name = None
-        for reference in references:
-            self.assertEqual(reference.source, version)
-            self.assertEqual(aq_chain(reference.source), aq_chain(version))
-            self.assertEqual(reference.target, self.root.target)
-            self.assertEqual(aq_chain(reference.target), aq_chain(self.root.target))
-            self.assertEqual(len(reference.tags), 2)
-            if reference.tags[1] != u'original-link-id':
-                reference_name = reference.tags[1]
-            self.assertEqual(reference.tags[0], u'test link')
-
-
-        # Now we can rerender this for the editor
-        extern_format = self.transform(
-            intern_format,
-            IInputEditorFilter)
-        self.assertXMLEqual(
-            extern_format,
-            """
-<p>
-   <a class="link"
-      data-silva-reference="original-link-id"
-      data-silva-target="%s"
-      data-silva-anchor="world"
-      href="javascript:void()">Access the world</a>
-   <a class="link"
-      data-silva-reference="%s"
-      data-silva-target="%s"
-      href="javascript:void()">Other part of the world</a>
-</p>
-""" % (target_id, reference_name, target_id))
 
 
 def test_suite():
