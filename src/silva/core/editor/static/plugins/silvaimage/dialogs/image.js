@@ -300,11 +300,16 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
                     if (img.hasNext()) {
                         var caption = img.getNext();
 
-                        if (caption.is('span') &&
-                            caption.hasClass('image-caption')) {
-                            data.image.caption = caption.getText();
-                        } else {
-                            parseError("Invalid image caption", caption);
+                        while(caption.is('br') && caption.hasNext())
+                            caption = caption.getNext();
+
+                        if (!caption.is('br')) {
+                            if (caption.is('span') &&
+                                caption.hasClass('image-caption')) {
+                                data.image.caption = caption.getText();
+                            } else {
+                                parseError("Invalid image caption", caption);
+                            };
                         };
                     };
                 } else {
