@@ -31,6 +31,7 @@ class InputTransformTestCase(TestCase):
         factory = self.root.manage_addProduct['Silva']
         factory.manage_addMockupVersionedContent('document', 'Document')
         factory.manage_addMockupVersionedContent('target', 'Document Target')
+        factory.manage_addMockupVersionedContent('other', 'Other Target')
 
         version = self.root.document.get_editable()
         version.test = Text('test')
@@ -60,7 +61,7 @@ class InputTransformTestCase(TestCase):
             extern_format,
             "<p>Simple text<i>Italic</i></p>")
 
-    def test_new_external_link(self):
+    def test_external_link(self):
         """On input, an external link is slightly modified.
         """
         intern_format = self.transform(
@@ -97,13 +98,50 @@ class InputTransformTestCase(TestCase):
 </p>
 """)
 
-    def test_new_reference_link(self):
-        """On input, a new link is modified to a reference.
+    def test_anchor_link(self):
+        """On input, an external link is slightly modified.
         """
-        # At the begining the document as no reference
-        target_id = get_content_id(self.root.target)
+        intern_format = self.transform(
+            """
+<p>
+   <a class="link"
+      href="#foo"
+      data-silva-anchor="bar">
+      <b>To the nearest local bar</b></a>
+</p>
+""", ISaveEditorFilter)
+
+        self.assertXMLEqual(
+            intern_format,
+"""
+<p>
+   <a class="link"
+      anchor="bar"><b>To the nearest local bar</b></a>
+</p>
+""")
+
+        # And changing it back to the editor format.
+        extern_format = self.transform(
+            intern_format,
+            IInputEditorFilter)
+        self.assertXMLEqual(
+            extern_format,
+            """
+<p>
+   <a class="link"
+      data-silva-anchor="bar"
+      href="javascript:void()">
+      <b>To the nearest local bar</b></a>
+</p>
+""")
+
+    def test_new_reference_link(self):
+        """On input, a new link creates a new reference.
+        """
         version = self.root.document.get_editable()
         service = getUtility(IReferenceService)
+        target_id = get_content_id(self.root.target)
+        # By default the document as no reference
         self.assertEqual(list(service.get_references_from(version)), [])
 
         intern_format = self.transform(
@@ -154,6 +192,69 @@ class InputTransformTestCase(TestCase):
       To Target</a>
 </p>
 """ % (reference_name, target_id))
+
+    def test_edit_reference_link(self):
+        """On input, a existing link sees its reference updated.
+        """
+        version = self.root.document.get_editable()
+        service = getUtility(IReferenceService)
+        reference = service.new_reference(version, name=u"test link")
+        reference.set_target(self.root.other)
+        reference.add_tag(u"original-link-id")
+        target_id = get_content_id(self.root.target)
+        # So we have a reference, the one we will edit
+        self.assertEqual(list(service.get_references_from(version)), [reference])
+
+        intern_format = self.transform(
+            """
+<p>
+   <a class="link"
+      data-silva-reference="original-link-id"
+      data-silva-anchor="world"
+      data-silva-target="%s">Access the world</a>
+</p>
+""" % (target_id),
+            ISaveEditorFilter)
+
+        # After transformation a reference is created to target
+        references = list(service.get_references_from(version))
+        self.assertEqual(len(references), 1)
+        reference = references[0]
+        self.assertEqual(reference.source, version)
+        self.assertEqual(aq_chain(reference.source), aq_chain(version))
+        self.assertEqual(reference.target, self.root.target)
+        self.assertEqual(aq_chain(reference.target), aq_chain(self.root.target))
+        self.assertEqual(len(reference.tags), 2)
+        self.assertEqual(reference.tags, [u'test link', u'original-link-id'])
+
+        # And the HTML is changed
+        self.assertXMLEqual(
+            intern_format,
+"""
+<p>
+   <a class="link"
+      reference="original-link-id"
+      anchor="world">Access the world</a>
+</p>
+""")
+
+        # Now we can rerender this for the editor
+        extern_format = self.transform(
+            intern_format,
+            IInputEditorFilter)
+        self.assertXMLEqual(
+            extern_format,
+            """
+<p>
+   <a class="link"
+      data-silva-reference="original-link-id"
+      data-silva-target="%s"
+      data-silva-anchor="world"
+      href="javascript:void()">
+      Access the world</a>
+</p>
+""" % (target_id))
+
 
 
 def test_suite():
