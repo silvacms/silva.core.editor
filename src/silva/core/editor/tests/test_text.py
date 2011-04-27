@@ -1,3 +1,7 @@
+# -*- coding: utf-8 -*-
+# Copyright (c) 2011 Infrae. All rights reserved.
+# See also LICENSE.txt
+# $Id$
 
 import operator
 import unittest
@@ -9,8 +13,7 @@ from silva.core.editor.text import Text
 from silva.core.editor.transform.interfaces import (
     IDisplayFilter, IIntroductionFilter)
 
-from Products.Silva.testing import FunctionalLayer
-from Products.Silva.tests.mockers import MockupVersion
+from silva.core.editor.testing import FunctionalLayer
 
 
 html_chunk = \
@@ -28,12 +31,20 @@ html_chunk = \
 </html>"""
 
 
-class TestText(unittest.TestCase):
+class TextTestCase(unittest.TestCase):
     layer = FunctionalLayer
 
+    def setUp(self):
+        self.root = self.layer.get_application()
+        self.layer.login('author')
+
+        factory = self.root.manage_addProduct['Silva']
+        factory.manage_addMockupVersionedContent('document', 'Document')
+
     def test_display(self):
+        version = self.root.document.get_editable()
         transformers = grok.queryOrderedMultiSubscriptions(
-            (MockupVersion('0'), TestRequest()), IDisplayFilter)
+            (version, TestRequest()), IDisplayFilter)
         self.assertNotEqual(len(transformers), 0)
         self.assertTrue(
             reduce(operator.and_,
@@ -42,8 +53,9 @@ class TestText(unittest.TestCase):
             "only display filter")
 
     def test_intro(self):
+        version = self.root.document.get_editable()
         transformers = grok.queryOrderedMultiSubscriptions(
-            (MockupVersion('0'), TestRequest()), IIntroductionFilter)
+            (version, TestRequest()), IIntroductionFilter)
         self.assertNotEqual(len(transformers), 0)
         self.assertFalse(
             reduce(operator.and_,
@@ -83,7 +95,7 @@ class TestIntro(unittest.TestCase):
 
 def test_suite():
     suite = unittest.TestSuite()
-    suite.addTest(unittest.makeSuite(TestText))
+    suite.addTest(unittest.makeSuite(TextTestCase))
     suite.addTest(unittest.makeSuite(TestIntro))
     return suite
 
