@@ -65,3 +65,20 @@ class IInputEditorFilter(IEditorFilter):
 class ISaveEditorFilter(IEditorFilter):
     """Filter text from the editor to be saved.
     """
+
+
+class ISilvaXMLFilter(ITransformationFilter):
+    """ Filter for silva xml import/export
+    """
+
+
+class ISilvaXMLExportFilter(ISilvaXMLFilter):
+    """ silva xml export filter
+    """
+
+
+class ISilvaXMLImportFilter(ISilvaXMLFilter):
+    """ silva xml import filter
+    """
+
+

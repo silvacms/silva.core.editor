@@ -7,18 +7,18 @@ import uuid
 import lxml
 
 from five import grok
+from zope.interface import Interface
 from silva.core.editor.transform.interfaces import ITransformer
 from silva.core.editor.transform.interfaces import ITransformationFilter
 from silva.core.interfaces import IVersion
 from silva.core.references.interfaces import IReferenceService
 from zope import component
-from zope.publisher.interfaces.browser import IBrowserRequest
 
 
 class Transformer(grok.MultiAdapter):
     grok.implements(ITransformer)
     grok.provides(ITransformer)
-    grok.adapts(IVersion, IBrowserRequest)
+    grok.adapts(IVersion, Interface)
 
     def __init__(self, context, request):
         self.context = context
@@ -52,7 +52,7 @@ class TransformationFilter(grok.MultiSubscription):
     grok.baseclass()
     grok.implements(ITransformationFilter)
     grok.provides(ITransformationFilter)
-    grok.adapts(IVersion, IBrowserRequest)
+    grok.adapts(IVersion, Interface)
     grok.order(20)
 
     def __init__(self, context, request):
