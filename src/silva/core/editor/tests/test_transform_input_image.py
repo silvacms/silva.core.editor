@@ -34,6 +34,8 @@ class InputTransformTestCase(TestCase):
 
         with open_test_file('chocobo.png', globals()) as image:
             factory.manage_addImage('chocobo', 'Chocobo', image)
+            image.seek(0)
+            factory.manage_addImage('ultimate_chocobo', 'Ultimate Chocobo', image)
 
         version = self.root.document.get_editable()
         version.test = Text('test')
@@ -150,6 +152,194 @@ class InputTransformTestCase(TestCase):
   </div>
 </div>
 """ % (reference_name, target_id))
+
+    def test_edit_reference_image(self):
+        """On input, updated local images update their references.
+        """
+        version = self.root.document.get_editable()
+        service = getUtility(IReferenceService)
+        reference = service.new_reference(version, name=u"test image")
+        reference.set_target(self.root.ultimate_chocobo)
+        reference.add_tag(u"original-image-id")
+        target_id = get_content_id(self.root.chocobo)
+        # So we have a reference, the one we will edit
+        self.assertEqual(list(service.get_references_from(version)), [reference])
+
+        intern_format = self.transform(
+            """
+<div>
+  <p>Some description about the world</p>
+  <div class="image">
+    <img src="http://localhost/root/ultimate_chocobo"
+         alt="image"
+         data-silva-reference="original-image-id"
+         data-silva-target="%s"></img>
+  </div>
+</div>
+""" % (target_id), ISaveEditorFilter)
+
+        # After transformation a reference is created to chocobo
+        references = list(service.get_references_from(version))
+        self.assertEqual(len(references), 1)
+        reference = references[0]
+        self.assertEqual(reference.source, version)
+        self.assertEqual(aq_chain(reference.source), aq_chain(version))
+        self.assertEqual(reference.target, self.root.chocobo)
+        self.assertEqual(aq_chain(reference.target), aq_chain(self.root.chocobo))
+        self.assertEqual(len(reference.tags), 2)
+        self.assertEqual(reference.tags, [u'test image', u'original-image-id'])
+
+        self.assertXMLEqual(
+            intern_format,
+"""
+<div>
+  <p>Some description about the world</p>
+  <div class="image">
+    <img alt="image"
+         reference="original-image-id" />
+  </div>
+</div>
+""")
+
+        # Now we can rerender this for the editor
+        extern_format = self.transform(
+            intern_format,
+            IInputEditorFilter)
+        self.assertXMLEqual(
+            extern_format,
+            """
+<div>
+  <p>Some description about the world</p>
+  <div class="image">
+    <img alt="image"
+         data-silva-reference="original-image-id"
+         data-silva-target="%s"
+         src="http://localhost/root/chocobo"></img>
+  </div>
+</div>
+""" % (target_id))
+
+    def test_delete_reference_image(self):
+        """On input, delete local images remove corresponding
+        references.
+        """
+        version = self.root.document.get_editable()
+        service = getUtility(IReferenceService)
+        reference = service.new_reference(version, name=u"test image")
+        reference.set_target(self.root.ultimate_chocobo)
+        reference.add_tag(u"original-image-id")
+        # So we have a reference, the one we will edit
+        self.assertEqual(list(service.get_references_from(version)), [reference])
+        intern_format = self.transform(
+            """
+<p>
+    <b>In the past, there was a wonderful chocobo over here.</b>
+</p>
+""", ISaveEditorFilter)
+
+        # The reference is gone now.
+        self.assertEqual(list(service.get_references_from(version)), [])
+
+        # Now we can rerender this for the editor
+        extern_format = self.transform(
+            intern_format,
+            IInputEditorFilter)
+        self.assertXMLEqual(
+            extern_format,
+            """
+<p>
+    <b>In the past, there was a wonderful chocobo over here.</b>
+</p>
+""")
+
+        # Nope, still gone.
+        self.assertEqual(list(service.get_references_from(version)), [])
+
+    def test_copy_reference_image(self):
+        """On input, copy of local images create new references.
+        """
+        version = self.root.document.get_editable()
+        service = getUtility(IReferenceService)
+        reference = service.new_reference(version, name=u"test image")
+        reference.set_target(self.root.ultimate_chocobo)
+        reference.add_tag(u"original-image-id")
+        target_id = get_content_id(self.root.chocobo)
+        ultimate_target_id = get_content_id(self.root.ultimate_chocobo)
+        # So we have a reference, the one we will edit
+        self.assertEqual(list(service.get_references_from(version)), [reference])
+
+        intern_format = self.transform(
+            """
+<div>
+  <p>Some description about the world</p>
+  <div class="image">
+    <img src="http://localhost/root/chocobo"
+         data-silva-reference="original-image-id"
+         data-silva-target="%s"></img>
+  </div>
+  <div class="image">
+    <img src="http://localhost/root/ultimate_chocobo"
+         alt="ultimate awesome"
+         data-silva-reference="original-image-id"
+         data-silva-target="%s"></img>
+  </div>
+</div>
+""" % (target_id, ultimate_target_id), ISaveEditorFilter)
+
+        # After transformation a reference is created to chocobo
+        references = list(service.get_references_from(version))
+        self.assertEqual(len(references), 2)
+        reference_name = None
+        for reference in references:
+            self.assertEqual(reference.source, version)
+            self.assertEqual(aq_chain(reference.source), aq_chain(version))
+            self.assertEqual(len(reference.tags), 2)
+            if reference.tags[1] != u'original-image-id':
+                reference_name = reference.tags[1]
+                self.assertEqual(reference.target, self.root.ultimate_chocobo)
+                self.assertEqual(aq_chain(reference.target), aq_chain(self.root.ultimate_chocobo))
+            else:
+                self.assertEqual(reference.target, self.root.chocobo)
+                self.assertEqual(aq_chain(reference.target), aq_chain(self.root.chocobo))
+            self.assertEqual(reference.tags[0], u'test image')
+
+        self.assertXMLEqual(
+            intern_format,
+"""
+<div>
+  <p>Some description about the world</p>
+  <div class="image">
+    <img reference="original-image-id" />
+  </div>
+  <div class="image">
+    <img alt="ultimate awesome"
+         reference="%s" />
+  </div>
+</div>
+""" % (reference_name))
+
+        # Now we can rerender this for the editor
+        extern_format = self.transform(
+            intern_format,
+            IInputEditorFilter)
+        self.assertXMLEqual(
+            extern_format,
+            """
+<div>
+  <p>Some description about the world</p>
+  <div class="image">
+    <img data-silva-reference="original-image-id"
+         data-silva-target="%s"
+         src="http://localhost/root/chocobo"></img>
+  </div>
+  <div class="image">
+    <img alt="ultimate awesome"
+         data-silva-reference="%s"
+         data-silva-target="%s"
+         src="http://localhost/root/ultimate_chocobo"></img>
+  </div>
+</div>
+""" % (target_id, reference_name, ultimate_target_id))
 
 
 def test_suite():
