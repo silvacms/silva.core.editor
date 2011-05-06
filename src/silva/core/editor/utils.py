@@ -3,7 +3,7 @@ import lxml
 import lxml.html
 import re
 
-norm_whitespace_re = re.compile(r'[ \t\n][ \t\n]+')
+norm_whitespace_re = re.compile(r'[ \t\n]{2,}')
 
 def normalize_space(text):
     if text is not None:

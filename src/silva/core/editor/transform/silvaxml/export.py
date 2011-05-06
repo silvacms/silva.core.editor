@@ -1,15 +1,17 @@
 from five import grok
 import lxml.sax
-import lxml.etree
+import lxml.html
 
 
 from zope import component
 from silva.core.interfaces import IVersion, IExportSettings
 from silva.core.editor.transform.base import TransformationFilter
 from silva.core.editor.transform import interfaces as itransform
+from silva.core.editor.transform.silvaxml import NS_URI
 from silva.core.references.interfaces import IReferenceService
 from silva.core.references.reference import canonical_path, get_content_from_id
 from Products.Silva.silvaxml import xmlexport
+
 
 
 # Transformers
@@ -39,17 +41,6 @@ class ReferenceExportTransformer(TransformationFilter):
                         "/".join(relative_path))
 
 
-class SourceExportTransformer(TransformationFilter):
-    grok.provides(itransform.ISilvaXMLExportFilter)
-
-    def __call__(self, tree):
-        pass
-
-
-
-# Export
-
-NS_URI = 'http://infrae.com/namespace/silva.core.editor'
 xmlexport.theXMLExporter.registerNamespace('silvacoreeditor', NS_URI)
 
 
@@ -76,12 +67,12 @@ class TextProducerProxy(object):
         self.text = text
 
     def sax(self, producer):
-        producer.startElementNS(NS_URI, 'text')
+        producer.startElement('text', {'xmlns': NS_URI})
         xml_text = self.text.render(
             self.context, producer.getSettings(),
             itransform.ISilvaXMLExportFilter)
         handler = ProxyHandler(producer)
-        lxml.sax.saxify(lxml.etree.fromstring(xml_text), handler)
-        producer.endElementNS(NS_URI, 'text')
+        lxml.sax.saxify(lxml.html.fromstring(xml_text), handler)
+        producer.endElement('text')
 
 
