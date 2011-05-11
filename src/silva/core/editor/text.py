@@ -68,6 +68,14 @@ class Text(Persistent):
     def save_raw_text(self, text):
         self.__text = text
 
+    def save(self, context, request, text, type=None):
+        if type is None:
+            type = ISaveEditorFilter
+        transformer = getMultiAdapter((context, request), ITransformer)
+        self.save_raw_text(
+            transformer.data(self.__name, self, unicode(text), type))
+        return unicode(self)
+
     def __str__(self):
         return str(self.__text)
 
@@ -88,15 +96,13 @@ class CKEditorRESTSave(rest.REST):
                 {'status': 'failure', 'alert': 'No editable version !'})
 
         # Transform and save text.
-        transformer = getMultiAdapter((version, self.request), ITransformer)
         for key in self.request.form.keys():
             text = getattr(version, key)
             assert IText.providedBy(text), u'Trying to save text to non text attribute'
-            text.save_raw_text(transformer.data(
-                key,
-                text,
+            text.save(version,
+                self.request,
                 unicode(self.request.form[key], 'utf-8'),
-                ISaveEditorFilter))
+                type=ISaveEditorFilter)
         notify(ObjectModifiedEvent(version))
         service = getUtility(IMessageService)
         service.send(_("Changes saved."), self.request, namespace=u'feedback')
@@ -106,5 +112,8 @@ class CKEditorRESTSave(rest.REST):
         response = {'status': 'success'}
         for key in self.request.form.keys():
             text = getattr(version, key)
-            response[key] = transformer.data(key, text, unicode(text), IInputEditorFilter)
+            response[key] = text.render(
+                version, self.request, type=IInputEditorFilter)
         return self.json_response(response)
+
+

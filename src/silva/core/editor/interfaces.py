@@ -259,6 +259,11 @@ class IText(IAttributeAnnotatable):
         must be the content or version on which the text is set.
         """
 
+    def save(context, request, text, type=None):
+        """Tranform the input `text` to the given type and save it. Context
+        must be the content or version on which the text is set.
+        """
+
 
 class ITextIndexEntry(interface.Interface):
     """Reprensent an index entry in a text.

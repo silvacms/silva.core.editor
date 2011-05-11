@@ -4,7 +4,7 @@ import lxml.html
 
 
 from zope import component
-from silva.core.interfaces import IVersion, IExportSettings
+from silva.core.interfaces import IVersion, ISilvaXMLExportHandler
 from silva.core.editor.transform.base import TransformationFilter
 from silva.core.editor.transform import interfaces as itransform
 from silva.core.editor.transform.silvaxml import NS_URI
@@ -18,12 +18,12 @@ from Products.Silva.silvaxml import xmlexport
 
 
 class ReferenceExportTransformer(TransformationFilter):
-    grok.adapts(IVersion, IExportSettings)
+    grok.adapts(IVersion, ISilvaXMLExportHandler)
     grok.provides(itransform.ISilvaXMLExportFilter)
 
-    def __init__(self, context, settings):
+    def __init__(self, context, handler):
         self.context = context
-        self.settings = settings
+        self.handler = handler
         self._reference_service = component.getUtility(IReferenceService)
 
     def __call__(self, tree):
@@ -35,8 +35,9 @@ class ReferenceExportTransformer(TransformationFilter):
             if reference.target_id:
                 target = get_content_from_id(reference.target_id)
                 if target is not None:
-                    root = self.settings.getExportRoot()
+                    root = self.handler.getSettings().getExportRoot()
                     relative_path = reference.relative_path_to(root)
+                    node.attrib['reference-name'] = name
                     node.attrib['reference'] = canonical_path(
                         "/".join(relative_path))
 
@@ -69,7 +70,7 @@ class TextProducerProxy(object):
     def sax(self, producer):
         producer.startElement('text', {'xmlns': NS_URI})
         xml_text = self.text.render(
-            self.context, producer.getSettings(),
+            self.context, producer,
             itransform.ISilvaXMLExportFilter)
         handler = ProxyHandler(producer)
         lxml.sax.saxify(lxml.html.fromstring(xml_text), handler)

@@ -3,7 +3,7 @@ import lxml
 
 from zope.component import getUtility
 
-from silva.core.editor.transform.silvaxml import export
+from silva.core.editor.transform.silvaxml import xmlexport
 from silva.core.references.interfaces import IReferenceService
 from silva.core.references.reference import get_content_id
 from Products.Silva.tests.helpers import open_test_file
@@ -65,7 +65,7 @@ class TestExport(unittest.TestCase):
         settings = ExportSettings()
         settings.setExportRoot(self.root)
 
-        ref_filter = export.ReferenceExportTransformer(
+        ref_filter = xmlexport.ReferenceExportTransformer(
             self.version, settings)
         tree = lxml.html.fragment_fromstring(self.html)
         ref_filter(tree)
