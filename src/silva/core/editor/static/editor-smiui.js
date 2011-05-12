@@ -1,8 +1,8 @@
 
 
-(function($, obviel, CKEDITOR) {
+(function($, infrae, CKEDITOR) {
 
-    obviel.iface('editor');
+    infrae.interfaces.register('editor');
 
     $(document).bind('load-smiplugins', function(event, smi) {
         $.ajax({
@@ -31,44 +31,44 @@
                     settings['skin'] = configuration['skin'];
                 };
 
-                obviel.view({
+                infrae.views.view({
                     iface: 'editor',
                     name: 'content',
-                    jsont: '<textarea name="{data.name|htmltag}">{data.text}</textarea>',
-                    init: function() {
-                        this.editor = null;
-                    },
-                    render: function() {
-                        var textarea = this.$content.children('textarea').get(0);
+                    factory: function($content, data, smi) {
+                        var editor = null;
 
-                        this.editor = CKEDITOR.replace(textarea, settings);
-                        this.editor.on('instanceReady', function (event) {
-                            // XXX Where the hell comes from those 5 pixels ?
-                            var height = this.$content.height() - 5;
+                        return {
+                            jsont: '<textarea name="{data.name|htmltag}">{data.text}</textarea>',
+                            render: function() {
+                                var textarea = $content.children('textarea').get(0);
 
-                            height -= $('#cke_top_body').outerHeight();
-                            height -= $('#cke_bottom_body').outerHeight();
-                            this.editor.resize(
-                                this.editor.container.getStyle('width'),
-                                height,
-                                true);
-                        }.scope(this));
-                    },
-                    cleanup: function() {
-                        this.$content.empty();
-                        if (this.editor) {
-                            try {
-                                this.editor.destroy(true);
-                                this.editor = null;
-                            } catch(error) {
-                                if (window.console && console.log) {
-                                    console.log('Error while destroying editor', error);
-                                };
-                            };
-                        }
+                                editor = CKEDITOR.replace(textarea, settings);
+                                editor.on('instanceReady', function (event) {
+                                    // XXX Where the hell comes from those 5 pixels ?
+                                    var height = $content.height() - 5;
+
+                                    height -= $('#cke_top_body').outerHeight();
+                                    height -= $('#cke_bottom_body').outerHeight();
+                                    editor.resize(editor.container.getStyle('width'), height, true);
+                                });
+                            },
+                            cleanup: function() {
+                                $content.empty();
+                                if (editor != null) {
+                                    try {
+                                        editor.destroy(true);
+                                        editor = null;
+                                    } catch(error) {
+                                        if (window.console && console.log) {
+                                            console.log('Error while destroying editor', error);
+                                        };
+                                    };
+                                }
+                            }
+                        };
                     }
                 });
             }
         });
     });
-})(jQuery, obviel, CKEDITOR);
+})(jQuery, infrae, CKEDITOR);
