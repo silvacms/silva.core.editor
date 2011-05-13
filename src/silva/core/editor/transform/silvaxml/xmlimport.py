@@ -25,9 +25,9 @@ class ReferenceImportTransformer(TransformationFilter):
             name = node.attrib['reference-name']
             path = node.attrib['reference']
             reference = self._reference_service.new_reference(
-                self.context, name=name)
+                self.context, name=unicode(name))
             # reference is broken at this point
-            reference.set_target_id = 0
+            reference.set_target_id(0)
 
             def setter(target):
                 reference.set_target(target)
@@ -83,14 +83,16 @@ class TextHandler(xmlimport.SilvaBaseHandler):
         if (NS_URI, 'text') == name:
             document = self.proxy_handler.etree
             self.text.save(self.version,
-                self.settings().request,
+                self,
                 lxml.etree.tostring(document),
                 type=ISilvaXMLImportFilter)
+
             del self.version
             del self.text
             del self.input_text
             del self.proxy_handler
             del self.ready
+
         elif hasattr(self, 'proxy_handler'):
             uri, localname = name
             if NS_URI == uri:

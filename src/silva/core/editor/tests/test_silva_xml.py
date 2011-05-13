@@ -8,7 +8,7 @@ from silva.core.references.interfaces import IReferenceService
 from silva.core.references.reference import get_content_id
 from Products.Silva.tests.helpers import open_test_file
 from Products.Silva.testing import FunctionalLayer
-from Products.Silva.silvaxml.xmlexport import ExportSettings
+from Products.Silva.silvaxml.xmlexport import ExportSettings, SilvaExportRoot
 
 
 class TestExport(unittest.TestCase):
@@ -64,15 +64,17 @@ class TestExport(unittest.TestCase):
     def test_export_reference_filter(self):
         settings = ExportSettings()
         settings.setExportRoot(self.root)
+        producer = SilvaExportRoot(self.root)
+        producer.getSettings = lambda: settings
 
         ref_filter = xmlexport.ReferenceExportTransformer(
-            self.version, settings)
+            self.version, producer)
         tree = lxml.html.fragment_fromstring(self.html)
         ref_filter(tree)
 
         link = tree.xpath('//a[@class="link"][1]')[0]
-        self.assertEquals('folder/other', link.attrib['reference'])
+        self.assertEquals('root/folder/other', link.attrib['reference'])
         img = tree.xpath('//img[1]')[0]
-        self.assertEquals('folder/img', img.attrib['reference'])
+        self.assertEquals('root/folder/img', img.attrib['reference'])
 
 

@@ -4,7 +4,7 @@
 # $Id$
 
 import uuid
-import lxml
+import lxml.html
 
 from five import grok
 from zope.interface import Interface
@@ -35,12 +35,14 @@ class Transformer(grok.MultiAdapter):
             transformer.finalize()
 
     def data(self, name, text, data, interface):
-        tree = lxml.html.fromstring(data)
+        tree = lxml.html.fragment_fromstring(
+            data, parser=lxml.html.XHTMLParser())
         self.__transform(name, text, tree, interface)
         return lxml.html.tostring(tree)
 
     def part(self, name, text, data, xpath, interface):
-        trees = lxml.html.fromstring(data).xpath(xpath)
+        trees = lxml.html.fragment_fromstring(
+            data, parser=lxml.html.XHTMLParser()).xpath(xpath)
         results = []
         for tree in trees:
             self.__transform(name, text, tree, interface)

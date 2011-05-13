@@ -36,7 +36,8 @@ class ReferenceExportTransformer(TransformationFilter):
                 target = get_content_from_id(reference.target_id)
                 if target is not None:
                     root = self.handler.getSettings().getExportRoot()
-                    relative_path = reference.relative_path_to(root)
+                    relative_path = [root.getId()] + \
+                        reference.relative_path_to(root)
                     node.attrib['reference-name'] = name
                     node.attrib['reference'] = canonical_path(
                         "/".join(relative_path))
