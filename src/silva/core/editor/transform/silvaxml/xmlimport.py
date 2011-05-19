@@ -1,7 +1,9 @@
+import sys
 from five import grok
 from zope import component
 import lxml.etree
 import lxml.sax
+import lxml.html
 
 from silva.core.references.interfaces import IReferenceService
 from Products.Silva.silvaxml import xmlimport
@@ -9,6 +11,20 @@ from silva.core.interfaces import IVersion, ISilvaXMLImportHandler
 from silva.core.editor.transform.silvaxml import NS_URI
 from silva.core.editor.transform.interfaces import ISilvaXMLImportFilter
 from silva.core.editor.transform.base import TransformationFilter
+
+
+class XHTMLImportTransformer(TransformationFilter):
+    grok.adapts(IVersion, ISilvaXMLImportHandler)
+    grok.provides(ISilvaXMLImportFilter)
+    grok.order(sys.maxint)
+
+    def __init__(self, context, handler):
+        self.context = context
+        self.handler = handler
+
+    def __call__(self, tree):
+        lxml.html.xhtml_to_html(tree)
+        lxml.etree.cleanup_namespaces(tree)
 
 
 class ReferenceImportTransformer(TransformationFilter):
@@ -21,7 +37,8 @@ class ReferenceImportTransformer(TransformationFilter):
         self._reference_service = component.getUtility(IReferenceService)
 
     def __call__(self, tree):
-        for node in tree.xpath('//*[@reference]'):
+        for node in tree.xpath('//html:*[@reference]',
+                namespaces={'html': 'http://www.w3.org/1999/xhtml'}):
             name = node.attrib['reference-name']
             path = node.attrib['reference']
             reference = self._reference_service.new_reference(

@@ -10,7 +10,7 @@ from five import grok
 from zope.interface import Interface
 from silva.core.editor.transform.interfaces import ITransformer
 from silva.core.editor.transform.interfaces import ITransformationFilter
-from silva.core.interfaces import IVersion
+from silva.core.interfaces import IVersion, ISilvaXMLImportHandler
 from silva.core.references.interfaces import IReferenceService
 from zope import component
 
@@ -35,19 +35,27 @@ class Transformer(grok.MultiAdapter):
             transformer.finalize()
 
     def data(self, name, text, data, interface):
-        tree = lxml.html.fragment_fromstring(
-            data, parser=lxml.html.XHTMLParser())
+        tree = self._parse(data)
         self.__transform(name, text, tree, interface)
-        return lxml.html.tostring(tree)
+        return self._stringify(tree)
 
     def part(self, name, text, data, xpath, interface):
-        trees = lxml.html.fragment_fromstring(
-            data, parser=lxml.html.XHTMLParser()).xpath(xpath)
+        trees = self._parse(data).xpath(xpath)
         results = []
         for tree in trees:
             self.__transform(name, text, tree, interface)
-            results.append(lxml.html.tostring(tree))
+            results.append(self._stringify(tree))
         return results
+
+    def _parse(self, data):
+        # importers provides xhtml
+        if ISilvaXMLImportHandler.providedBy(self.request):
+            return lxml.etree.fromstring(data)
+        return lxml.html.fromstring(data)
+
+    def _stringify(self, tree):
+        # method xml means building xhtml (<br/> <img/> ...)
+        return lxml.html.tostring(tree, method='xml')
 
 
 class TransformationFilter(grok.MultiSubscription):

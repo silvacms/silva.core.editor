@@ -16,6 +16,18 @@ from Products.Silva.silvaxml import xmlexport
 
 # Transformers
 
+class XHTMLExportTransformer(TransformationFilter):
+    grok.adapts(IVersion, ISilvaXMLExportHandler)
+    grok.provides(itransform.ISilvaXMLExportFilter)
+    grok.order(0)
+
+    def __init__(self, context, handler):
+        self.context = context
+        self.handler = handler
+
+    def __call__(self, tree):
+        lxml.html.html_to_xhtml(tree)
+
 
 class ReferenceExportTransformer(TransformationFilter):
     grok.adapts(IVersion, ISilvaXMLExportHandler)
@@ -27,7 +39,8 @@ class ReferenceExportTransformer(TransformationFilter):
         self._reference_service = component.getUtility(IReferenceService)
 
     def __call__(self, tree):
-        for node in tree.xpath('//*[@reference]'):
+        for node in tree.xpath('//html:*[@reference]',
+                namespaces={'html': 'http://www.w3.org/1999/xhtml'}):
             name = unicode(node.attrib['reference'])
             reference = self._reference_service.get_reference(
                 self.context, name=name)
@@ -48,7 +61,13 @@ xmlexport.theXMLExporter.registerNamespace('silvacoreeditor', NS_URI)
 
 class ProxyHandler(lxml.sax.ElementTreeContentHandler):
     def __init__(self, producer):
+        lxml.sax.ElementTreeContentHandler.__init__(self)
         self.producer = producer
+
+    def startPrefixMapping(self, prefix, uri):
+        self.producer.handler.startPrefixMapping(prefix, uri)
+        lxml.sax.ElementTreeContentHandler.startPrefixMapping(
+            self, prefix, uri)
 
     def startElementNS(self, name, qname, attributes):
         uri, localname = name
@@ -74,7 +93,7 @@ class TextProducerProxy(object):
             self.context, producer,
             itransform.ISilvaXMLExportFilter)
         handler = ProxyHandler(producer)
-        lxml.sax.saxify(lxml.html.fromstring(xml_text), handler)
+        lxml.sax.saxify(lxml.etree.fromstring(xml_text), handler)
         producer.endElement('text')
 
 

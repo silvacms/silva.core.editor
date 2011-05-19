@@ -69,12 +69,13 @@ class TestExport(unittest.TestCase):
 
         ref_filter = xmlexport.ReferenceExportTransformer(
             self.version, producer)
-        tree = lxml.html.fragment_fromstring(self.html)
+        tree = lxml.html.fromstring(self.html)
+        xmlexport.XHTMLExportTransformer(self.version, producer)(tree)
         ref_filter(tree)
-
-        link = tree.xpath('//a[@class="link"][1]')[0]
+        ns = {'html': 'http://www.w3.org/1999/xhtml'}
+        link = tree.xpath('//html:a[@class="link"][1]', namespaces=ns)[0]
         self.assertEquals('root/folder/other', link.attrib['reference'])
-        img = tree.xpath('//img[1]')[0]
+        img = tree.xpath('//html:img[1]', namespaces=ns)[0]
         self.assertEquals('root/folder/img', img.attrib['reference'])
 
 
