@@ -41,18 +41,23 @@
                             jsont: '<textarea name="{data.name|htmltag}">{data.text}</textarea>',
                             render: function() {
                                 var textarea = $content.children('textarea').get(0);
-
-                                editor = CKEDITOR.replace(textarea, settings);
-                                editor.on('instanceReady', function (event) {
-                                    // XXX Where the hell comes from those 5 pixels ?
-                                    var height = $content.height() - 5;
+                                var resize = function () {
+                                    // XXX Where the hell comes from those 4 pixels ?
+                                    var height = $content.height() - 4;
 
                                     height -= $('#cke_top_body').outerHeight();
                                     height -= $('#cke_bottom_body').outerHeight();
                                     editor.resize(editor.container.getStyle('width'), height, true);
+                                };
+
+                                editor = CKEDITOR.replace(textarea, settings);
+                                editor.on('instanceReady', resize);
+                                editor.on('instanceReady', function() {
+                                    $(window).bind('resize.smi-editor', resize);
                                 });
                             },
                             cleanup: function() {
+                                $(window).unbind('resize.smi-editor');
                                 $content.empty();
                                 if (editor != null) {
                                     try {
