@@ -76,7 +76,7 @@ cursor:se-resize;
 display:block;
 float:right;
 height:12px;
-margin-top:11px;
+margin-top:30px;
 width:12px;
 }
 
@@ -270,7 +270,6 @@ height:28px;
 .cke_skin_silva .cke_separator {
 border-left:solid 1px #aaa;
 display:inline-block;
-float:left;
 height:16px;
 margin:6px 2px;
 }
