@@ -33,7 +33,7 @@
                 }
             });
             editor.ui.addButton('SilvaSave', {
-                label: 'editor.plugin.save',
+                label: editor.lang.save,
                 command: 'silvasave',
                 className: 'cke_button_save'
             });
