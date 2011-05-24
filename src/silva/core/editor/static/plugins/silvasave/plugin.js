@@ -15,7 +15,10 @@
                             if (data['status'] == 'success') {
                                 $(document).trigger('refresh-feedback-smi');
                                 if (data[editor.name] != undefined) {
-                                    editor.setData(data[editor.name]);
+                                    editor.setData(data[editor.name], function() {
+                                        // We document is no longer modified.
+                                        this.resetDirty();
+                                    });
                                 };
                             } else {
                                 var message = 'Error while saving document';
