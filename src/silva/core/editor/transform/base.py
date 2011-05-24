@@ -10,7 +10,6 @@ from five import grok
 from zope.interface import Interface
 from silva.core.editor.transform.interfaces import ITransformer
 from silva.core.editor.transform.interfaces import ITransformationFilter
-from silva.core.editor import utils
 from silva.core.interfaces import IVersion, ISilvaXMLImportHandler
 from silva.core.references.interfaces import IReferenceService
 from zope import component
@@ -52,10 +51,16 @@ class Transformer(grok.MultiAdapter):
         # importers provides xhtml
         if ISilvaXMLImportHandler.providedBy(self.request):
             return lxml.etree.fromstring(data)
-        return utils.parse_html_fragments(data)
+
+        data = '<div id="sce-transform-root">' + data + '</div>'
+        return lxml.html.fromstring(data)
 
     def _stringify(self, tree):
-        # method xml means building xhtml (<br/> <img/> ...)
+        if tree.tag == 'div' and \
+                tree.attrib.get('id') == 'sce-transform-root':
+            strings = [lxml.html.tostring(c, method='xml') for c in tree]
+            return "\n".join(strings)
+
         return lxml.html.tostring(tree, method='xml')
 
 
