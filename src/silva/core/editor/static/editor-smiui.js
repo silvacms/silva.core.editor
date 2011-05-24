@@ -53,11 +53,10 @@
                             render: function() {
                                 var textarea = $content.children('textarea').get(0);
                                 var resize = function () {
-                                    var height = $content.innerHeight() - 5;
+                                    var height = $content.innerHeight() - 4;
+                                    var width = $content.innerWidth();
 
-                                    height -= $('#cke_top_body').outerHeight();
-                                    height -= $('#cke_bottom_body').outerHeight();
-                                    editor.resize(editor.container.getStyle('width'), height, true);
+                                    editor.resize(width, height);
                                 };
 
                                 editor = CKEDITOR.replace(textarea, settings);
