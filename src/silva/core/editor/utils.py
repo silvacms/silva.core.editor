@@ -59,7 +59,7 @@ def create_node_if_string(string_or_node, tag='div'):
     return string_or_node
 
 
-def parse_html_fragments(data, clear_tags=['p', 'span', 'div']):
+def parse_html_fragments(data, clear_tags=['p', 'span', 'br']):
     """ Parse html fragments and return a tree with one root.
 
     In case there is more that one fragment in data, it removes every
@@ -78,7 +78,7 @@ def parse_html_fragments(data, clear_tags=['p', 'span', 'div']):
                     continue
             # no children
             if len(node) == 0 and node.tag.lower() in clear_tags:
-                if empty_pattern.match(node.text):
+                if node.text is None or empty_pattern.match(node.text):
                     top_level_nodes.pop()
                     continue
             break

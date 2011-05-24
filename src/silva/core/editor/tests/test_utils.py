@@ -145,6 +145,15 @@ blah blah blah"""
 blah blah blah</div>""",
             lxml.html.tostring(tree, method="xml", pretty_print=True).strip())
 
+    def test_parse_comment(self):
+        data = """
+        <!-- some comment -->
+"""
+        tree = parse_html_fragments(data)
+        self.assertEquals("""<!-- some comment -->""",
+            lxml.html.tostring(tree, method="xml", pretty_print=True).strip())
+
+
 def test_suite():
     suite = unittest.TestSuite()
     suite.addTest(unittest.makeSuite(TestStrip))
