@@ -50,18 +50,16 @@ def html_truncate(max_length, html_data, append=u"…"):
 
 empty_pattern = re.compile(r'^\s*$', re.UNICODE)
 
-def _filter_out_empty_node(node):
-    if isinstance(node, basestring):
-        if empty_pattern.match(node):
-            return False
-        return True
-    # no children
-    if len(node) == 0:
-        if empty_pattern.match(node.text):
-            return False
-    return True
 
-def parse_html_fragments(data):
+def create_node_if_string(string_or_node, tag='div'):
+    if isinstance(string_or_node, basestring):
+        node = lxml.html.Element(tag)
+        node.text = string_or_node
+        return node
+    return string_or_node
+
+
+def parse_html_fragments(data, clear_tags=['p', 'span', 'div']):
     """ Parse html fragments and return a tree with one root.
 
     In case there is more that one fragment in data, it removes every
@@ -69,14 +67,24 @@ def parse_html_fragments(data):
     """
     top_level_nodes = lxml.html.fragments_fromstring(data)
     if len(top_level_nodes) == 1:
-        return top_level_nodes[0]
+        return create_node_if_string(top_level_nodes[0])
     elif len(top_level_nodes) == 0:
         return lxml.html.Element('div')
     else:
-        top_level_nodes = filter(_filter_out_empty_node, top_level_nodes)
+        for node in reversed(top_level_nodes):
+            if isinstance(node, basestring):
+                if empty_pattern.match(node):
+                    top_level_nodes.pop()
+                    continue
+            # no children
+            if len(node) == 0 and node.tag.lower() in clear_tags:
+                if empty_pattern.match(node.text):
+                    top_level_nodes.pop()
+                    continue
+            break
 
         if len(top_level_nodes) == 1:
-            return top_level_nodes[0]
+            return create_node_if_string(top_level_nodes[0])
         elif len(top_level_nodes) == 0:
             return lxml.html.Element('div')
         else:

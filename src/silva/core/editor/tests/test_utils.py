@@ -4,8 +4,9 @@
 # $Id$
 
 import unittest
+import lxml.html
 
-from silva.core.editor.utils import html_truncate
+from silva.core.editor.utils import html_truncate, parse_html_fragments
 
 
 class TestStrip(unittest.TestCase):
@@ -45,9 +46,109 @@ class TestStrip(unittest.TestCase):
             html_truncate(17, html))
 
 
+class TestParseHtml(unittest.TestCase):
+
+    def test_parse_one_top_level_node(self):
+        data = """<div>
+    <p>some text</p>
+    <img src="#"/><span class="some">span text</span>
+</div>"""
+        tree = parse_html_fragments(data)
+        self.assertEquals(data,
+            lxml.html.tostring(tree, method="xml", pretty_print=True).strip())
+
+    def test_parse_multiple_roots(self):
+        data = """<h1>Some text title</h1>
+<p>&nbsp;</p>
+<p>some text</p>
+<p>some text</p>
+<p>some text</p>
+<p>&nbsp;</p>
+"""
+        tree = parse_html_fragments(data)
+        self.assertEquals("""<div><h1>Some text title</h1>
+<p>&#160;</p>
+<p>some text</p>
+<p>some text</p>
+<p>some text</p>
+</div>""", lxml.html.tostring(tree, method="xml", pretty_print=True).strip())
+
+    def test_parse_trailing_empty_elements(self):
+        data = """<div>
+    <h1>Some text title</h1>
+    <p>&nbsp;</p>
+    <p>some text</p>
+    <p>some text</p>
+    <p>some text</p>
+    <p>&nbsp;</p>
+</div>
+<p>
+    &nbsp;</p>
+"""
+        tree = parse_html_fragments(data)
+        self.assertEquals("""<div>
+    <h1>Some text title</h1>
+    <p>&#160;</p>
+    <p>some text</p>
+    <p>some text</p>
+    <p>some text</p>
+    <p>&#160;</p>
+</div>""", lxml.html.tostring(tree, method="xml", pretty_print=True).strip())
+
+    def test_parse_trailing_image_node(self):
+        data = """<div>
+    <h1>Some text title</h1>
+    <p>&nbsp;</p>
+    <p>some text</p>
+    <p>some text</p>
+    <p>some text</p>
+    <p>&nbsp;</p>
+</div>
+<p>
+    &nbsp;</p>
+<img src="#" />"""
+
+        tree = parse_html_fragments(data)
+        self.assertEquals("""<div><div>
+    <h1>Some text title</h1>
+    <p>&#160;</p>
+    <p>some text</p>
+    <p>some text</p>
+    <p>some text</p>
+    <p>&#160;</p>
+</div>
+<p>
+    &#160;</p>
+<img src="#"/></div>""",
+            lxml.html.tostring(tree, method="xml", pretty_print=True).strip())
+
+    def test_parse_trailing_text(self):
+        data = """blah <div>
+    <h1>Some text title</h1>
+    <p>&nbsp;</p>
+    <p>some text</p>
+    <p>some text</p>
+    <p>some text</p>
+    <p>&nbsp;</p>
+</div>
+blah blah blah"""
+
+        tree = parse_html_fragments(data)
+        self.assertEquals("""<div>blah <div>
+    <h1>Some text title</h1>
+    <p>&#160;</p>
+    <p>some text</p>
+    <p>some text</p>
+    <p>some text</p>
+    <p>&#160;</p>
+</div>
+blah blah blah</div>""",
+            lxml.html.tostring(tree, method="xml", pretty_print=True).strip())
+
 def test_suite():
     suite = unittest.TestSuite()
     suite.addTest(unittest.makeSuite(TestStrip))
+    suite.addTest(unittest.makeSuite(TestParseHtml))
     return suite
 
 
