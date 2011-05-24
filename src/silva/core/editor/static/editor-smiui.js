@@ -53,8 +53,8 @@
                             render: function() {
                                 var textarea = $content.children('textarea').get(0);
                                 var resize = function () {
-                                    // XXX Where the hell comes from those 4 pixels ?
-                                    var height = $content.height() - 4;
+                                    // XXX Where the hell comes from those 5 pixels ?
+                                    var height = $content.height() - 5;
 
                                     height -= $('#cke_top_body').outerHeight();
                                     height -= $('#cke_bottom_body').outerHeight();
