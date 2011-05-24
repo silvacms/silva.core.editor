@@ -37,6 +37,17 @@
                     factory: function($content, data, smi) {
                         var editor = null;
 
+                        smi.objection = function () {
+                            if (editor != null && editor.checkDirty()) {
+                                return infrae.ui.ConfirmationDialog({
+                                    title: 'Modifications',
+                                    message:'This document have been modified. ' +
+                                        'If you continue you will loose thoses modifications. ' +
+                                        'Do you want to continue?'});
+                            };
+                            return null;
+                        };
+
                         return {
                             jsont: '<textarea name="{data.name|htmltag}">{data.text}</textarea>',
                             render: function() {
