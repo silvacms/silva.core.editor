@@ -12,9 +12,11 @@ from silva.core import conf as silvaconf
 from silva.core.interfaces import ISilvaObject
 from silva.core.views.interfaces import IVirtualSite
 from silva.core.services.base import SilvaService
-from silva.core.editor.interfaces import ICKEditorService, ICKEditorSettings
+from silva.core.editor.interfaces import ICKEditorService
+from silva.core.editor.interfaces import ICKEditorSettings, skin_vocabulary
 from zope.component import getUtility
 from zope.schema.fieldproperty import FieldProperty
+from zope.lifecycleevent.interfaces import IObjectCreatedEvent
 from zeam.form import silva as silvaforms
 
 logger = logging.getLogger('silva.core.editor')
@@ -26,8 +28,8 @@ class CKEditorService(SilvaService):
     """Configure the editor service.
     """
     grok.implements(ICKEditorService)
+    grok.name('service_ckeditor')
     meta_type = 'Silva CKEditor Service'
-    default_service_identifier = 'service_ckeditor'
     silvaconf.icon('service.png')
 
     manage_options = (
@@ -134,3 +136,9 @@ class CKEditorRESTConfiguration(rest.REST):
              'formats': service.get_formats(),
              'plugins': ','.join(plugins_path.keys()),
              'skin': service.skin})
+
+
+@grok.subscribe(ICKEditorService, IObjectCreatedEvent)
+def configure_service(service, event):
+    skins = skin_vocabulary(service)
+    service.skin = skins.getTermByToken('silva').value

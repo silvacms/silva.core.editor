@@ -117,6 +117,7 @@ def skin_vocabulary(context):
                 skins.append(
                     SimpleTerm(
                         title=info['title'],
+                        token=name,
                         value='%s,%s/%s' % (name, base, path)))
     return SimpleVocabulary(skins)
 
