@@ -14,7 +14,7 @@
                         this._ = {};
 
                         dialog.on('load', function() {
-                            self._.remote = new ReferencedRemoteObject(identifier);
+                            self._.remote = ReferencedRemoteObject(identifier);
                             self._.remote.change(function(event, info) {
                                 self.fire('reference-update', info);
                             });
@@ -36,7 +36,7 @@
                 CKEDITOR.ui.dialog.reference.prototype = CKEDITOR.tools.extend(
                     new CKEDITOR.ui.dialog.labeledElement, {
                         getInputElement: function() {
-                            return CKEDITOR.document.getById(this._.remote.get_reference_input().id);
+                            return CKEDITOR.document.getById(this._.remote.identifier);
                         },
                         getValue: function() {
                             return this._.remote.reference();
