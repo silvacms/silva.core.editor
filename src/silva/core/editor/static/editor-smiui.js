@@ -43,7 +43,27 @@
                                     title: 'Modifications',
                                     message:'This document have been modified. ' +
                                         'If you continue you will loose thoses modifications. ' +
-                                        'Do you want to continue?'});
+                                        'Do you want to continue?',
+                                    buttons: {
+                                        Save: function() {
+                                            var url =  $('#content-url').attr('href') +
+                                                '/++rest++silva.core.editor.save';
+                                            var data = {};
+
+                                            data[editor.name] = editor.getData();
+                                            $.ajax({
+                                                url: url,
+                                                type: 'POST',
+                                                data: data});
+                                            return true;
+                                        },
+                                        Discard: function() {
+                                            return true;
+                                        },
+                                        Cancel: function() {
+                                            return false;
+                                        }
+                                    }});
                             };
                             return null;
                         };
