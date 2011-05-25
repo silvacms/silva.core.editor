@@ -1,65 +1,69 @@
 
-CKEDITOR.plugins.silvaanchor = {
-    getAnchorTextFromAttributes: function(attributes) {
-        var text = '[#' + attributes['name'];
-        if (attributes['title']) {
-            text += ': ' + attributes['title'];
-        };
-        text += ']';
-        return text;
-    },
-    isAnchor: function(element) {
-        if (element != null && element.is('a') && element.hasClass('anchor')) {
-            return true;
-        };
-        return false;
-    },
-    getSelectedAnchor: function(editor) {
-        try {
-            var selection = editor.getSelection();
-            if (selection.getType() == CKEDITOR.SELECTION_ELEMENT) {
-                var selectedElement = selection.getSelectedElement();
-                if (CKEDITOR.plugins.silvaanchor.isAnchor(selectedElement)) {
-                    return selectedElement;
+
+(function(CKEDITOR) {
+
+    CKEDITOR.plugins.silvaanchor = {
+        getAnchorTextFromAttributes: function(attributes) {
+            var text = '[#' + attributes['name'];
+            if (attributes['title']) {
+                text += ': ' + attributes['title'];
+            };
+            text += ']';
+            return text;
+        },
+        isAnchor: function(element) {
+            if (element != null && element.is('a') && element.hasClass('anchor')) {
+                return true;
+            };
+            return false;
+        },
+        getSelectedAnchor: function(editor) {
+            try {
+                var selection = editor.getSelection();
+                if (selection.getType() == CKEDITOR.SELECTION_ELEMENT) {
+                    var selectedElement = selection.getSelectedElement();
+                    if (CKEDITOR.plugins.silvaanchor.isAnchor(selectedElement)) {
+                        return selectedElement;
+                    };
+                };
+
+                var ranges = selection.getRanges(true)[0];
+                if (ranges != undefined) {
+                    ranges.shrink(CKEDITOR.SHRINK_TEXT);
+
+                    var base = ranges.getCommonAncestor();
+                    var selectedElement = base.getAscendant('a', true);
+                    if (CKEDITOR.plugins.silvaanchor.isAnchor(selectedElement)) {
+                        return selectedElement;
+                    };
+                };
+                return null;
+            }
+            catch(e) {
+                return null;
+            }
+        },
+        listDocumentAnchors: function(editor) {
+            var anchors = [];
+            var candidates = new CKEDITOR.dom.nodeList(editor.document.$.anchors);
+
+            for (var i=0; i < candidates.count(); i++) {
+                var candidate = candidates.getItem(i);
+
+                if (CKEDITOR.plugins.silvaanchor.isAnchor(candidate)) {
+                    var name = candidate.getAttribute('name');
+                    var title = name;
+
+                    if (candidate.hasAttribute('title')) {
+                        title = candidate.getAttribute('title');
+                    };
+                    anchors.push([name, title]);
                 };
             };
-
-            var ranges = selection.getRanges(true)[0];
-            ranges.shrink(CKEDITOR.SHRINK_TEXT);
-
-            var base = ranges.getCommonAncestor();
-            var selectedElement = base.getAscendant('a', true);
-            if (CKEDITOR.plugins.silvaanchor.isAnchor(selectedElement)) {
-                return selectedElement;
-            };
-            return null;
+            return anchors;
         }
-        catch(e) {
-            return null;
-        }
-    },
-    listDocumentAnchors: function(editor) {
-        var anchors = [];
-        var candidates = new CKEDITOR.dom.nodeList(editor.document.$.anchors);
+    };
 
-        for (var i=0; i < candidates.count(); i++) {
-            var candidate = candidates.getItem(i);
-
-            if (CKEDITOR.plugins.silvaanchor.isAnchor(candidate)) {
-                var name = candidate.getAttribute('name');
-                var title = name;
-
-                if (candidate.hasAttribute('title')) {
-                    title = candidate.getAttribute('title');
-                };
-                anchors.push([name, title]);
-            };
-        };
-        return anchors;
-    }
-};
-
-(function() {
     var API = CKEDITOR.plugins.silvaanchor;
 
     CKEDITOR.plugins.add('silvaanchor', {
@@ -176,4 +180,4 @@ CKEDITOR.plugins.silvaanchor = {
             };
         }
     });
-})();
+})(CKEDITOR);

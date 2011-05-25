@@ -1,351 +1,355 @@
 
-CKEDITOR.unlinkCommand = function(){};
-CKEDITOR.unlinkCommand.prototype = {
-    exec: function(editor) {
-        // This is taken from the official link plugins. Should use
-        // the styling system to change this. Firefox let a span when
-        // a link is removed.
-        var selection = editor.getSelection();
-        var bookmarks = selection.createBookmarks();
-        var ranges = selection.getRanges();
-        var rangeRoot;
-        var element;
 
-        for (var i=0 ; i < ranges.length ; i++) {
-            rangeRoot = ranges[i].getCommonAncestor(true);
-            element = rangeRoot.getAscendant('a', true);
-            if (!element)
-                continue;
-            ranges[i].selectNodeContents(element);
-        }
 
-        selection.selectRanges(ranges);
-        editor.document.$.execCommand('unlink', false, null);
-        selection.selectBookmarks(bookmarks);
-    },
-    startDisabled : true
-};
+(function(CKEDITOR){
 
-CKEDITOR.plugins.silvalink = {
-    isLink: function(element) {
-        if (element != null && element.is('a') && element.hasClass('link')) {
-            return true;
-        };
-        return false;
-    },
-    getSelectedLink: function(editor) {
-        try {
+    CKEDITOR.unlinkCommand = function(){};
+    CKEDITOR.unlinkCommand.prototype = {
+        exec: function(editor) {
+            // This is taken from the official link plugins. Should use
+            // the styling system to change this. Firefox let a span when
+            // a link is removed.
             var selection = editor.getSelection();
-            if (selection.getType() == CKEDITOR.SELECTION_ELEMENT) {
-                var selectedElement = selection.getSelectedElement();
-                if (CKEDITOR.plugins.silvalink.isLink(selectedElement)) {
-                    return selectedElement;
+            var bookmarks = selection.createBookmarks();
+            var ranges = selection.getRanges();
+            var rangeRoot;
+            var element;
+
+            for (var i=0 ; i < ranges.length ; i++) {
+                rangeRoot = ranges[i].getCommonAncestor(true);
+                element = rangeRoot.getAscendant('a', true);
+                if (!element)
+                    continue;
+                ranges[i].selectNodeContents(element);
+            }
+
+            selection.selectRanges(ranges);
+            editor.document.$.execCommand('unlink', false, null);
+            selection.selectBookmarks(bookmarks);
+        },
+        startDisabled : true
+    };
+
+    CKEDITOR.plugins.silvalink = {
+        isLink: function(element) {
+            if (element != null && element.is('a') && element.hasClass('link')) {
+                return true;
+            };
+            return false;
+        },
+        getSelectedLink: function(editor) {
+            try {
+                var selection = editor.getSelection();
+                if (selection.getType() == CKEDITOR.SELECTION_ELEMENT) {
+                    var selectedElement = selection.getSelectedElement();
+                    if (CKEDITOR.plugins.silvalink.isLink(selectedElement)) {
+                        return selectedElement;
+                    };
+                };
+
+                var ranges = selection.getRanges(true)[0];
+                if (ranges != undefined) {
+                    ranges.shrink(CKEDITOR.SHRINK_TEXT);
+
+                    var base = ranges.getCommonAncestor();
+                    var selectedElement = base.getAscendant('a', true);
+                    if (CKEDITOR.plugins.silvalink.isLink(selectedElement)) {
+                        return selectedElement;
+                    };
+                };
+                return null;
+            } catch(e) {
+                return null;
+            };
+        },
+        insertAndSelectTextIfNoneSelected: function(editor, text) {
+            var selection = editor.getSelection();
+            var ranges = selection.getRanges(true);
+
+            if (ranges.length == 1 && ranges[0].collapsed) {
+                var node = new CKEDITOR.dom.text(text);
+
+                ranges[0].insertNode(node);
+                ranges[0].selectNodeContents(node);
+                selection.selectRanges(ranges);
+            }
+        },
+        createDialogFields: function (validatorDecorator) {
+            // validatorDecorator is used to decorate validation functions.
+            if (validatorDecorator == null) {
+                // No decorator, create a default one.
+                validatorDecorator = function(validator) {
+                    return validator;
                 };
             };
+            // Define popup fields for links. They are defined here to be
+            // used in other plugins.
+            return [
+                { type: 'radio',
+                  id: 'link_type',
+                  label: 'Link type',
+                  items: [
+                      ['internal link', 'intern'],
+                      ['external link', 'extern'],
+                      ['local anchor', 'anchor']
+                  ],
+                  required: true,
+                  onChange: function () {
+                      var value = this.getValue();
+                      var dialog = this.getDialog();
+                      var url_input = dialog.getContentElement(
+                          'link', 'link_url').getElement();
+                      var reference_input = dialog.getContentElement(
+                          'link', 'link_content').getElement();
+                      var anchor_input = dialog.getContentElement(
+                          'link', 'link_anchor').getElement();
+                      var extra_anchor_input = dialog.getContentElement(
+                          'link', 'link_extra_anchor').getElement();
 
-            var ranges = selection.getRanges(true)[0];
-            ranges.shrink(CKEDITOR.SHRINK_TEXT);
-
-            var base = ranges.getCommonAncestor();
-            var selectedElement = base.getAscendant('a', true);
-            if (CKEDITOR.plugins.silvalink.isLink(selectedElement)) {
-                return selectedElement;
-            };
-            return null;
-        }
-        catch(e) {
-            return null;
-        }
-    },
-    insertAndSelectTextIfNoneSelected: function(editor, text) {
-        var selection = editor.getSelection();
-        var ranges = selection.getRanges(true);
-
-        if (ranges.length == 1 && ranges[0].collapsed) {
-            var node = new CKEDITOR.dom.text(text);
-
-            ranges[0].insertNode(node);
-            ranges[0].selectNodeContents(node);
-            selection.selectRanges(ranges);
-        }
-    },
-    createDialogFields: function (validatorDecorator) {
-        // validatorDecorator is used to decorate validation functions.
-        if (validatorDecorator == null) {
-            // No decorator, create a default one.
-            validatorDecorator = function(validator) {
-                return validator;
-            };
-        };
-        // Define popup fields for links. They are defined here to be
-        // used in other plugins.
-        return [
-            { type: 'radio',
-              id: 'link_type',
-              label: 'Link type',
-              items: [
-                  ['internal link', 'intern'],
-                  ['external link', 'extern'],
-                  ['local anchor', 'anchor']
-              ],
-              required: true,
-              onChange: function () {
-                  var value = this.getValue();
-                  var dialog = this.getDialog();
-                  var url_input = dialog.getContentElement(
-                      'link', 'link_url').getElement();
-                  var reference_input = dialog.getContentElement(
-                      'link', 'link_content').getElement();
-                  var anchor_input = dialog.getContentElement(
-                      'link', 'link_anchor').getElement();
-                  var extra_anchor_input = dialog.getContentElement(
-                      'link', 'link_extra_anchor').getElement();
-
-                  switch(value) {
-                  case 'intern':
-                      url_input.hide();
-                      anchor_input.hide();
-                      reference_input.show();
-                      extra_anchor_input.show();
-                      break;
-                  case 'extern':
-                      reference_input.hide();
-                      anchor_input.hide();
-                      url_input.show();
-                      extra_anchor_input.show();
-                      break;
-                  default:
-                      url_input.hide();
-                      reference_input.hide();
-                      extra_anchor_input.hide();
-                      anchor_input.show();
-                  };
-              },
-              setup: function(data) {
-                  this.setValue(data.link.type);
-              },
-              commit: function(data) {
-                  if (data.link.type === undefined) {
-                      data.link.type = this.getValue();
-                  };
-              }
-            },
-            { type: 'text',
-              id: 'link_url',
-              label: 'External URL',
-              required: true,
-              setup: function(data) {
-                  this.setValue(data.link.url);
-              },
-              validate: validatorDecorator(function() {
-                  var dialog = this.getDialog();
-                  var type_value = dialog.getContentElement(
-                      'link', 'link_type').getValue();
-
-                  if (type_value == 'extern') {
-                      var checker = CKEDITOR.dialog.validate.regex(
-                          /^(?:http|https|ftp|ftps|ssh|news|mailto|tel|webcal|itms):.*$/,
-                          'You need to specify a valid external URL !');
-
-                      return checker.apply(this);
-                  };
-                  return true;
-              }),
-              commit: function(data) {
-                  if (data.link.url === undefined) {
-                      data.link.url = this.getValue();
-                  };
-              }
-            },
-            { type: 'reference',
-              id: 'link_content',
-              label: 'Link target',
-              required: true,
-              onReferenceUpdate: function(event) {
-                  var dialog = this.getDialog();
-                  var title = dialog.getContentElement('link', 'link_title');
-
-                  if (!title.getValue()) {
-                      title.setValue(event.data.title);
-                  };
-              },
-              validate: validatorDecorator(function() {
-                  var dialog = this.getDialog();
-                  var type_value = dialog.getContentElement(
-                      'link', 'link_type').getValue();
-
-                  if (type_value == 'intern') {
-                      var checker = CKEDITOR.dialog.validate.notEmpty(
-                          'You need to select a content to link to !');
-
-                      return checker.apply(this);
-                  };
-                  return true;
-              }),
-              setup: function(data) {
-                  if (data.link.content !== undefined) {
-                      this.setValue(data.link.content);
-                  } else {
-                      this.clear();
-                  };
-              },
-              commit: function(data) {
-                  if (data.link.content === undefined) {
-                      data.link.content = this.getValue();
-                  };
-              }
-            },
-            { type: 'select',
-              id: 'link_anchor',
-              label: 'Anchor',
-              items: [],
-              required: true,
-              setup: function(data) {
-                  var editor = this.getDialog().getParentEditor();
-                  var anchors = CKEDITOR.plugins.silvaanchor.listDocumentAnchors(
-                      editor);
-
-                  this.clear();
-                  this.add('No anchor selected', '');
-                  for (var i=0; i < anchors.length; i++ ) {
-                      this.add(anchors[i][1], anchors[i][0]);
-                  };
-                  if (data.link.type == 'anchor') {
-                      this.setValue(data.link.anchor);
-                  };
-              },
-              validate: validatorDecorator(function() {
-                  var dialog = this.getDialog();
-                  var type_value = dialog.getContentElement(
-                      'link', 'link_type').getValue();
-
-                  if (type_value == 'anchor') {
-                      var checker = CKEDITOR.dialog.validate.notEmpty(
-                          'You need to select a document anchor !');
-
-                      return checker.apply(this);
-                  };
-                  return true;
-              }),
-              commit: function(data) {
-                  var dialog = this.getDialog();
-                  var type_value = dialog.getContentElement(
-                      'link', 'link_type').getValue();
-
-                  if (type_value == 'anchor') {
-                      data.link.anchor = this.getValue();
-                  };
-              }
-            },
-            { type: 'text',
-              id: 'link_extra_anchor',
-              label: 'Anchor',
-              setup: function(data) {
-                  this.setValue(data.link.anchor);
-              },
-              commit: function(data) {
-                  var dialog = this.getDialog();
-                  var type_value = dialog.getContentElement(
-                      'link', 'link_type').getValue();
-
-                  if (type_value != 'anchor') {
-                      data.link.anchor = this.getValue();
-                  };
-              }
-            },
-            { type: 'select',
-              id: 'link_target',
-              label: 'Window target',
-              items: [
-                  ['same window', '_self'],
-                  ['new window', '_blank'],
-                  ['parent', '_parent'],
-                  ['top', '_top'],
-                  ['custom target', 'input']
-              ],
-              required: true,
-              onChange: function() {
-                  var dialog = this.getDialog();
-                  var target_value = dialog.getContentElement(
-                      'link', 'link_target').getValue();
-                  var input = dialog.getContentElement(
-                      'link', 'link_custom_target');
-
-                  if (target_value == 'input') {
-                      input.getElement().show();
-                  } else {
-                      input.getElement().hide();
-                  };
-              },
-              setup: function(data) {
-                  var is_custom = true;
-                  var items = this._.select.items;
-
-                  for (var i = 0; i < items.length; i++) {
-                      if (items[i][1] == data.link.target) {
-                          is_custom = false;
+                      switch(value) {
+                      case 'intern':
+                          url_input.hide();
+                          anchor_input.hide();
+                          reference_input.show();
+                          extra_anchor_input.show();
                           break;
+                      case 'extern':
+                          reference_input.hide();
+                          anchor_input.hide();
+                          url_input.show();
+                          extra_anchor_input.show();
+                          break;
+                      default:
+                          url_input.hide();
+                          reference_input.hide();
+                          extra_anchor_input.hide();
+                          anchor_input.show();
                       };
-                  };
-                  if (is_custom) {
-                      var dialog = this.getDialog();
-                      var custom_target = dialog.getContentElement(
-                          'link', 'link_custom_target');
-
-                      custom_target.setValue(data.link.target);
-                      this.setValue('input');
-                  } else {
-                      this.setValue(data.link.target);
+                  },
+                  setup: function(data) {
+                      this.setValue(data.link.type);
+                  },
+                  commit: function(data) {
+                      if (data.link.type === undefined) {
+                          data.link.type = this.getValue();
+                      };
                   }
-              },
-              commit: function(data) {
-                  var target = this.getValue();
-
-                  if (target == 'input') {
+                },
+                { type: 'text',
+                  id: 'link_url',
+                  label: 'External URL',
+                  required: true,
+                  setup: function(data) {
+                      this.setValue(data.link.url);
+                  },
+                  validate: validatorDecorator(function() {
                       var dialog = this.getDialog();
-                      var custom_target = dialog.getContentElement(
+                      var type_value = dialog.getContentElement(
+                          'link', 'link_type').getValue();
+
+                      if (type_value == 'extern') {
+                          var checker = CKEDITOR.dialog.validate.regex(
+                                  /^(?:http|https|ftp|ftps|ssh|news|mailto|tel|webcal|itms):.*$/,
+                              'You need to specify a valid external URL !');
+
+                          return checker.apply(this);
+                      };
+                      return true;
+                  }),
+                  commit: function(data) {
+                      if (data.link.url === undefined) {
+                          data.link.url = this.getValue();
+                      };
+                  }
+                },
+                { type: 'reference',
+                  id: 'link_content',
+                  label: 'Link target',
+                  required: true,
+                  onReferenceUpdate: function(event) {
+                      var dialog = this.getDialog();
+                      var title = dialog.getContentElement('link', 'link_title');
+
+                      if (!title.getValue()) {
+                          title.setValue(event.data.title);
+                      };
+                  },
+                  validate: validatorDecorator(function() {
+                      var dialog = this.getDialog();
+                      var type_value = dialog.getContentElement(
+                          'link', 'link_type').getValue();
+
+                      if (type_value == 'intern') {
+                          var checker = CKEDITOR.dialog.validate.notEmpty(
+                              'You need to select a content to link to !');
+
+                          return checker.apply(this);
+                      };
+                      return true;
+                  }),
+                  setup: function(data) {
+                      if (data.link.content !== undefined) {
+                          this.setValue(data.link.content);
+                      } else {
+                          this.clear();
+                      };
+                  },
+                  commit: function(data) {
+                      if (data.link.content === undefined) {
+                          data.link.content = this.getValue();
+                      };
+                  }
+                },
+                { type: 'select',
+                  id: 'link_anchor',
+                  label: 'Anchor',
+                  items: [],
+                  required: true,
+                  setup: function(data) {
+                      var editor = this.getDialog().getParentEditor();
+                      var anchors = CKEDITOR.plugins.silvaanchor.listDocumentAnchors(
+                          editor);
+
+                      this.clear();
+                      this.add('No anchor selected', '');
+                      for (var i=0; i < anchors.length; i++ ) {
+                          this.add(anchors[i][1], anchors[i][0]);
+                      };
+                      if (data.link.type == 'anchor') {
+                          this.setValue(data.link.anchor);
+                      };
+                  },
+                  validate: validatorDecorator(function() {
+                      var dialog = this.getDialog();
+                      var type_value = dialog.getContentElement(
+                          'link', 'link_type').getValue();
+
+                      if (type_value == 'anchor') {
+                          var checker = CKEDITOR.dialog.validate.notEmpty(
+                              'You need to select a document anchor !');
+
+                          return checker.apply(this);
+                      };
+                      return true;
+                  }),
+                  commit: function(data) {
+                      var dialog = this.getDialog();
+                      var type_value = dialog.getContentElement(
+                          'link', 'link_type').getValue();
+
+                      if (type_value == 'anchor') {
+                          data.link.anchor = this.getValue();
+                      };
+                  }
+                },
+                { type: 'text',
+                  id: 'link_extra_anchor',
+                  label: 'Anchor',
+                  setup: function(data) {
+                      this.setValue(data.link.anchor);
+                  },
+                  commit: function(data) {
+                      var dialog = this.getDialog();
+                      var type_value = dialog.getContentElement(
+                          'link', 'link_type').getValue();
+
+                      if (type_value != 'anchor') {
+                          data.link.anchor = this.getValue();
+                      };
+                  }
+                },
+                { type: 'select',
+                  id: 'link_target',
+                  label: 'Window target',
+                  items: [
+                      ['same window', '_self'],
+                      ['new window', '_blank'],
+                      ['parent', '_parent'],
+                      ['top', '_top'],
+                      ['custom target', 'input']
+                  ],
+                  required: true,
+                  onChange: function() {
+                      var dialog = this.getDialog();
+                      var target_value = dialog.getContentElement(
+                          'link', 'link_target').getValue();
+                      var input = dialog.getContentElement(
                           'link', 'link_custom_target');
 
-                      target = custom_target.getValue();
-                  };
-                  data.link.target = target;
-              }
-            },
-            { type: 'text',
-              id: 'link_custom_target',
-              label: 'Custom target',
-              required: true,
-              validate: validatorDecorator(function() {
-                  var dialog = this.getDialog();
-                  var target_value = dialog.getContentElement(
-                      'link', 'link_target').getValue();
+                      if (target_value == 'input') {
+                          input.getElement().show();
+                      } else {
+                          input.getElement().hide();
+                      };
+                  },
+                  setup: function(data) {
+                      var is_custom = true;
+                      var items = this._.select.items;
 
-                  if (target_value == 'input') {
-                      var checker = CKEDITOR.dialog.validate.notEmpty(
-                          'Custom window target is selected for the link, ' +
-                              'but no custom target is filled !');
+                      for (var i = 0; i < items.length; i++) {
+                          if (items[i][1] == data.link.target) {
+                              is_custom = false;
+                              break;
+                          };
+                      };
+                      if (is_custom) {
+                          var dialog = this.getDialog();
+                          var custom_target = dialog.getContentElement(
+                              'link', 'link_custom_target');
 
-                      return checker.apply(this);
-                  };
-                  return true;
-              })
-              // Setup and commit are done by the target field.
-            },
-            { type: 'text',
-              id: 'link_title',
-              label: 'Link title',
-              setup: function(data) {
-                  this.setValue(data.link.title);
-              },
-              commit: function(data) {
-                  data.link.title = this.getValue();
-              }
-            }
-        ];
-    }
-};
+                          custom_target.setValue(data.link.target);
+                          this.setValue('input');
+                      } else {
+                          this.setValue(data.link.target);
+                      }
+                  },
+                  commit: function(data) {
+                      var target = this.getValue();
 
-(function(){
+                      if (target == 'input') {
+                          var dialog = this.getDialog();
+                          var custom_target = dialog.getContentElement(
+                              'link', 'link_custom_target');
+
+                          target = custom_target.getValue();
+                      };
+                      data.link.target = target;
+                  }
+                },
+                { type: 'text',
+                  id: 'link_custom_target',
+                  label: 'Custom target',
+                  required: true,
+                  validate: validatorDecorator(function() {
+                      var dialog = this.getDialog();
+                      var target_value = dialog.getContentElement(
+                          'link', 'link_target').getValue();
+
+                      if (target_value == 'input') {
+                          var checker = CKEDITOR.dialog.validate.notEmpty(
+                              'Custom window target is selected for the link, ' +
+                                  'but no custom target is filled !');
+
+                          return checker.apply(this);
+                      };
+                      return true;
+                  })
+                  // Setup and commit are done by the target field.
+                },
+                { type: 'text',
+                  id: 'link_title',
+                  label: 'Link title',
+                  setup: function(data) {
+                      this.setValue(data.link.title);
+                  },
+                  commit: function(data) {
+                      data.link.title = this.getValue();
+                  }
+                }
+            ];
+        }
+    };
+
     var API = CKEDITOR.plugins.silvalink;
 
     CKEDITOR.plugins.add('silvalink', {
@@ -481,4 +485,4 @@ CKEDITOR.plugins.silvalink = {
             };
         }
     });
-})();
+})(CKEDITOR);

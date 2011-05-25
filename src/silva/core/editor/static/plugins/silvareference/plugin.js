@@ -12,11 +12,14 @@
                         var self = this;
 
                         this._ = {};
-                        this._.id = identifier;
-                        this._.remote = new ReferencedRemoteObject(identifier);
-                        this._.remote.change(function(event, info) {
-                            self.fire('reference-update', info);
+
+                        dialog.on('load', function() {
+                            self._.remote = new ReferencedRemoteObject(identifier);
+                            self._.remote.change(function(event, info) {
+                                self.fire('reference-update', info);
+                            });
                         });
+
                         var innerHTML = function() {
                             var data = {};
 
