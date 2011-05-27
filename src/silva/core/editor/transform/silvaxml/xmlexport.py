@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
+# Copyright (c) 2011 Infrae. All rights reserved.
+# See also LICENSE.txt
+# $Id$
+
 from five import grok
 import lxml.sax
 import lxml.html
@@ -11,7 +16,6 @@ from silva.core.editor.transform.silvaxml import NS_URI
 from silva.core.references.interfaces import IReferenceService
 from silva.core.references.reference import canonical_path, get_content_from_id
 from Products.Silva.silvaxml import xmlexport
-
 
 
 # Transformers
@@ -42,8 +46,7 @@ class ReferenceExportTransformer(TransformationFilter):
         for node in tree.xpath('//html:*[@reference]',
                 namespaces={'html': 'http://www.w3.org/1999/xhtml'}):
             name = unicode(node.attrib['reference'])
-            reference = self._reference_service.get_reference(
-                self.context, name=name)
+            reference = self._reference_service.get_reference(self.context, name=name)
             del node.attrib['reference']
             if reference.target_id:
                 target = get_content_from_id(reference.target_id)
@@ -51,7 +54,7 @@ class ReferenceExportTransformer(TransformationFilter):
                     root = self.handler.getSettings().getExportRoot()
                     relative_path = [root.getId()] + \
                         reference.relative_path_to(root)
-                    node.attrib['reference-name'] = name
+                    node.attrib['reference-type'] = reference.tags[0]
                     node.attrib['reference'] = canonical_path(
                         "/".join(relative_path))
 

@@ -1,4 +1,11 @@
+# -*- coding: utf-8 -*-
+# Copyright (c) 2011 Infrae. All rights reserved.
+# See also LICENSE.txt
+# $Id$
+
 import sys
+import uuid
+
 from five import grok
 from zope import component
 import lxml.etree
@@ -34,15 +41,17 @@ class ReferenceImportTransformer(TransformationFilter):
     def __init__(self, context, handler):
         self.context = context
         self.handler = handler
-        self._reference_service = component.getUtility(IReferenceService)
+        self.service = component.getUtility(IReferenceService)
 
     def __call__(self, tree):
         for node in tree.xpath('//html:*[@reference]',
                 namespaces={'html': 'http://www.w3.org/1999/xhtml'}):
-            name = node.attrib['reference-name']
+            reference_type = node.attrib['reference-type']
+            reference_name = unicode(uuid.uuid1())
+
             path = node.attrib['reference']
-            reference = self._reference_service.new_reference(
-                self.context, name=unicode(name))
+            reference = self.service.new_reference(self.context, reference_type)
+            reference.add_tag(reference_name)
             # reference is broken at this point
             reference.set_target_id(0)
 
@@ -50,12 +59,10 @@ class ReferenceImportTransformer(TransformationFilter):
                 reference.set_target(target)
 
             info = self.handler.getInfo()
-            info.addAction(
-                xmlimport.resolve_path, [setter, info, path])
+            info.addAction(xmlimport.resolve_path, [setter, info, path])
 
-            del node.attrib['reference-name']
-            node.attrib['reference'] = name
-
+            node.attrib['reference'] = reference_name
+            del node.attrib['reference-type']
 
 class TextHandler(xmlimport.SilvaBaseHandler):
 

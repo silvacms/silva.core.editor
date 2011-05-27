@@ -56,8 +56,8 @@ class Transformer(grok.MultiAdapter):
         return lxml.html.fromstring(data)
 
     def _stringify(self, tree):
-        if tree.tag == 'div' and \
-                tree.attrib.get('id') == 'sce-transform-root':
+        if (tree.tag == 'div' and
+            tree.attrib.get('id') == 'sce-transform-root'):
             strings = [lxml.html.tostring(c) for c in tree]
             return "\n".join(strings)
 
