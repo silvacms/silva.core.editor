@@ -20,24 +20,18 @@ from silva.core.layout.jquery import IJQueryResources
 from silva.core.layout.jsontemplate import IJsonTemplateResources
 from silva.core.references.widgets import IReferenceUIResources
 
-
-library = fanstatic.Library('silva.core.editor', 'static')
-
+from js import ckeditor
 
 class ICKEditorResources(IJQueryResources, IJsonTemplateResources, IReferenceUIResources):
     """ Javascript resources for CKEditor.
     """
-    silvaconf.resource(
-        fanstatic.Resource(
-            library, 'ckeditor/ckeditor_source.js',
-            minified=fanstatic.Resource(
-                library, 'ckeditor/ckeditor.js')))
+    silvaconf.resource(ckeditor.ckeditor)
 
 
 class ICKEditorViewResources(ICKEditorResources):
     """Javascript resources to load a CKEditor in a view.
     """
-    silvaconf.resource('ckeditor/adapters/jquery.js')
+    silvaconf.resource(ckeditor.jquery_adapter)
     silvaconf.resource('editor.js')
 
 

@@ -38,6 +38,7 @@ setup(name='silva.core.editor',
         'fanstatic',
         'five.grok',
         'infrae.rest',
+        'js.ckeditor',
         'lxml',
         'setuptools',
         'silva.core.conf',
@@ -56,7 +57,5 @@ setup(name='silva.core.editor',
       core = silva.core.editor:extension
       [silva.ui.resources]
       editor = silva.core.editor.interfaces:ICKEditorSilvaUIResources
-      [fanstatic.libraries]
-      silva.core.editor = silva.core.editor.interfaces:library
       """,
       )
