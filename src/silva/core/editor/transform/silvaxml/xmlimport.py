@@ -95,7 +95,13 @@ class TextHandler(xmlimport.SilvaBaseHandler):
             self.proxy_handler.characters(input_text)
 
     def endElementNS(self, name, qname):
-        if (NS_URI, 'text') == name:
+        if hasattr(self, 'proxy_handler'):
+            uri, localname = name
+            if NS_URI == uri:
+                self.proxy_handler.endElement(localname)
+            else:
+                self.proxy_handler.endElementNS(name, qname)
+        elif (NS_URI, 'text') == name:
             document = self.proxy_handler.etree
             self.text.save(self.version,
                 self,
@@ -106,13 +112,5 @@ class TextHandler(xmlimport.SilvaBaseHandler):
             del self.text
             del self.input_text
             del self.proxy_handler
-
-        elif hasattr(self, 'proxy_handler'):
-            uri, localname = name
-            if NS_URI == uri:
-                self.proxy_handler.endElement(localname)
-            else:
-                self.proxy_handler.endElementNS(name, qname)
-
 
 
