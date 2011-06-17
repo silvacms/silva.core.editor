@@ -61,6 +61,7 @@ class ReferenceImportTransformer(TransformationFilter):
             node.attrib['reference'] = reference_name
             del node.attrib['reference-type']
 
+
 class TextHandler(xmlimport.SilvaBaseHandler):
 
     def startElementNS(self, name, qname, attrs):
@@ -70,13 +71,7 @@ class TextHandler(xmlimport.SilvaBaseHandler):
                 self.proxy_handler.startElement(localname, attrs)
             else:
                 self.proxy_handler.startElementNS(name, qname, attrs)
-
-            if not hasattr(self, 'ready'):
-                self.ready = name
-
-            return
-
-        if (NS_URI, 'text') == name:
+        elif (NS_URI, 'text') == name:
             self.proxy_handler = lxml.sax.ElementTreeContentHandler()
             # set default namespace
             # self.proxy_handler.startPrefixMapping(None, NS_URI)
@@ -96,9 +91,8 @@ class TextHandler(xmlimport.SilvaBaseHandler):
                     'expected an IVersion in handler parent chain results')
 
     def characters(self, input_text):
-        if hasattr(self, 'proxy_handler') and getattr(self, 'ready', False):
+        if hasattr(self, 'proxy_handler'):
             self.proxy_handler.characters(input_text)
-            return
 
     def endElementNS(self, name, qname):
         if (NS_URI, 'text') == name:
@@ -112,7 +106,6 @@ class TextHandler(xmlimport.SilvaBaseHandler):
             del self.text
             del self.input_text
             del self.proxy_handler
-            del self.ready
 
         elif hasattr(self, 'proxy_handler'):
             uri, localname = name
@@ -121,7 +114,5 @@ class TextHandler(xmlimport.SilvaBaseHandler):
             else:
                 self.proxy_handler.endElementNS(name, qname)
 
-            if name == self.ready:
-                self.ready = False
 
 
