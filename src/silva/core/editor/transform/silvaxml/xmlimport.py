@@ -55,11 +55,8 @@ class ReferenceImportTransformer(TransformationFilter):
             # reference is broken at this point
             reference.set_target_id(0)
 
-            def setter(target):
-                reference.set_target(target)
-
             info = self.handler.getInfo()
-            info.addAction(xmlimport.resolve_path, [setter, info, path])
+            info.addAction(xmlimport.resolve_path, [reference.set_target, info, path])
 
             node.attrib['reference'] = reference_name
             del node.attrib['reference-type']
