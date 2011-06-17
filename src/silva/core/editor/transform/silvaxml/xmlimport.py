@@ -46,7 +46,7 @@ class ReferenceImportTransformer(TransformationFilter):
     def __call__(self, tree):
         for node in tree.xpath('//html:*[@reference]',
                 namespaces={'html': 'http://www.w3.org/1999/xhtml'}):
-            reference_type = node.attrib['reference-type']
+            reference_type = unicode(node.attrib['reference-type'])
             reference_name = unicode(uuid.uuid1())
 
             path = node.attrib['reference']

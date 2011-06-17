@@ -73,7 +73,7 @@
                 attributes['class'] = 'anchor';
                 if (element == null) {
                     var selection = editor.getSelection();
-                    var ranges = selection.getRanges(true);
+                    var ranges = selection.getRanges();
 
                     element = new CKEDITOR.dom.element('a');
                     ranges[0].insertNode(element);
