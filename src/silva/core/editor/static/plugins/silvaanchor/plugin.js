@@ -20,6 +20,7 @@
         getSelectedAnchor: function(editor) {
             try {
                 var selection = editor.getSelection();
+
                 if (selection.getType() == CKEDITOR.SELECTION_ELEMENT) {
                     var selectedElement = selection.getSelectedElement();
                     if (CKEDITOR.plugins.silvaanchor.isAnchor(selectedElement)) {
@@ -38,8 +39,7 @@
                     };
                 };
                 return null;
-            }
-            catch(e) {
+            } catch(e) {
                 return null;
             }
         },
@@ -100,6 +100,7 @@
                 var element = API.getSelectedAnchor(editor);
 
                 if (element != null) {
+                    alert('anchor');
                     event.data.dialog = 'silvaanchor';
                 };
             });

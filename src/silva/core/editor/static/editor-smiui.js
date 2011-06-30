@@ -51,11 +51,10 @@
                                             var data = {};
 
                                             data[editor.name] = editor.getData();
-                                            $.ajax({
+                                            return $.ajax({
                                                 url: url,
                                                 type: 'POST',
                                                 data: data});
-                                            return true;
                                         },
                                         Discard: function() {
                                             return true;

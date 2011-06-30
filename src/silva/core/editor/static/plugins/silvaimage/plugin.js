@@ -24,14 +24,10 @@
                 var element = base.getAscendant('div', true);
 
                 if (CKEDITOR.plugins.silvaimage.isImage(element)) {
-                    if (base.$ !== element.$ && select_base_element) {
-                        selection.selectElement(element);
-                    }
                     return element;
                 };
                 return null;
-            }
-            catch(e) {
+            } catch(e) {
                 return null;
             }
         }
@@ -96,7 +92,7 @@
                     imageCommand.setState(CKEDITOR.TRISTATE_OFF);
                 };
             });
-            editor.on('doubleclick', function(event){
+            editor.on('doubleclick', function(event) {
                 var element = API.getSelectedImage(editor, true);
 
                 if (element != null) {

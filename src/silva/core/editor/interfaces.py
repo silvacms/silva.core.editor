@@ -11,7 +11,6 @@ from zope.annotation.interfaces import IAttributeAnnotatable
 from zope.component import IFactory, getUtility
 from zope.schema.interfaces import IContextSourceBinder
 from zope.schema.vocabulary import SimpleVocabulary, SimpleTerm
-import fanstatic
 
 from silva.core import conf as silvaconf
 from silva.ui.interfaces import ISilvaUIDependencies
@@ -21,6 +20,7 @@ from silva.core.layout.jsontemplate import IJsonTemplateResources
 from silva.core.references.widgets import IReferenceUIResources
 
 from js import ckeditor
+
 
 class ICKEditorResources(IJQueryResources, IJsonTemplateResources, IReferenceUIResources):
     """ Javascript resources for CKEditor.
