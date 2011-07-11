@@ -14,7 +14,7 @@
                         this._ = {};
 
                         dialog.on('load', function() {
-                            self._.remote = ReferencedRemoteObject($(identifier));
+                            self._.remote = ReferencedRemoteObject($('#' + identifier));
                             self._.remote.change(function(event, info) {
                                 self.fire('reference-update', info);
                             });
