@@ -3,8 +3,6 @@
 # See also LICENSE.txt
 # $Id$
 
-from AccessControl import getSecurityManager
-
 from five import grok
 from zope import schema, interface
 from zope.annotation.interfaces import IAttributeAnnotatable
@@ -87,12 +85,6 @@ tools_vocabulary = SimpleVocabulary([
     SimpleTerm(title='About', value='About')])
 
 
-def get_request():
-    """!#@!$#!$#!@#!$!!!
-    """
-    return getSecurityManager().getUser().REQUEST
-
-
 @grok.provider(IContextSourceBinder)
 def skin_vocabulary(context):
     skins = [
@@ -100,9 +92,7 @@ def skin_vocabulary(context):
             SimpleTerm(title='Office 2003', value='office2003'),
             SimpleTerm(title='v2', value='v2')]
     service = getUtility(ICKEditorService)
-    # zope.schema sucks big times.
-    request = get_request()
-    for extension, base in service.get_custom_extensions(request):
+    for extension, base in service.get_custom_extensions():
         if hasattr(extension, 'skins'):
             for name, info in extension.skins.iteritems():
                 path = info['path']
@@ -228,6 +218,7 @@ class ICKEditorSettings(interface.Interface):
         title=u"Editor skin",
         description=u"Editor theme",
         source=skin_vocabulary,
+        default='silva,++static++/silva.core.editor/skins/silva/',
         required=True)
 
 

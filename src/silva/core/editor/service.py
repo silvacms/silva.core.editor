@@ -13,10 +13,9 @@ from silva.core.interfaces import ISilvaObject
 from silva.core.views.interfaces import IVirtualSite
 from silva.core.services.base import SilvaService
 from silva.core.editor.interfaces import ICKEditorService
-from silva.core.editor.interfaces import ICKEditorSettings, skin_vocabulary
+from silva.core.editor.interfaces import ICKEditorSettings
 from zope.component import getUtility
 from zope.schema.fieldproperty import FieldProperty
-from zope.lifecycleevent.interfaces import IObjectCreatedEvent
 from zeam.form import silva as silvaforms
 
 logger = logging.getLogger('silva.core.editor')
@@ -58,30 +57,22 @@ class CKEditorService(SilvaService):
             splitted_list.append(raw_list)
         return splitted_list
 
-    def get_custom_extensions(self, request=None):
+    def get_custom_extensions(self):
         """Return the custom extensions, and the base URL to their
         resource folder.
         """
-        base = ''
-        if request is not None:
-            base = IVirtualSite(request).get_root().absolute_url_path()
-            if base.endswith('/'):
-                # If base is only '/', we will end up with two '/',
-                # creating an invalid URL for CKEditor resource
-                # manager.
-                base = base[:-1]
         for load_entry in iter_entry_points('silva.core.editor.extension'):
             extension = load_entry.load()
-            extension_base = base
+            extension_base = ''
             if hasattr(extension, 'base'):
-                extension_base = '/'.join((base, extension.base))
+                extension_base = extension.base
             yield extension, extension_base
 
-    def get_custom_plugins(self, request=None):
+    def get_custom_plugins(self):
         """Return a list of plugin to enable, with their loading path.
         """
         extra_plugins = {}
-        for extension, base in self.get_custom_extensions(request):
+        for extension, base in self.get_custom_extensions():
             if hasattr(extension, 'plugins'):
                 for name, path in extension.plugins.iteritems():
                     if not path.endswith('/'):
@@ -128,17 +119,23 @@ class CKEditorRESTConfiguration(rest.REST):
 
     def GET(self):
         service = getUtility(ICKEditorService)
-        plugins_path = service.get_custom_plugins(self.request)
+
+        url_base = IVirtualSite(self.request).get_root().absolute_url_path()
+        if not url_base.endswith('/'):
+            url_base = url_base + '/'
+
+        # Insert url_base where ever it is needed.
+        plugins_url = {name: url_base + path for name, path in
+                       service.get_custom_plugins().items()}
+
+        skin = service.skin
+        if ',' in skin:
+            skin = skin.replace(',', ',' + url_base)
+
         return self.json_response(
             {'toolbars': service.get_toolbars_configuration(),
-             'paths': plugins_path,
+             'paths': plugins_url,
              'contents_css': service.contents_css,
              'formats': service.get_formats(),
-             'plugins': ','.join(plugins_path.keys()),
-             'skin': service.skin})
-
-
-@grok.subscribe(ICKEditorService, IObjectCreatedEvent)
-def configure_service(service, event):
-    skins = skin_vocabulary(service)
-    service.skin = skins.getTermByToken('silva').value
+             'plugins': ','.join(plugins_url.keys()),
+             'skin': skin})
