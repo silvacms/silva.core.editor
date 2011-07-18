@@ -100,7 +100,6 @@
                 var element = API.getSelectedAnchor(editor);
 
                 if (element != null) {
-                    alert('anchor');
                     event.data.dialog = 'silvaanchor';
                 };
             });
