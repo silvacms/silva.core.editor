@@ -44,19 +44,27 @@ class ReferenceImportTransformer(TransformationFilter):
         self.service = component.getUtility(IReferenceService)
 
     def __call__(self, tree):
+
+        def set_reference_target(reference_type, reference_name):
+
+            def setter(target):
+                reference = self.service.new_reference(self.context, reference_type)
+                reference.add_tag(reference_name)
+                reference.set_target(target)
+
+            return setter
+
         for node in tree.xpath('//html:*[@reference]',
                 namespaces={'html': 'http://www.w3.org/1999/xhtml'}):
             reference_type = unicode(node.attrib['reference-type'])
             reference_name = unicode(uuid.uuid1())
 
             path = node.attrib['reference']
-            reference = self.service.new_reference(self.context, reference_type)
-            reference.add_tag(reference_name)
-            # reference is broken at this point
-            reference.set_target_id(0)
 
             info = self.handler.getInfo()
-            info.addAction(xmlimport.resolve_path, [reference.set_target, info, path])
+            info.addAction(
+                xmlimport.resolve_path,
+                [set_reference_target(reference_type, reference_name), info, path])
 
             node.attrib['reference'] = reference_name
             del node.attrib['reference-type']

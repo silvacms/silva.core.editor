@@ -27,7 +27,7 @@
             editor.document.$.execCommand('unlink', false, null);
             selection.selectBookmarks(bookmarks);
         },
-        startDisabled : true
+        startDisabled: true
     };
 
     CKEDITOR.plugins.silvalink = {
