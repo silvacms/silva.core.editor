@@ -51,6 +51,7 @@ tools_vocabulary = SimpleVocabulary([
     SimpleTerm(title='Include an anchor or Silva Index entry', value='SilvaAnchor'),
     SimpleTerm(title='Format using service settings', value='SilvaFormat'),
     SimpleTerm(title='Add an External Source', value='SilvaExternalSource'),
+    SimpleTerm(title='Remove an External Source', value='SilvaRemoveExternalSource'),
     SimpleTerm(title='Cut', value='Cut'),
     SimpleTerm(title='Copy', value='Copy'),
     SimpleTerm(title='Paste', value='Paste'),
