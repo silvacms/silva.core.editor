@@ -4,10 +4,11 @@
 # $Id$
 
 from five import grok
-from silva.core.editor.transform.interfaces import (IDisplayFilter,
-    IIntroductionFilter)
-from silva.core.editor.transform.base import (ReferenceTransformationFilter,
-    TransformationFilter)
+from silva.core.interfaces import IImage
+from silva.core.editor.transform.interfaces import IDisplayFilter
+from silva.core.editor.transform.interfaces import IIntroductionFilter
+from silva.core.editor.transform.base import ReferenceTransformationFilter
+from silva.core.editor.transform.base import TransformationFilter
 from silva.core.editor.utils import html_truncate_node
 
 from zope.traversing.browser import absoluteURL
@@ -53,8 +54,13 @@ class ImageTransformationFilter(ReferenceTransformationFilter):
                 name, reference = self.get_reference(
                     image.attrib['reference'], read_only=True)
                 if reference is not None and reference.target_id:
-                    image.attrib['src'] = absoluteURL(
-                        reference.target, self.request)
+                    content = reference.target
+                    image_url = absoluteURL(content, self.request)
+                    if IImage.providedBy(image):
+                        if image.attrib['resolution']:
+                            image_url += '?' + image.attrib['resolution']
+                            del image.attrib['resolution']
+                    image.attrib['src'] = image_url
                     del image.attrib['reference']
 
 
@@ -76,7 +82,8 @@ class ImageLinkTransformationFilter(ReferenceTransformationFilter):
                     name, reference = self.get_reference(
                         link.attrib['reference'], read_only=True)
                     if reference is not None and reference.target_id:
-                        link.attrib['href'] = absoluteURL(reference.target, self.request)
+                        content = reference.target
+                        link.attrib['href'] = absoluteURL(content, self.request)
                         del link.attrib['reference']
                 if 'href' not in link.attrib:
                     link.attrib['href'] = ''
