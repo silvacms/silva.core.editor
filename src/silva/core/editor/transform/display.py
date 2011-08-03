@@ -30,7 +30,7 @@ class LinkTransformer(ReferenceTransformationFilter):
                 if reference is not None and reference.target_id:
                     link.attrib['href'] = absoluteURL(
                         reference.target, self.request)
-                    del link.attrib['reference']
+                del link.attrib['reference']
             if 'href' not in link.attrib:
                 link.attrib['href'] = ''
             if 'anchor' in link.attrib:
