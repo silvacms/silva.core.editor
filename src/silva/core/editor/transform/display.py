@@ -56,12 +56,12 @@ class ImageTransformationFilter(ReferenceTransformationFilter):
                 if reference is not None and reference.target_id:
                     content = reference.target
                     image_url = absoluteURL(content, self.request)
-                    if IImage.providedBy(image):
+                    if IImage.providedBy(content):
                         if image.attrib['resolution']:
                             image_url += '?' + image.attrib['resolution']
                             del image.attrib['resolution']
                     image.attrib['src'] = image_url
-                    del image.attrib['reference']
+                del image.attrib['reference']
 
 
 class ImageLinkTransformationFilter(ReferenceTransformationFilter):
@@ -84,7 +84,7 @@ class ImageLinkTransformationFilter(ReferenceTransformationFilter):
                     if reference is not None and reference.target_id:
                         content = reference.target
                         link.attrib['href'] = absoluteURL(content, self.request)
-                        del link.attrib['reference']
+                    del link.attrib['reference']
                 if 'href' not in link.attrib:
                     link.attrib['href'] = ''
                 if 'anchor' in link.attrib:
