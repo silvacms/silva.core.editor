@@ -57,7 +57,7 @@ class ImageTransformationFilter(ReferenceTransformationFilter):
                     content = reference.target
                     image_url = absoluteURL(content, self.request)
                     if IImage.providedBy(content):
-                        if image.attrib['resolution']:
+                        if 'resolution' in image.attrib:
                             image_url += '?' + image.attrib['resolution']
                             del image.attrib['resolution']
                     image.attrib['src'] = image_url
