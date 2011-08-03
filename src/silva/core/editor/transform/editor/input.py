@@ -49,8 +49,14 @@ class ImageTransformer(ReferenceTransformationFilter):
                     image.attrib['reference'], read_only=True)
                 if reference is not None:
                     image.attrib['data-silva-reference'] = name
-                    image.attrib['data-silva-target'] = str(reference.target_id)
-                    image.attrib['src'] = absoluteURL(reference.target, self.request)
+                    if reference.target_id:
+                        image.attrib['data-silva-target'] = str(
+                            reference.target_id)
+                        image.attrib['src'] = absoluteURL(
+                            reference.target, self.request)
+                    else:
+                        image.attrib['data-silva-target'] = '0'
+                        image.attrib['src'] = './++static++/silva.core.editor/broken-link.jpg'
                     del image.attrib['reference']
             elif 'src' in image.attrib:
                 image.attrib['data-silva-src'] = image.attrib['src']
@@ -73,7 +79,8 @@ class ImageLinkTransformer(ReferenceTransformationFilter):
                         link.attrib['reference'], read_only=True)
                     if reference is not None:
                         link.attrib['data-silva-reference'] = name
-                        link.attrib['data-silva-target'] = str(reference.target_id)
+                        link.attrib['data-silva-target'] = str(
+                            reference.target_id)
                         del link.attrib['reference']
                 if 'href' in link.attrib:
                     link.attrib['data-silva-href'] = link.attrib['href']
