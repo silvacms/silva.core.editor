@@ -27,7 +27,8 @@ class LinkTransformer(ReferenceTransformationFilter):
                 name, reference = self.get_reference(
                     link.attrib['reference'], read_only=True)
                 if reference is not None and reference.target_id:
-                    link.attrib['href'] = absoluteURL(reference.target, self.request)
+                    link.attrib['href'] = absoluteURL(
+                        reference.target, self.request)
                     del link.attrib['reference']
             if 'href' not in link.attrib:
                 link.attrib['href'] = ''
@@ -51,8 +52,9 @@ class ImageTransformationFilter(ReferenceTransformationFilter):
             if 'reference' in image.attrib:
                 name, reference = self.get_reference(
                     image.attrib['reference'], read_only=True)
-                if reference is not None:
-                    image.attrib['src'] = absoluteURL(reference.target, self.request)
+                if reference is not None and reference.target_id:
+                    image.attrib['src'] = absoluteURL(
+                        reference.target, self.request)
                     del image.attrib['reference']
 
 
