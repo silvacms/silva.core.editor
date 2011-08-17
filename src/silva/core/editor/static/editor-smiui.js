@@ -82,10 +82,12 @@
                                 editor.on('instanceReady', resize);
                                 editor.on('instanceReady', function() {
                                     $(window).bind('resize.smi-editor', resize);
+                                    $(window).bind('workspace-resize-smi.smi-editor', resize);
                                 });
                             },
                             cleanup: function() {
                                 $(window).unbind('resize.smi-editor');
+                                $(window).unbind('workspace-resize-smi.smi-editor');
                                 $content.empty();
                                 if (editor != null) {
                                     try {
