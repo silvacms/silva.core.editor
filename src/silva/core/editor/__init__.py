@@ -5,7 +5,7 @@
 from silva.core import conf as silvaconf
 
 silvaconf.extension_name("silva.core.editor")
-silvaconf.extension_title(u"Silva CORE Editor")
+silvaconf.extension_title(u"Silva Core Editor")
 silvaconf.extension_system()
 
 
