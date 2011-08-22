@@ -15,7 +15,7 @@ tests_require = [
 
 setup(name='silva.core.editor',
       version=version,
-      description="Support for the WYSIWYG editor CKEditor for Silva",
+      description="Support for the WYSIWYG editor CKEditor for Silva.",
       long_description=open("README.txt").read() + "\n" +
                        open(os.path.join("docs", "HISTORY.txt")).read(),
       classifiers=[
