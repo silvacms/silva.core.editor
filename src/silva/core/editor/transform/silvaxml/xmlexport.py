@@ -14,8 +14,8 @@ from silva.core.editor.transform.base import TransformationFilter
 from silva.core.editor.transform.interfaces import ISilvaXMLExportFilter
 from silva.core.editor.transform.silvaxml import NS_EDITOR_URI, NS_HTML_URI
 from silva.core.references.interfaces import IReferenceService
-from silva.core.references.reference import get_content_from_id
 from silva.core.references.utils import canonical_path
+from silva.core.interfaces.errors import ExternalReferenceError
 from Products.Silva.silvaxml import xmlexport
 
 
@@ -44,21 +44,20 @@ class ReferenceExportTransformer(TransformationFilter):
         self.get_reference = getUtility(IReferenceService).get_reference
 
     def __call__(self, tree):
-        for node in tree.xpath(
-            '//html:*[@reference]', namespaces={'html': NS_HTML_URI}):
-
+        root = self.handler.getInfo().root
+        for node in tree.xpath('//*[@reference]'):
             name = unicode(node.attrib['reference'])
             reference = self.get_reference(self.context, name=name)
-            del node.attrib['reference']
+            node.attrib['reference-type'] = reference.tags[0]
+            node.attrib['reference'] = ''
             if reference.target_id:
-                target = get_content_from_id(reference.target_id)
-                if target is not None:
-                    root = self.handler.getInfo().root
-                    relative_path = [root.getId()] + \
-                        reference.relative_path_to(root)
-                    node.attrib['reference-type'] = reference.tags[0]
-                    node.attrib['reference'] = canonical_path(
-                        "/".join(relative_path))
+                if not reference.is_target_inside_container(root):
+                    raise ExternalReferenceError(
+                        self.context, reference.target, root)
+
+                # Give the relative, prepended with the root id.
+                node.attrib['reference'] = canonical_path(
+                    '/'.join([root.getId()] + reference.relative_path_to(root)))
 
 
 xmlexport.theXMLExporter.registerNamespace('silva-core-editor', NS_EDITOR_URI)
