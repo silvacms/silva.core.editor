@@ -3,7 +3,6 @@
 # See also LICENSE.txt
 # $Id$
 
-
 import unittest
 
 from Acquisition import aq_chain
@@ -16,7 +15,7 @@ from silva.core.editor.testing import FunctionalLayer
 from silva.core.editor.text import Text
 from silva.core.editor.transform.interfaces import IInputEditorFilter
 from silva.core.editor.transform.interfaces import ISaveEditorFilter
-from silva.core.editor.transform.interfaces import ITransformer
+from silva.core.editor.transform.interfaces import ITransformerFactory
 from silva.core.references.reference import get_content_id
 from silva.core.references.interfaces import IReferenceService
 
@@ -41,8 +40,9 @@ class InputTransformTestCase(TestCase):
         """
         version = self.root.document.get_editable()
         request = TestRequest()
-        transformer = getMultiAdapter((version, request), ITransformer)
-        return transformer.data('test', version.test, text, filter)
+        factory = getMultiAdapter((version, request), ITransformerFactory)
+        transformer = factory('test', version.test, text, filter)
+        return unicode(transformer)
 
     def test_external_link(self):
         """On input, an external link is slightly modified.

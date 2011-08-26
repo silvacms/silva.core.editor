@@ -9,59 +9,74 @@ import lxml.html
 from five import grok
 from zope.interface import Interface
 from silva.core.editor.transform.interfaces import ITransformer
+from silva.core.editor.transform.interfaces import ITransformerFactory
 from silva.core.editor.transform.interfaces import ITransformationFilter
 from silva.core.interfaces import IVersion, ISilvaXMLImportHandler
 from silva.core.references.interfaces import IReferenceService
 from zope import component
 
 
-class Transformer(grok.MultiAdapter):
-    grok.implements(ITransformer)
-    grok.provides(ITransformer)
+class TransformerFactory(grok.MultiAdapter):
+    grok.implements(ITransformerFactory)
+    grok.provides(ITransformerFactory)
     grok.adapts(IVersion, Interface)
 
     def __init__(self, context, request):
         self.context = context
         self.request = request
 
-    def __transform(self, name, text, tree, interface):
+    def __call__(self, name, text, data, interface):
         transformers = grok.queryOrderedMultiSubscriptions(
             (self.context, self.request), interface)
-        for transformer in transformers:
-            transformer.prepare(name, text)
-        for transformer in transformers:
-            transformer(tree)
-        for transformer in transformers:
-            transformer.finalize()
+        return Transformer(
+            transformers,
+            data,
+            prepare=(name, text),
+            xhtml=ISilvaXMLImportHandler.providedBy(self.request))
 
-    def data(self, name, text, data, interface):
-        tree = self._parse(data)
-        self.__transform(name, text, tree, interface)
-        return self._stringify(tree)
 
-    def part(self, name, text, data, xpath, interface):
-        trees = self._parse(data).xpath(xpath)
-        results = []
-        for tree in trees:
-            self.__transform(name, text, tree, interface)
-            results.append(self._stringify(tree))
-        return results
+class Transformer(object):
+    """Apply transformers to an input data.
+    """
+    grok.implements(ITransformer)
 
-    def _parse(self, data):
-        # importers provides xhtml
-        if ISilvaXMLImportHandler.providedBy(self.request):
-            return lxml.etree.fromstring(data)
-
+    def __init__(self, transformers, data, prepare, xhtml=False):
+        self.__xhtml = xhtml
+        self.__transformers = transformers
+        self.__prepare = prepare
         data = '<div id="sce-transform-root">' + data + '</div>'
-        return lxml.html.fromstring(data)
+        if xhtml:
+            self.__trees = [lxml.etree.fromstring(data)]
+        else:
+            self.__trees = [lxml.html.fromstring(data)]
 
-    def _stringify(self, tree):
-        if (tree.tag == 'div' and
-            tree.attrib.get('id') == 'sce-transform-root'):
-            strings = [lxml.html.tostring(c) for c in tree]
-            return "\n".join(strings)
+    def restrict(self, xpath):
+        restrictions = []
+        for tree in self.__trees:
+            restrictions.extend(tree.xpath(xpath))
+        self.__trees = restrictions
 
-        return lxml.html.tostring(tree)
+    def visit(self, function):
+        map(function, self.__trees)
+
+    def __call__(self):
+        for transformer in self.__transformers:
+            transformer.prepare(*self.__prepare)
+        for tree in self.__trees:
+            for transformer in self.__transformers:
+                transformer(tree)
+        for transformer in self.__transformers:
+            transformer.finalize()
+        for tree in self.__trees:
+            if tree.attrib.get('id') == 'sce-transform-root':
+                # Ignore transformation root
+                for child in tree:
+                    yield child
+            else:
+                yield tree
+
+    def __unicode__(self):
+        return u"\n".join(map(lxml.html.tostring, self.__call__()))
 
 
 class TransformationFilter(grok.MultiSubscription):

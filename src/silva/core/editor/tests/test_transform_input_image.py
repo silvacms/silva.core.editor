@@ -16,7 +16,7 @@ from silva.core.editor.testing import FunctionalLayer
 from silva.core.editor.text import Text
 from silva.core.editor.transform.interfaces import IInputEditorFilter
 from silva.core.editor.transform.interfaces import ISaveEditorFilter
-from silva.core.editor.transform.interfaces import ITransformer
+from silva.core.editor.transform.interfaces import ITransformerFactory
 from silva.core.references.reference import get_content_id
 from silva.core.references.interfaces import IReferenceService
 
@@ -33,9 +33,11 @@ class InputTransformTestCase(TestCase):
         factory.manage_addMockupVersionedContent('target', 'Document Target')
 
         with open_test_file('chocobo.png', globals()) as image:
-            factory.manage_addImage('chocobo', 'Chocobo', image)
+            factory.manage_addImage(
+                'chocobo', 'Chocobo', image)
             image.seek(0)
-            factory.manage_addImage('ultimate_chocobo', 'Ultimate Chocobo', image)
+            factory.manage_addImage(
+                'ultimate_chocobo', 'Ultimate Chocobo', image)
 
         version = self.root.document.get_editable()
         version.test = Text('test')
@@ -45,8 +47,9 @@ class InputTransformTestCase(TestCase):
         """
         version = self.root.document.get_editable()
         request = TestRequest()
-        transformer = getMultiAdapter((version, request), ITransformer)
-        return transformer.data('test', version.test, text, filter)
+        factory = getMultiAdapter((version, request), ITransformerFactory)
+        transformer = factory('test', version.test, text, filter)
+        return unicode(transformer)
 
     def test_external_image(self):
         """External images are untouched.
@@ -298,10 +301,14 @@ class InputTransformTestCase(TestCase):
                 self.assertEqual(reference_name, None)
                 reference_name = reference.tags[1]
                 self.assertEqual(reference.target, self.root.ultimate_chocobo)
-                self.assertEqual(aq_chain(reference.target), aq_chain(self.root.ultimate_chocobo))
+                self.assertEqual(
+                    aq_chain(reference.target),
+                    aq_chain(self.root.ultimate_chocobo))
             else:
                 self.assertEqual(reference.target, self.root.chocobo)
-                self.assertEqual(aq_chain(reference.target), aq_chain(self.root.chocobo))
+                self.assertEqual(
+                    aq_chain(reference.target),
+                    aq_chain(self.root.chocobo))
             self.assertEqual(reference.tags[0], u'test image')
 
         self.assertXMLEqual(
@@ -382,12 +389,16 @@ class InputTransformTestCase(TestCase):
             if reference.tags[0] == u'test image':
                 self.assertEqual(image_reference_name, None)
                 self.assertEqual(reference.target, self.root.chocobo)
-                self.assertEqual(aq_chain(reference.target), aq_chain(self.root.chocobo))
+                self.assertEqual(
+                    aq_chain(reference.target),
+                    aq_chain(self.root.chocobo))
                 image_reference_name = reference.tags[1]
             else:
                 self.assertEqual(document_reference_name, None)
                 self.assertEqual(reference.target, self.root.target)
-                self.assertEqual(aq_chain(reference.target), aq_chain(self.root.target))
+                self.assertEqual(
+                    aq_chain(reference.target),
+                    aq_chain(self.root.target))
                 document_reference_name = reference.tags[1]
                 self.assertEqual(reference.tags[0], u'test image link')
 

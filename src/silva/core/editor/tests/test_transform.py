@@ -7,6 +7,8 @@ import unittest
 
 from silva.core.editor.text import Text
 from silva.core.editor.transform.interfaces import ITransformer
+from silva.core.editor.transform.interfaces import ITransformerFactory
+from silva.core.editor.transform.interfaces import IDisplayFilter
 from zope.component import getMultiAdapter
 from zope.interface.verify import verifyObject
 from zope.publisher.browser import TestRequest
@@ -30,7 +32,9 @@ class TransformTestCase(unittest.TestCase):
     def test_implementation(self):
         version = self.root.document.get_editable()
         request = TestRequest()
-        transformer = getMultiAdapter((version, request), ITransformer)
+        factory = getMultiAdapter((version, request), ITransformerFactory)
+        self.assertTrue(verifyObject(ITransformerFactory, factory))
+        transformer = factory('test', version.test, '<p/>', IDisplayFilter)
         self.assertTrue(verifyObject(ITransformer, transformer))
 
 

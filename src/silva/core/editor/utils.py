@@ -1,4 +1,8 @@
 # -*- coding: utf-8 -*-
+# Copyright (c) 2010 Infrae. All rights reserved.
+# See also LICENSE.txt
+# $Id$
+
 import lxml
 import lxml.html
 import re
@@ -41,6 +45,9 @@ def html_truncate_node(el, remaining_length, append=u"…"):
     remaining_length -= len(tail)
 
     return remaining_length
+
+
+####### All the code below this comment is not used ####################
 
 def html_truncate(max_length, html_data, append=u"…"):
     html_tree = lxml.html.fromstring(html_data)

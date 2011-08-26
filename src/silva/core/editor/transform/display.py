@@ -6,10 +6,7 @@
 from five import grok
 from silva.core.interfaces import IImage
 from silva.core.editor.transform.interfaces import IDisplayFilter
-from silva.core.editor.transform.interfaces import IIntroductionFilter
 from silva.core.editor.transform.base import ReferenceTransformationFilter
-from silva.core.editor.transform.base import TransformationFilter
-from silva.core.editor.utils import html_truncate_node
 
 from zope.traversing.browser import absoluteURL
 
@@ -90,16 +87,5 @@ class ImageLinkTransformationFilter(ReferenceTransformationFilter):
                 if 'anchor' in link.attrib:
                     link.attrib['href'] += '#' + link.attrib['anchor']
 
-
-class IntroductionTransformationFilter(TransformationFilter):
-    grok.implements(IIntroductionFilter)
-    grok.provides(IIntroductionFilter)
-    grok.order(1000)
-    grok.name('intro')
-
-    max_length = 300
-
-    def __call__(self, tree):
-        html_truncate_node(tree, self.max_length)
 
 

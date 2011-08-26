@@ -3,21 +3,18 @@
 # See also LICENSE.txt
 # $Id$
 
-import operator
 import unittest
 
 from five import grok
 from zope.publisher.browser import TestRequest
 
 from silva.core.editor.text import Text
-from silva.core.editor.transform.interfaces import (
-    IDisplayFilter, IIntroductionFilter)
+from silva.core.editor.transform.interfaces import IDisplayFilter
 
 from silva.core.editor.testing import FunctionalLayer
+from Products.Silva.testing import TestCase
 
-
-html_chunk = \
-"""
+HTML_CHUNK = """
 <html>
 <head></head>
 <body>
@@ -46,25 +43,9 @@ class TextTestCase(unittest.TestCase):
         transformers = grok.queryOrderedMultiSubscriptions(
             (version, TestRequest()), IDisplayFilter)
         self.assertNotEqual(len(transformers), 0)
-        self.assertTrue(
-            reduce(operator.and_,
-                   map(IDisplayFilter.providedBy,
-                       transformers)),
-            "only display filter")
-
-    def test_intro(self):
-        version = self.root.document.get_editable()
-        transformers = grok.queryOrderedMultiSubscriptions(
-            (version, TestRequest()), IIntroductionFilter)
-        self.assertNotEqual(len(transformers), 0)
-        self.assertFalse(
-            reduce(operator.and_,
-                   map(IDisplayFilter.providedBy,
-                       transformers)),
-            "not all display filter")
 
 
-class TestIntro(unittest.TestCase):
+class IntroductionTestCase(TestCase):
     layer = FunctionalLayer
 
     def setUp(self):
@@ -72,30 +53,31 @@ class TestIntro(unittest.TestCase):
         factory = self.root.manage_addProduct['Silva']
         factory.manage_addMockupVersionedContent('test', 'Test Content')
 
-    def test_text_intro(self):
-        text = Text("test_intro", html_chunk)
-        intro = text.render_intro(
+    def test_text_introduction(self):
+        text = Text("test_intro", HTML_CHUNK)
+        intro = text.render_introduction(
             self.root.test.get_editable(), TestRequest())
-        self.assertEquals(intro,
-"""<p>
+        self.assertXMLEqual("""<p>
         First paragraph of text, this is <strong>important</strong>
         <a href="http://infrae.com">and there is a link</a> in it.
-    </p>
-    """)
+        </p>""", intro)
 
-    def test_text_intro_truncate(self):
-        text = Text("test_intro", html_chunk)
-        intro = text.render_intro(
+    def test_text_introduction_truncate(self):
+        text = Text("test_intro", HTML_CHUNK)
+        intro = text.render_introduction(
             self.root.test.get_editable(), TestRequest(), max_length=50)
-        self.assertEquals(intro,
-"""<p>
+        self.assertXMLEqual("""<p>
         First paragraph of text, this is <strong>important</strong>
-        <a href="http://infrae.com">and th&#8230;</a></p>""")
+        <a href="http://infrae.com">and th&#8230;</a></p>""", intro)
+
+        intro = text.render_introduction(
+            self.root.test.get_editable(), TestRequest(), max_length=20)
+        self.assertXMLEqual("""<p>First paragraph of &#8230;</p>""", intro)
 
 
 def test_suite():
     suite = unittest.TestSuite()
     suite.addTest(unittest.makeSuite(TextTestCase))
-    suite.addTest(unittest.makeSuite(TestIntro))
+    suite.addTest(unittest.makeSuite(IntroductionTestCase))
     return suite
 

@@ -239,10 +239,6 @@ class IText(IAttributeAnnotatable):
     """Editor rich text.
     """
 
-    def save_raw_text(text):
-        """Set the raw text as current text without any transformation.
-        """
-
     def render(context, request, type=None):
         """Transform the text to the given type and return it. Context
         must be the content or version on which the text is set.
@@ -251,6 +247,14 @@ class IText(IAttributeAnnotatable):
     def save(context, request, text, type=None):
         """Tranform the input `text` to the given type and save it. Context
         must be the content or version on which the text is set.
+        """
+
+    def save_raw_text(text):
+        """Set the raw text as current text without any transformation.
+        """
+
+    def __unicode__(self):
+        """Return stored text.
         """
 
 

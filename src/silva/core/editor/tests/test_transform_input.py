@@ -17,6 +17,7 @@ from silva.core.editor.text import Text
 from silva.core.editor.transform.interfaces import IInputEditorFilter
 from silva.core.editor.transform.interfaces import ISaveEditorFilter
 from silva.core.editor.transform.interfaces import ITransformer
+from silva.core.editor.transform.interfaces import ITransformerFactory
 from silva.core.editor.interfaces import ITextIndexEntries
 
 
@@ -40,8 +41,11 @@ class InputTransformTestCase(TestCase):
         """
         version = self.root.document.get_editable()
         request = TestRequest()
-        transformer = getMultiAdapter((version, request), ITransformer)
-        return transformer.data('test', version.test, text, filter)
+        factory = getMultiAdapter((version, request), ITransformerFactory)
+        self.assertTrue(verifyObject(ITransformerFactory, factory))
+        transformer = factory('test', version.test, text, filter)
+        self.assertTrue(verifyObject(ITransformer, transformer))
+        return unicode(transformer)
 
     def test_paragraph(self):
         """On input, text stays unmodified.
@@ -59,6 +63,40 @@ class InputTransformTestCase(TestCase):
         self.assertXMLEqual(
             extern_format,
             "<p>Simple text<i>Italic</i></p>")
+
+    def test_div(self):
+        """On input, div stays unchanged.
+        """
+        intern_format = self.transform(
+            "<div><p>Simple text</p><p>Other text</p></div>",
+            ISaveEditorFilter)
+        self.assertXMLEqual(
+            intern_format,
+            "<div><p>Simple text</p><p>Other text</p></div>")
+
+        extern_format = self.transform(
+            intern_format,
+            IInputEditorFilter)
+        self.assertXMLEqual(
+            extern_format,
+            "<div><p>Simple text</p><p>Other text</p></div>")
+
+    def test_multiple_root_element(self):
+        """On input, mutliple root elements stays unchanged.
+        """
+        intern_format = self.transform(
+            "<div><p>Simple text</p><p>Other text</p></div><p>Last</p>",
+            ISaveEditorFilter)
+        self.assertXMLEqual(
+            intern_format,
+            "<div><p>Simple text</p><p>Other text</p></div><p>Last</p>")
+
+        extern_format = self.transform(
+            intern_format,
+            IInputEditorFilter)
+        self.assertXMLEqual(
+            extern_format,
+            "<div><p>Simple text</p><p>Other text</p></div><p>Last</p>")
 
     def test_new_anchor(self):
         """On input, anchors are collected, and the HTML stays the same.

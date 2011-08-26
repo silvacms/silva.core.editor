@@ -6,17 +6,36 @@
 from zope import interface
 
 
-class ITransformer(interface.Interface):
-    """Transform some text for a content.
+class ITransformerFactory(interface.Interface):
+    """Create a transformer to transform some text for a content.
     """
 
     def __init__(context, request):
         """Adapt a content and a request.
         """
 
-    def data(name, text, data, interface):
-        """Transform for the named name text object the given data,
-        using the filters specified by interface.
+    def __call__(name, text, data, interface):
+        """Return a transformer bound to those data.
+        """
+
+class ITransformer(interface.Interface):
+    """Transformer.
+    """
+
+    def restrict(xpath):
+        """Restrict imput lxml trees to the matching xpath.
+        """
+
+    def visit(function):
+        """Visit each input lxml trees, apply a function on it.
+        """
+
+    def __call__():
+        """Generate transformed lxml trees (and return thoses).
+        """
+
+    def __unicode__():
+        """Return transformed HTML.
         """
 
 
@@ -41,13 +60,7 @@ class ITransformationFilter(interface.Interface):
         """Finialize the transformation process.
         """
 
-
-class IIntroductionFilter(ITransformationFilter):
-    """Filter to display truncated text.
-    """
-
-
-class IDisplayFilter(IIntroductionFilter):
+class IDisplayFilter(ITransformationFilter):
     """Filter to display text to the user.
     """
 

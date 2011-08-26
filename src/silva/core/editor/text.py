@@ -6,12 +6,13 @@
 from five import grok
 from infrae import rest
 from persistent import Persistent
-from silva.core.editor.interfaces import (IText,
-    ITextIndexEntries, ITextIndexEntry)
-from silva.core.editor.transform.interfaces import (ITransformer,
-    IDisplayFilter, IIntroductionFilter)
-from silva.core.editor.transform.interfaces import (ISaveEditorFilter,
-    IInputEditorFilter)
+from silva.core.editor.interfaces import IText
+from silva.core.editor.interfaces import ITextIndexEntries, ITextIndexEntry
+from silva.core.editor.transform.interfaces import ITransformerFactory
+from silva.core.editor.transform.interfaces import IDisplayFilter
+from silva.core.editor.transform.interfaces import ISaveEditorFilter
+from silva.core.editor.transform.interfaces import IInputEditorFilter
+from silva.core.editor.utils import html_truncate_node
 from silva.core.interfaces import IVersionedContent
 from silva.core.messages.interfaces import IMessageService
 from silva.translations import translate as _
@@ -52,29 +53,30 @@ class Text(Persistent):
         self.__name = name
         self.__text = text
 
-    def render(self, context, request, type=None):
+    def get_transformer(self, context, request, type=None):
         if type is None:
             type = IDisplayFilter
-        transformer = getMultiAdapter((context, request), ITransformer)
-        return transformer.data(self.__name, self, unicode(self), type)
+        factory = getMultiAdapter((context, request), ITransformerFactory)
+        return factory(self.__name, self, unicode(self), type)
 
-    def render_intro(self, context, request, max_length=None, type=None):
-        if type is None:
-            type = IIntroductionFilter
-        transformer = getMultiAdapter((context, request), ITransformer)
-        return transformer.part(
-            self.__name, self, unicode(self), '//p[1]', type)
+    def render(self, context, request, type=None):
+        return unicode(self.get_transformer(context, request, type))
 
-    def save_raw_text(self, text):
-        self.__text = text
+    def render_introduction(self, context, request, max_length=300, type=None):
+        transformer = self.get_transformer(context, request, type)
+        transformer.restrict('//p[1]')
+        transformer.visit(lambda node: html_truncate_node(node, max_length))
+        return unicode(transformer)
 
     def save(self, context, request, text, type=None):
         if type is None:
             type = ISaveEditorFilter
-        transformer = getMultiAdapter((context, request), ITransformer)
-        self.save_raw_text(
-            transformer.data(self.__name, self, unicode(text), type))
-        return unicode(self)
+        factory = getMultiAdapter((context, request), ITransformerFactory)
+        return self.save_raw_text(factory(self.__name, self, text, type))
+
+    def save_raw_text(self, text):
+        self.__text = unicode(text)
+        return self.__text
 
     def __str__(self):
         return str(self.__text)
@@ -99,7 +101,8 @@ class CKEditorRESTSave(rest.REST):
         for key in self.request.form.keys():
             text = getattr(version, key)
             assert IText.providedBy(text), u'Trying to save text to non text attribute'
-            text.save(version,
+            text.save(
+                version,
                 self.request,
                 unicode(self.request.form[key], 'utf-8'),
                 type=ISaveEditorFilter)

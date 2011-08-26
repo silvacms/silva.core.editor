@@ -7,7 +7,7 @@ import sys
 import uuid
 
 from five import grok
-from zope import component
+from zope.component import getUtility
 import lxml.etree
 import lxml.sax
 import lxml.html
@@ -15,7 +15,7 @@ import lxml.html
 from silva.core.references.interfaces import IReferenceService
 from Products.Silva.silvaxml import xmlimport
 from silva.core.interfaces import IVersion, ISilvaXMLImportHandler
-from silva.core.editor.transform.silvaxml import NS_URI
+from silva.core.editor.transform.silvaxml import NS_EDITOR_URI, NS_HTML_URI
 from silva.core.editor.transform.interfaces import ISilvaXMLImportFilter
 from silva.core.editor.transform.base import TransformationFilter
 
@@ -41,86 +41,75 @@ class ReferenceImportTransformer(TransformationFilter):
     def __init__(self, context, handler):
         self.context = context
         self.handler = handler
-        self.service = component.getUtility(IReferenceService)
+        self.new_reference = getUtility(IReferenceService).new_reference
 
     def __call__(self, tree):
-
-        def set_reference_target(reference_type, reference_name):
-
-            def setter(target):
-                reference = self.service.new_reference(self.context, reference_type)
-                reference.add_tag(reference_name)
-                reference.set_target(target)
-
-            return setter
-
-        for node in tree.xpath('//html:*[@reference]',
-                namespaces={'html': 'http://www.w3.org/1999/xhtml'}):
+        info = self.handler.getInfo()
+        for node in tree.xpath('//*[@reference]'):
             reference_type = unicode(node.attrib['reference-type'])
             reference_name = unicode(uuid.uuid1())
-
             path = node.attrib['reference']
 
-            info = self.handler.getInfo()
+            reference = self.new_reference(self.context, reference_type)
+            reference.add_tag(reference_name)
+
             info.addAction(
                 xmlimport.resolve_path,
-                [set_reference_target(reference_type, reference_name), info, path])
+                [reference.set_target, info, path])
 
             node.attrib['reference'] = reference_name
             del node.attrib['reference-type']
 
 
 class TextHandler(xmlimport.SilvaBaseHandler):
+    proxy = None
 
     def startElementNS(self, name, qname, attrs):
-        if hasattr(self, 'proxy_handler'):
-            uri, localname = name
-            if NS_URI == uri:
-                self.proxy_handler.startElement(localname, attrs)
-            else:
-                self.proxy_handler.startElementNS(name, qname, attrs)
-        elif (NS_URI, 'text') == name:
-            self.proxy_handler = lxml.sax.ElementTreeContentHandler()
-            # set default namespace
-            # self.proxy_handler.startPrefixMapping(None, NS_URI)
-            self.text = self.parent()
-            self.input_text = u''
-            handler = self.parentHandler()
-            self.version = None
-            while handler:
-                handler = handler.parentHandler()
-                parent = handler.result()
-                if IVersion.providedBy(parent):
-                    self.version = parent
-                    break
+        if (NS_EDITOR_URI, 'text') == name:
+            # Create a proxy, with a root element.
+            self.proxy = lxml.sax.ElementTreeContentHandler()
+            self.proxy.startElementNS((NS_HTML_URI, 'div'), 'div', {})
+        else:
+            ns, localname = name
+            if ns == NS_HTML_URI:
+                if self.proxy is None:
+                    raise RuntimeError('Invalid construction')
+                self.proxy.startElementNS(name, qname, attrs)
 
-            if self.version is None:
+    def characters(self, input_text):
+        if self.proxy is not None:
+            self.proxy.characters(input_text)
+
+    def endElementNS(self, name, qname):
+        if (NS_EDITOR_URI, 'text') == name:
+            # Close the root tag
+            self.proxy.endElementNS((NS_HTML_URI, 'div'), 'div')
+
+            # Find the version. It is should the result of on the parent handler
+            version = None
+            handler = self.parentHandler()
+            while handler:
+                result = handler.result()
+                if IVersion.providedBy(result):
+                    version = result
+                    break
+                handler = handler.parentHandler()
+
+            if version is None:
                 raise RuntimeError(
                     'expected an IVersion in handler parent chain results')
 
-    def characters(self, input_text):
-        if hasattr(self, 'proxy_handler'):
-            self.proxy_handler.characters(input_text)
+            # Get the text to save without the root element we added.
+            text = u'\n'.join(
+                map(lxml.etree.tostring, self.proxy.etree.getroot()))
 
-    def endElementNS(self, name, qname):
-        if (NS_URI, 'text') == name:
-            document = self.proxy_handler.etree
-            self.text.save(self.version,
-                self,
-                lxml.etree.tostring(document),
-                type=ISilvaXMLImportFilter)
-
-            del self.version
-            del self.text
-            del self.input_text
-            del self.proxy_handler
-
-        elif hasattr(self, 'proxy_handler'):
-            uri, localname = name
-            if NS_URI == uri:
-                self.proxy_handler.endElement(localname)
-            else:
-                self.proxy_handler.endElementNS(name, qname)
-
-
+            # Save the text and clear the proxy.
+            self.parent().save(version, self, text, ISilvaXMLImportFilter)
+            self.proxy = None
+        else:
+            ns, localname = name
+            if ns == NS_HTML_URI:
+                if self.proxy is None:
+                    raise RuntimeError('Invalid HTML')
+                self.proxy.endElementNS(name, qname)
 

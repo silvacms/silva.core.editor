@@ -8,13 +8,14 @@ import lxml.sax
 import lxml.html
 
 
-from zope import component
+from zope.component import getUtility
 from silva.core.interfaces import IVersion, ISilvaXMLExportHandler
 from silva.core.editor.transform.base import TransformationFilter
-from silva.core.editor.transform import interfaces as itransform
-from silva.core.editor.transform.silvaxml import NS_URI
+from silva.core.editor.transform.interfaces import ISilvaXMLExportFilter
+from silva.core.editor.transform.silvaxml import NS_EDITOR_URI, NS_HTML_URI
 from silva.core.references.interfaces import IReferenceService
-from silva.core.references.reference import canonical_path, get_content_from_id
+from silva.core.references.reference import get_content_from_id
+from silva.core.references.utils import canonical_path
 from Products.Silva.silvaxml import xmlexport
 
 
@@ -22,7 +23,7 @@ from Products.Silva.silvaxml import xmlexport
 
 class XHTMLExportTransformer(TransformationFilter):
     grok.adapts(IVersion, ISilvaXMLExportHandler)
-    grok.provides(itransform.ISilvaXMLExportFilter)
+    grok.provides(ISilvaXMLExportFilter)
     grok.order(0)
 
     def __init__(self, context, handler):
@@ -35,23 +36,24 @@ class XHTMLExportTransformer(TransformationFilter):
 
 class ReferenceExportTransformer(TransformationFilter):
     grok.adapts(IVersion, ISilvaXMLExportHandler)
-    grok.provides(itransform.ISilvaXMLExportFilter)
+    grok.provides(ISilvaXMLExportFilter)
 
     def __init__(self, context, handler):
         self.context = context
         self.handler = handler
-        self._reference_service = component.getUtility(IReferenceService)
+        self.get_reference = getUtility(IReferenceService).get_reference
 
     def __call__(self, tree):
-        for node in tree.xpath('//html:*[@reference]',
-                namespaces={'html': 'http://www.w3.org/1999/xhtml'}):
+        for node in tree.xpath(
+            '//html:*[@reference]', namespaces={'html': NS_HTML_URI}):
+
             name = unicode(node.attrib['reference'])
-            reference = self._reference_service.get_reference(self.context, name=name)
+            reference = self.get_reference(self.context, name=name)
             del node.attrib['reference']
             if reference.target_id:
                 target = get_content_from_id(reference.target_id)
                 if target is not None:
-                    root = self.handler.getSettings().getExportRoot()
+                    root = self.handler.getInfo().root
                     relative_path = [root.getId()] + \
                         reference.relative_path_to(root)
                     node.attrib['reference-type'] = reference.tags[0]
@@ -59,26 +61,37 @@ class ReferenceExportTransformer(TransformationFilter):
                         "/".join(relative_path))
 
 
-xmlexport.theXMLExporter.registerNamespace('silvacoreeditor', NS_URI)
+xmlexport.theXMLExporter.registerNamespace('silva-core-editor', NS_EDITOR_URI)
+xmlexport.theXMLExporter.registerNamespace('html', NS_HTML_URI)
 
 
 class ProxyHandler(lxml.sax.ElementTreeContentHandler):
+
     def __init__(self, producer):
         lxml.sax.ElementTreeContentHandler.__init__(self)
         self.producer = producer
+        self.__prefixes = {}
+        self.__namespaces = xmlexport.theXMLExporter._namespaces.values()
 
     def startPrefixMapping(self, prefix, uri):
-        self.producer.handler.startPrefixMapping(prefix, uri)
+        if uri not in self.__namespaces:
+            # This is an not known prefix.
+            self.producer.handler.startPrefixMapping(prefix, uri)
+
         lxml.sax.ElementTreeContentHandler.startPrefixMapping(
             self, prefix, uri)
 
     def startElementNS(self, name, qname, attributes):
-        uri, localname = name
-        self.producer.startElementNS(uri, localname, attributes)
+        prefix, localname = name
+        if prefix in self.__prefixes:
+            prefix = self.__prefixes[prefix]
+        self.producer.startElementNS(prefix, localname, attributes)
 
     def endElementNS(self, name, qname):
-        uri, localname = name
-        self.producer.endElementNS(uri, localname)
+        prefix, localname = name
+        if prefix in self.__prefixes:
+            prefix = self.__prefixes[prefix]
+        self.producer.endElementNS(prefix, localname)
 
     def characters(self, content):
         self.producer.handler.characters(content)
@@ -91,12 +104,12 @@ class TextProducerProxy(object):
         self.text = text
 
     def sax(self, producer):
-        producer.startElement('text', {'xmlns': NS_URI})
-        xml_text = self.text.render(
-            self.context, producer,
-            itransform.ISilvaXMLExportFilter)
-        handler = ProxyHandler(producer)
-        lxml.sax.saxify(lxml.etree.fromstring(xml_text), handler)
-        producer.endElement('text')
+        producer.startElementNS(NS_EDITOR_URI, 'text')
+        proxy= ProxyHandler(producer)
+        transformer = self.text.get_transformer(
+            self.context, producer, ISilvaXMLExportFilter)
+        for part in transformer():
+            lxml.sax.saxify(part, proxy)
+        producer.endElementNS(NS_EDITOR_URI, 'text')
 
 
