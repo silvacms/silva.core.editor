@@ -3,7 +3,6 @@
 # See also LICENSE.txt
 # $Id$
 
-import sys
 import uuid
 
 from five import grok
@@ -18,12 +17,13 @@ from silva.core.interfaces import IVersion, ISilvaXMLImportHandler
 from silva.core.editor.transform.silvaxml import NS_EDITOR_URI, NS_HTML_URI
 from silva.core.editor.transform.interfaces import ISilvaXMLImportFilter
 from silva.core.editor.transform.base import TransformationFilter
+from silva.core.editor.transform.editor.output import AnchorCollector
 
 
 class XHTMLImportTransformer(TransformationFilter):
     grok.adapts(IVersion, ISilvaXMLImportHandler)
     grok.provides(ISilvaXMLImportFilter)
-    grok.order(sys.maxint)
+    grok.order(0)
 
     def __init__(self, context, handler):
         self.context = context
@@ -37,6 +37,8 @@ class XHTMLImportTransformer(TransformationFilter):
 class ReferenceImportTransformer(TransformationFilter):
     grok.adapts(IVersion, ISilvaXMLImportHandler)
     grok.provides(ISilvaXMLImportFilter)
+    grok.implements(ISilvaXMLImportFilter)
+    grok.order(10)
 
     def __init__(self, context, handler):
         self.context = context
@@ -59,6 +61,13 @@ class ReferenceImportTransformer(TransformationFilter):
 
             node.attrib['reference'] = reference_name
             del node.attrib['reference-type']
+
+
+class ImportAnchorCollector(AnchorCollector):
+    grok.adapts(IVersion, ISilvaXMLImportHandler)
+    grok.provides(ISilvaXMLImportFilter)
+    grok.implements(ISilvaXMLImportFilter)
+    grok.order(50)
 
 
 class TextHandler(xmlimport.SilvaBaseHandler):
