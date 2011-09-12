@@ -9,6 +9,8 @@ import silva.core.editor
 from silva.core.references.interfaces import IReferenceService
 from silva.core.references.reference import get_content_id
 from zope.component import getUtility
+from zope.event import notify
+from zope.lifecycleevent import ObjectModifiedEvent
 
 import uuid
 
@@ -44,3 +46,5 @@ def save_editor_text(text, html, **kwargs):
     else:
         html = html.format(**kwargs)
     text.save_raw_text(html)
+    if context is not None:
+        notify(ObjectModifiedEvent(context))

@@ -21,7 +21,6 @@ from zope.event import notify
 from zope.lifecycleevent import ObjectModifiedEvent
 
 
-
 class TextIndexEntry(object):
     grok.implements(ITextIndexEntry)
 
