@@ -16,6 +16,7 @@ from silva.core.editor.transform.silvaxml import NS_EDITOR_URI, NS_HTML_URI
 from silva.core.references.interfaces import IReferenceService
 from silva.core.references.utils import canonical_path
 from silva.core.interfaces.errors import ExternalReferenceError
+from silva.translations import translate as _
 from Products.Silva.silvaxml import xmlexport
 
 
@@ -53,6 +54,7 @@ class ReferenceExportTransformer(TransformationFilter):
             if reference.target_id:
                 if not reference.is_target_inside_container(root):
                     raise ExternalReferenceError(
+                        _(u"External reference"),
                         self.context, reference.target, root)
 
                 # Give the relative, prepended with the root id.
