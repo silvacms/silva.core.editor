@@ -46,17 +46,19 @@
             // Patch selection to select the whole contenteditable
             // instead of only a element in it (this prevent to select an image in FF)
             (function () {
-                CKEDITOR.dom.selection.prototype.origSelectElement = CKEDITOR.dom.selection.prototype.selectElement;
-                CKEDITOR.dom.selection.prototype.selectElement = function(element) {
-                    var div = element.getAscendant('div', true);
+                if (CKEDITOR.dom.selection.prototype.origSelectElement !== undefined) {
+                    CKEDITOR.dom.selection.prototype.origSelectElement = CKEDITOR.dom.selection.prototype.selectElement;
+                    CKEDITOR.dom.selection.prototype.selectElement = function(element) {
+                        var div = element.getAscendant('div', true);
 
-                    while (div !== null && div.getAttribute('contenteditable') !== 'false') {
-                        div = div.getAscendant('div', false);
+                        while (div !== null && div.getAttribute('contenteditable') !== 'false') {
+                            div = div.getAscendant('div', false);
+                        };
+                        if (div !== null) {
+                            element = div;
+                        };
+                        return this.origSelectElement(element);
                     };
-                    if (div !== null) {
-                        element = div;
-                    };
-                    return this.origSelectElement(element);
                 };
             })();
 
