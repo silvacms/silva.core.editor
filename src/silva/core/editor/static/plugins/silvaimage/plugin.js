@@ -46,7 +46,7 @@
             // Patch selection to select the whole contenteditable
             // instead of only a element in it (this prevent to select an image in FF)
             (function () {
-                if (CKEDITOR.dom.selection.prototype.origSelectElement !== undefined) {
+                if (CKEDITOR.dom.selection.prototype.origSelectElement === undefined) {
                     CKEDITOR.dom.selection.prototype.origSelectElement = CKEDITOR.dom.selection.prototype.selectElement;
                     CKEDITOR.dom.selection.prototype.selectElement = function(element) {
                         var div = element.getAscendant('div', true);
