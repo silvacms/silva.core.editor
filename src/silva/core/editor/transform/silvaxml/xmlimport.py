@@ -23,7 +23,7 @@ from silva.core.editor.transform.editor.output import AnchorCollector
 class XHTMLImportTransformer(TransformationFilter):
     grok.adapts(IVersion, ISilvaXMLImportHandler)
     grok.provides(ISilvaXMLImportFilter)
-    grok.order(0)
+    grok.order(100)
 
     def __init__(self, context, handler):
         self.context = context
@@ -63,11 +63,13 @@ class ReferenceImportTransformer(TransformationFilter):
             del node.attrib['reference-type']
 
 
+# This one must be executed after XHTMLImportTransformer that cleanup
+# the namespaces.
 class ImportAnchorCollector(AnchorCollector):
     grok.adapts(IVersion, ISilvaXMLImportHandler)
     grok.provides(ISilvaXMLImportFilter)
     grok.implements(ISilvaXMLImportFilter)
-    grok.order(50)
+    grok.order(150)
 
 
 class TextHandler(xmlimport.SilvaBaseHandler):
@@ -80,10 +82,9 @@ class TextHandler(xmlimport.SilvaBaseHandler):
             self.proxy.startElementNS((NS_HTML_URI, 'div'), 'div', {})
         else:
             ns, localname = name
-            if ns == NS_HTML_URI:
-                if self.proxy is None:
-                    raise RuntimeError('Invalid construction')
-                self.proxy.startElementNS(name, qname, attrs)
+            if self.proxy is None:
+                raise RuntimeError('Invalid construction')
+            self.proxy.startElementNS(name, qname, attrs)
 
     def characters(self, input_text):
         if self.proxy is not None:
@@ -117,8 +118,7 @@ class TextHandler(xmlimport.SilvaBaseHandler):
             self.proxy = None
         else:
             ns, localname = name
-            if ns == NS_HTML_URI:
-                if self.proxy is None:
-                    raise RuntimeError('Invalid HTML')
-                self.proxy.endElementNS(name, qname)
+            if self.proxy is None:
+                raise RuntimeError('Invalid HTML')
+            self.proxy.endElementNS(name, qname)
 
