@@ -2,4 +2,16 @@
 silva.core.editor
 =================
 
-Support for CKEditor within Silva.
+Introduction
+============
+
+Support for `CKEditor`_ within `Silva`_.
+
+.. _CKEditor: http://ckeditor.com/
+.. _Silva: http://infrae.com/products/silva
+
+Code repository
+===============
+
+You can find the source for this extension in Mercurial:
+https://hg.infrae.com/silva.core.editor/

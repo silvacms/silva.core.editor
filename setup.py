@@ -6,10 +6,10 @@
 from setuptools import setup, find_packages
 import os
 
-version = '1.0dev'
+version = '3.0b1'
 
 tests_require = [
-    'infrae.testing',
+    'Products.Silva [test]',
     ]
 
 
@@ -35,22 +35,28 @@ setup(name='silva.core.editor',
       include_package_data=True,
       zip_safe=False,
       install_requires=[
-        'fanstatic',
         'five.grok',
         'infrae.rest',
-        'js.jquery',
         'js.ckeditor',
         'lxml',
         'setuptools',
         'silva.core.conf',
         'silva.core.interfaces',
         'silva.core.references',
+        'silva.core.messages',
+        'silva.core.services',
         'silva.core.views',
+        'silva.translations',
         'silva.ui',
-        'zope.component',
-        'zope.interface',
-        'zope.schema',
+        'zeam.form.silva',
         'zeam.jsontemplate',
+        'zope.annotation',
+        'zope.component',
+        'zope.event',
+        'zope.interface',
+        'zope.lifecycleevent',
+        'zope.schema',
+        'zope.traversing',
         ],
       tests_require = tests_require,
       extras_require = {'test': tests_require},
