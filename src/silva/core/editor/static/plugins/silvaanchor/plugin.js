@@ -82,7 +82,7 @@
                     '{' +
                     'padding: 1px;' +
                     'color: #444;' +
-                    'background-color: #EEE8AA;' +
+                    'background-color: #ffb;' +
                     '}'
             );
             // Events
