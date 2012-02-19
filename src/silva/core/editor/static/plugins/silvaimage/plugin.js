@@ -75,7 +75,6 @@
                     'z-index: 1;' +
                     'padding: 1px;' +
                     'color: #444;' +
-                    'background-color: #EEE8AA;' +
                     'display: inline-block;' +
                     '}');
             editor.addCss(
