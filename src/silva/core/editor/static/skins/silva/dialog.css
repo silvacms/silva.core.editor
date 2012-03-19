@@ -531,3 +531,11 @@ margin-top:7px!important;
 .cke_skin_silva .cke_dialog_ui_vbox table td {
 vertical-align:middle;
 }
+
+
+.cke_skin_silva .form-content a.form-button {
+  border: none;
+  border-raduis: 0px;
+  margin: 0px;
+  padding: 0px;
+}
