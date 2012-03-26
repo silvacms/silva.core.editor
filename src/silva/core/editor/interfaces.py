@@ -183,8 +183,8 @@ class ICKEditorSettings(interface.Interface):
             'NumberedList', 'BulletedList', '-',
             'Subscript', 'Superscript', '-',
             'Outdent', 'Indent', '-',
-            'SilvaLink', 'SilvaUnlink', 'SilvaAnchor', 'SilvaImage',
-            'SilvaExternalSource', 'Table',
+            'SilvaLink', 'SilvaUnlink', 'SilvaAnchor', '-',
+            'SilvaImage', 'SilvaExternalSource', 'Table',
             ],
         required=True)
     formats = schema.List(
