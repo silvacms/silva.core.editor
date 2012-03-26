@@ -4,7 +4,8 @@ Changes
 3.0 (unreleased)
 ----------------
 
-* ...
+* add separator for link actions
+  [wim]
 
 3.0b1 (2011/11/11)
 ------------------
