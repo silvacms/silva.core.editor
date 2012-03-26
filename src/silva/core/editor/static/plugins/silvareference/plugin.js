@@ -18,6 +18,7 @@
                             self._.remote.change(function(event, info) {
                                 self.fire('reference-update', info);
                             });
+                            $('#' + self.domId).SMIReferenceLookup();
                         });
 
                         var innerHTML = function() {
