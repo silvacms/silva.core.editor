@@ -552,6 +552,11 @@ vertical-align:top;
 width:60px;
 }
 
+/* make style box wide enough so you can read most styles on 1024x768 */
+.cke_skin_silva .cke_rcombo  #cke_19_text.cke_text {
+  width:140px;
+}
+
 .cke_skin_silva .cke_ltr .cke_rcombo .cke_text {
 -moz-border-radius-bottomleft:3px;
 -moz-border-radius-topleft:3px;
