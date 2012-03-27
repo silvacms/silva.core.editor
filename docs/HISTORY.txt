@@ -7,6 +7,9 @@ Changes
 * add separator for link actions
   [wim]
 
+* make style box wider
+  [wim]
+
 3.0b1 (2011/11/11)
 ------------------
 
