@@ -539,3 +539,8 @@ vertical-align:middle;
   margin: 0px;
   padding: 0px;
 }
+
+td.cke_dialog_ui_hbox_last a.cke_dialog_ui_button.colorChooser {
+  margin-left: 10px;
+}
+
