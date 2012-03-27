@@ -25,7 +25,8 @@
                     toolbar: 'Silva',
                     height: '2000px',
                     toolbar_Silva: configuration['toolbars'],
-                    resize_enabled: false
+                    resize_enabled: false,
+                    disable_colors: configuration['disable_colors'],
                 };
                 if (configuration['skin']) {
                     settings['skin'] = configuration['skin'];

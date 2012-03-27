@@ -27,7 +27,8 @@ $(document).ready(function(){
                 removePlugins: 'save,link,flash,image,filebrowser,iframe,forms',
                 skin: configuration['skin'],
                 toolbar: 'Silva',
-                toolbar_Silva: configuration['toolbars']
+                toolbar_Silva: configuration['toolbars'],
+                disable_colors: configuration['disable_colors'],
             });
         });
 });

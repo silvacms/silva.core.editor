@@ -223,6 +223,11 @@ class ICKEditorSettings(interface.Interface):
         source=skin_vocabulary,
         default='silva,++static++/silva.core.editor/skins/silva/',
         required=True)
+    disable_colors = schema.Bool(
+        title=u"Disable colors",
+        description=u"Disallow users to use colors in the editor",
+        default=True,
+        required=True)
 
 
 class ICKEditorService(ISilvaLocalService):

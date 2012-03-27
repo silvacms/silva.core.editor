@@ -35,11 +35,11 @@ class CKEditorService(SilvaService):
         {'label': 'Editor settings',
          'action': 'manage_settings'},) + SilvaService.manage_options
 
-
     toolbars = FieldProperty(ICKEditorSettings['toolbars'])
     formats = FieldProperty(ICKEditorSettings['formats'])
     contents_css = FieldProperty(ICKEditorSettings['contents_css'])
     skin = FieldProperty(ICKEditorSettings['skin'])
+    disable_colors = FieldProperty(ICKEditorSettings['disable_colors'])
 
     def get_toolbars_configuration(self):
         """Return toolbar configuration.
@@ -138,4 +138,5 @@ class CKEditorRESTConfiguration(rest.REST):
              'contents_css': service.contents_css,
              'formats': service.get_formats(),
              'plugins': ','.join(plugins_url.keys()),
+             'disable_colors': service.disable_colors,
              'skin': skin})

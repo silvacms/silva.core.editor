@@ -17,7 +17,8 @@ class CKEditorExtension(object):
         'silvaimage': 'plugins/silvaimage',
         'silvaanchor': 'plugins/silvaanchor',
         'silvasave': 'plugins/silvasave',
-        'silvaformat': 'plugins/silvaformat'
+        'silvaformat': 'plugins/silvaformat',
+        'silvadialog': 'plugins/silvadialog',
         }
     skins = {
         'silva': {'title': 'Silva default', 'path': 'skins/silva'}
