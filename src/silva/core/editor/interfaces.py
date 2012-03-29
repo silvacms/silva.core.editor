@@ -28,13 +28,6 @@ class ICKEditorResources(IReferenceUIResources):
     silvaconf.resource(jsontemplate.jsontemplate)
 
 
-class ICKEditorViewResources(ICKEditorResources):
-    """Javascript resources to load a CKEditor in a view.
-    """
-    silvaconf.resource(ckeditor.jquery_adapter)
-    silvaconf.resource('editor.js')
-
-
 class ICKEditorSilvaUIResources(ISilvaUIDependencies, ICKEditorResources):
     """Javascript resources to load a CKEditor in silva.ui.
     """

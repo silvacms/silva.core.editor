@@ -61,6 +61,8 @@ setup(name='silva.core.editor',
       tests_require = tests_require,
       extras_require = {'test': tests_require},
       entry_points="""
+      [zeam.form.components]
+      html = silva.core.editor.widgets.text:register
       [silva.core.editor.extension]
       core = silva.core.editor:extension
       [silva.ui.resources]
