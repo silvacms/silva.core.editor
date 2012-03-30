@@ -133,6 +133,12 @@ class ReferenceTransformationFilter(TransformationFilter):
         reference = self._references.get(link_name, None)
         if reference is not None:
             self._references_used.add(link_name)
+        else:
+            # This can happen if we copied direct html
+            if read_only:
+                raise KeyError(u"Missing reference %s tagged %s" % (
+                        self._reference_name, link_name))
+            return self.new_reference()
         return link_name, reference
 
     def new_reference(self):
