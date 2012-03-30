@@ -5,7 +5,6 @@ visibility:visible;
 .cke_skin_silva .cke_dialog_body {
 margin:1px 16px 20px;
 position:relative;
-z-index:1;
 }
 
 .cke_skin_silva .cke_dialog_tl,.cke_skin_silva .cke_dialog_tr,.cke_skin_silva .cke_dialog_tc,.cke_skin_silva .cke_dialog_bl,.cke_skin_silva .cke_dialog_br,.cke_skin_silva .cke_dialog_bc {
@@ -72,10 +71,10 @@ background-position:-16px -584px;
 }
 
 .cke_skin_silva .cke_dialog_bc {
-background-position:0 -330px;
+background-position:0 -356px;
 background-repeat:repeat-x;
 bottom:0;
-height:51px;
+height:25px;
 left:30px;
 right:30px;
 }
@@ -152,7 +151,6 @@ margin-left:10px;
 margin-right:10px;
 margin-top:-19px;
 position:absolute;
-z-index:2;
 }
 
 .cke_skin_silva a.cke_dialog_tab,.cke_skin_silva a:link.cke_dialog_tab,.cke_skin_silva a:active.cke_dialog_tab,.cke_skin_silva a:hover.cke_dialog_tab,.cke_skin_silva a:visited.cke_dialog_tab {
