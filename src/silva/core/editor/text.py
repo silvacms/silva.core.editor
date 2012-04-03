@@ -7,7 +7,7 @@ from five import grok
 from infrae import rest
 from persistent import Persistent
 from silva.core.editor.interfaces import IText
-from silva.core.editor.interfaces import ITextIndexEntries, ITextIndexEntry
+from silva.core.editor.interfaces import ITextIndexEntries
 from silva.core.editor.transform.interfaces import ITransformerFactory
 from silva.core.editor.transform.interfaces import IDisplayFilter
 from silva.core.editor.transform.interfaces import ISaveEditorFilter
@@ -21,14 +21,6 @@ from zope.event import notify
 from zope.lifecycleevent import ObjectModifiedEvent
 
 
-class TextIndexEntry(object):
-    grok.implements(ITextIndexEntry)
-
-    def __init__(self, anchor, title):
-        self.anchor = anchor
-        self.title = title
-
-
 class TextIndexEntries(grok.Annotation):
     grok.implements(ITextIndexEntries)
     grok.context(IText)
@@ -38,7 +30,7 @@ class TextIndexEntries(grok.Annotation):
         self.entries = []
 
     def add(self, anchor, title):
-        self.entries.append(TextIndexEntry(anchor, title))
+        self.entries.append((anchor, title))
 
     def clear(self):
         if self.entries:

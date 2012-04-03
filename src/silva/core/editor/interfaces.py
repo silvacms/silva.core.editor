@@ -256,19 +256,9 @@ class IText(IAttributeAnnotatable):
         """
 
 
-class ITextIndexEntry(interface.Interface):
-    """Reprensent an index entry in a text.
-    """
-    anchor = schema.TextLine(title=u"Anchor")
-    title = schema.TextLine(title=u"Index title")
-
-
 class ITextIndexEntries(interface.Interface):
     """Reprensent index entries in a text.
     """
-    entries = schema.List(
-        title=u"Index entries",
-        value_type=schema.Object(schema=ITextIndexEntry))
 
     def add(anchor, title):
         """Add an new index.
