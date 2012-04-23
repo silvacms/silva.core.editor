@@ -5,30 +5,33 @@
 
 from pkg_resources import iter_entry_points
 import logging
+import operator
 
 from five import grok
-
+from zope import schema
 from zope.component import getUtility
+from zope.event import notify
 from zope.interface import Interface
+from zope.lifecycleevent import IObjectAddedEvent, ObjectCreatedEvent
 from zope.schema.fieldproperty import FieldProperty
 from zope.schema.interfaces import IContextSourceBinder
-from zope import schema
 from zope.schema.vocabulary import SimpleVocabulary, SimpleTerm
-from zeam.form import silva as silvaforms
-from zope.lifecycleevent import IObjectAddedEvent, ObjectCreatedEvent
-from zope.event import notify
+from zope.traversing.browser import absoluteURL
+
 from AccessControl.security import ClassSecurityInfo
 from AccessControl.class_init import InitializeClass
 from OFS.Folder import Folder
+from zExceptions import Redirect
 
 from infrae import rest
 from silva.core import conf as silvaconf
-from silva.core.interfaces import ISilvaObject
-from silva.core.views.interfaces import IVirtualSite
-from silva.core.services.base import SilvaService, ZMIObject
 from silva.core.editor.interfaces import ICKEditorService
 from silva.core.editor.interfaces import ICKEditorSettings
-
+from silva.core.interfaces import ISilvaObject
+from silva.core.services.base import SilvaService, ZMIObject
+from silva.core.views.interfaces import IVirtualSite
+from silva.translations import translate as _
+from zeam.form import silva as silvaforms
 
 logger = logging.getLogger('silva.core.editor')
 
@@ -117,21 +120,20 @@ class CKEditorService(Folder, SilvaService):
     _config_declarations = None
 
     def __init__(self, *args, **kw):
-        super(CKEditorService, self).__init__(*args, **kw)
+        Folder.__init__(self, *args, **kw)
+        SilvaService.__init__(self, *args, **kw)
         self._config_declarations = {}
 
     def get_configuration(self, name):
-        if name is None:
-            name = 'default'
         names = [name]
-        fallbacks = self._config_declarations.get(name)
-        if fallbacks:
-            names.extend(fallbacks[1])
+        informations = self._config_declarations.get(name)
+        if informations:
+            names.extend(informations[1])
 
         ids = self.objectIds()
         for candidate in names:
-            if name in ids:
-                return self._getOb(name)
+            if candidate in ids:
+                return self._getOb(candidate)
         return self._getOb('default')
 
     def get_configuration_declaration(self, name):
@@ -175,9 +177,11 @@ InitializeClass(CKEditorService)
 
 @grok.provider(IContextSourceBinder)
 def configurations_source(context):
-    configs = context.available_configurations()
-    return SimpleVocabulary([SimpleTerm(value=name, token=name, title=info[0])
-                             for name, info in configs])
+    configurations = list(context.available_configurations())
+    configurations.sort(key=operator.itemgetter(0))
+    return SimpleVocabulary([
+            SimpleTerm(value=name, token=name, title=info[0])
+            for name, info in configurations])
 
 
 class ICKEditorConfigurations(Interface):
@@ -186,25 +190,33 @@ class ICKEditorConfigurations(Interface):
                     required=True)
 
 
-class CKEditorServiceConfigManager(silvaforms.ZMIComposedForm):
+class CKEditorServiceConfigurationManager(silvaforms.ZMIComposedForm):
     grok.context(ICKEditorService)
     grok.name('manage_settings')
-    label = u"Manage CKEditor configurations"
+
+    label = _(u"Manage CKEditor configurations")
+    description = _(u"You can from here modify the WYSIYG editor settings.")
 
 
 class CKEditorServiceAddConfiguration(silvaforms.ZMISubForm):
     grok.context(ICKEditorService)
-    grok.view(CKEditorServiceConfigManager)
-    label = u"Add a configuration"
-    description = u"You can from here modify the WYSIYG editor settings."
+    grok.view(CKEditorServiceConfigurationManager)
+    grok.order(20)
+
+    label = _(u"Add a configuration")
+    description = _(u"Add a specific editor configuration "
+                    u"for a content type in Silva.")
     ignoreContent = False
     fields = silvaforms.Fields(ICKEditorConfigurations)
 
-    @silvaforms.action(title='Add')
+    def available(self):
+        return bool(self.fields['config'].getChoices(self))
+
+    @silvaforms.action(title=_(u'Add'))
     def add(self):
         data, errors = self.extractData()
         if errors:
-            self.status = u'There were errors'
+            self.status = _(u'There were errors')
             return silvaforms.FAILURE
 
         name = data['config']
@@ -213,54 +225,50 @@ class CKEditorServiceAddConfiguration(silvaforms.ZMISubForm):
         return silvaforms.SUCCESS
 
 
-from zope.traversing.browser import absoluteURL
-from zExceptions import Redirect
-
-
-class EditConfigAction(silvaforms.Action):
-
-    title = u'Edit'
-    description = u'edit the selected configuration'
+class EditConfigurationAction(silvaforms.Action):
+    title = _(u'Edit')
+    description = _(u'edit the selected configuration')
 
     def __call__(self, form, config, line):
         raise Redirect(
             absoluteURL(config, form.request) + '/manage_settings')
 
 
-class RemoveConfigAction(silvaforms.Action):
-
-    title = u'Remove'
-    description = u'remove the selected configuration'
+class RemoveConfigurationAction(silvaforms.Action):
+    title = _(u'Remove')
+    description = _(u'remove the selected configuration')
 
     def __call__(self, form, config, line):
-        id = config.getId()
-        if id == 'default':
-            form.status = 'You cannot remove the default configuration'
-            return silvaforms.FAILURE
-        form.context.manage_delObjects([id])
+        identifier = config.getId()
+        if identifier == 'default':
+            raise silvaforms.ActionError(
+                _('You cannot remove the default configuration'))
+        form.context.manage_delObjects([identifier])
         return silvaforms.SUCCESS
 
 
-class IConfigListItemFields(Interface):
+class IConfigurationListItemFields(Interface):
     id = schema.TextLine(title=u'Name')
 
 
-class CKEditorServiceEditConfigurations(silvaforms.SubTableForm,
-                                        silvaforms.ZMISubForm):
+class CKEditorServiceEditConfigurations(silvaforms.ZMISubTableForm):
     grok.context(ICKEditorService)
-    grok.view(CKEditorServiceConfigManager)
+    grok.view(CKEditorServiceConfigurationManager)
+    grok.order(10)
 
     ignoreContent = False
-    label = u"Manage existing configurations"
+    label = _(u"Manage existing configurations")
+    description = _(u"Edit or remove editor configuration for giving Silva "
+                    u"content types.")
     mode = silvaforms.DISPLAY
-    tableFields = silvaforms.Fields(IConfigListItemFields)
-    tableActions = silvaforms.TableActions(EditConfigAction(),
-                                           RemoveConfigAction())
+    tableFields = silvaforms.Fields(IConfigurationListItemFields)
+    tableActions = silvaforms.TableActions(
+        EditConfigurationAction(),
+        RemoveConfigurationAction())
 
     def getItems(self):
-        items = list(self.context.objectValues(
+        return list(self.context.objectValues(
                 spec=CKEditorConfiguration.meta_type))
-        return items
 
 
 class EditConfiguration(silvaforms.ZMIForm):
@@ -269,8 +277,8 @@ class EditConfiguration(silvaforms.ZMIForm):
     grok.name('manage_settings')
     grok.context(CKEditorConfiguration)
 
-    label = u"CKEditor settings"
-    description = u"You can from here modify the WYSIYG editor settings."
+    label = _(u"CKEditor settings")
+    description = _(u"You can from here modify the WYSIYG editor settings.")
     ignoreContent = False
     fields = silvaforms.Fields(ICKEditorSettings)
     actions = silvaforms.Actions(silvaforms.EditAction())
@@ -280,7 +288,7 @@ class CKEditorRESTConfiguration(rest.REST):
     grok.context(ISilvaObject)
     grok.name('silva.core.editor.configuration')
 
-    def GET(self, name=None):
+    def GET(self, name='default'):
         service = getUtility(ICKEditorService)
 
         url_base = IVirtualSite(self.request).get_root().absolute_url_path()
@@ -291,18 +299,18 @@ class CKEditorRESTConfiguration(rest.REST):
         plugins_url = {name: url_base + path for name, path in
                        service.get_custom_plugins().items()}
 
-        config = service.get_configuration(name)
-        skin = config.skin
+        configuration = service.get_configuration(name)
+        skin = configuration.skin
         if ',' in skin:
             skin = skin.replace(',', ',' + url_base)
 
         return self.json_response(
-            {'toolbars': config.get_toolbars_configuration(),
+            {'toolbars': configuration.get_toolbars_configuration(),
              'paths': plugins_url,
-             'contents_css': config.contents_css,
-             'formats': config.get_formats(),
+             'contents_css': configuration.contents_css,
+             'formats': configuration.get_formats(),
              'plugins': ','.join(plugins_url.keys()),
-             'disable_colors': config.disable_colors,
+             'disable_colors': configuration.disable_colors,
              'skin': skin})
 
 

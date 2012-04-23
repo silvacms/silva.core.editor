@@ -1,3 +1,4 @@
 <textarea id="${widget.htmlId()}" class="${widget.htmlClass()}"
           name="${widget.identifier}"
+          data-editor-configuration="${widget.configuration}"
           tal:content="widget.inputValue()"></textarea>

@@ -4,6 +4,7 @@ from five import grok
 from zope.interface import Interface
 
 from silva.core.conf import schema as silvaschema
+from silva.core.interfaces import IVersion
 
 from zeam.form.ztk.fields import SchemaField, SchemaFieldWidget
 from zeam.form.ztk.fields import registerSchemaField
@@ -20,6 +21,13 @@ class HTMLInputWidget(SchemaFieldWidget):
 
     def valueToUnicode(self, value):
         return unicode(value)
+
+    def update(self):
+        super(HTMLInputWidget, self).update()
+        content = self.form.context
+        if IVersion.providedBy(content):
+            content = content.get_content()
+        self.configuration = content.meta_type
 
 
 
