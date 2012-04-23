@@ -23,7 +23,7 @@ from OFS.Folder import Folder
 
 from infrae import rest
 from silva.core import conf as silvaconf
-from silva.core.interfaces import ISilvaObject, IVersion
+from silva.core.interfaces import ISilvaObject
 from silva.core.views.interfaces import IVirtualSite
 from silva.core.services.base import SilvaService, ZMIObject
 from silva.core.editor.interfaces import ICKEditorService
@@ -121,6 +121,8 @@ class CKEditorService(Folder, SilvaService):
         self._config_declarations = {}
 
     def get_configuration(self, name):
+        if name is None:
+            name = 'default'
         names = [name]
         fallbacks = self._config_declarations.get(name)
         if fallbacks:
@@ -278,7 +280,7 @@ class CKEditorRESTConfiguration(rest.REST):
     grok.context(ISilvaObject)
     grok.name('silva.core.editor.configuration')
 
-    def GET(self):
+    def GET(self, name=None):
         service = getUtility(ICKEditorService)
 
         url_base = IVirtualSite(self.request).get_root().absolute_url_path()
@@ -289,11 +291,7 @@ class CKEditorRESTConfiguration(rest.REST):
         plugins_url = {name: url_base + path for name, path in
                        service.get_custom_plugins().items()}
 
-        versioned_content = self.context
-        if IVersion.providedBy(versioned_content):
-            versioned_content = self.context.get_content()
-
-        config = service.get_configuration(versioned_content.meta_type)
+        config = service.get_configuration(name)
         skin = config.skin
         if ',' in skin:
             skin = skin.replace(',', ',' + url_base)
