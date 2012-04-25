@@ -43,7 +43,12 @@ class CKEditorConfiguration(ZMIObject):
     """
     security = ClassSecurityInfo()
     silvaconf.factory('manage_addCKEditorConfiguration')
-    meta_type = 'Silva CKEditor Config'
+    silvaconf.zmi_addable(False)
+    meta_type = 'Silva CKEditor Configuration'
+
+    manage_options = (
+        {'label': 'Editor configuration',
+         'action': 'manage_configuration'},) + ZMIObject.manage_options
 
     toolbars = FieldProperty(ICKEditorSettings['toolbars'])
     formats = FieldProperty(ICKEditorSettings['formats'])
@@ -231,7 +236,7 @@ class EditConfigurationAction(silvaforms.Action):
 
     def __call__(self, form, config, line):
         raise Redirect(
-            absoluteURL(config, form.request) + '/manage_settings')
+            absoluteURL(config, form.request) + '/manage_configuration')
 
 
 class RemoveConfigurationAction(silvaforms.Action):
@@ -271,10 +276,10 @@ class CKEditorServiceEditConfigurations(silvaforms.ZMISubTableForm):
                 spec=CKEditorConfiguration.meta_type))
 
 
-class EditConfiguration(silvaforms.ZMIForm):
+class CKEditorEditConfiguration(silvaforms.ZMIForm):
     """Update the settings.
     """
-    grok.name('manage_settings')
+    grok.name('manage_configuration')
     grok.context(CKEditorConfiguration)
 
     label = _(u"CKEditor settings")
