@@ -321,5 +321,6 @@ class CKEditorRESTConfiguration(rest.REST):
 
 @grok.subscribe(ICKEditorService, IObjectAddedEvent)
 def add_default_configuration(service, event):
-    factory = service.manage_addProduct['silva.core.editor']
-    factory.manage_addCKEditorConfiguration('default')
+    if service._getOb('default', None) is None:
+        factory = service.manage_addProduct['silva.core.editor']
+        factory.manage_addCKEditorConfiguration('default')
