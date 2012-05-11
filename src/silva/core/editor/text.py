@@ -2,6 +2,7 @@
 # Copyright (c) 2010 Infrae. All rights reserved.
 # See also LICENSE.txt
 # $Id$
+import collections
 
 from five import grok
 from infrae import rest
@@ -21,6 +22,8 @@ from zope.event import notify
 from zope.lifecycleevent import ObjectModifiedEvent
 
 
+IndexEntry = collections.namedtuple('IndexEntry', ['anchor', 'title'])
+
 class TextIndexEntries(grok.Annotation):
     grok.implements(ITextIndexEntries)
     grok.context(IText)
@@ -30,7 +33,7 @@ class TextIndexEntries(grok.Annotation):
         self.entries = []
 
     def add(self, anchor, title):
-        self.entries.append((anchor, title))
+        self.entries.append(IndexEntry(anchor, title))
 
     def clear(self):
         if self.entries:
