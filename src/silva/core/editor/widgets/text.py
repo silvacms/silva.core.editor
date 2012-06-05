@@ -26,7 +26,7 @@ class HTMLInputWidget(SchemaFieldWidget):
         super(HTMLInputWidget, self).update()
         content = self.form.context
         if IVersion.providedBy(content):
-            content = content.get_content()
+            content = content.get_silva_object()
         self.configuration = content.meta_type
 
 
