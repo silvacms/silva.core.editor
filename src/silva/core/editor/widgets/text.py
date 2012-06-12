@@ -30,6 +30,5 @@ class HTMLInputWidget(SchemaFieldWidget):
         self.configuration = content.meta_type
 
 
-
 def register():
     registerSchemaField(HTMLSchemaField, silvaschema.IHTMLText)

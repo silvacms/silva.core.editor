@@ -296,7 +296,7 @@ class CKEditorRESTConfiguration(rest.REST):
     def GET(self, name='default'):
         service = getUtility(ICKEditorService)
 
-        url_base = IVirtualSite(self.request).get_root().absolute_url_path()
+        url_base = IVirtualSite(self.request).get_root_path()
         if not url_base.endswith('/'):
             url_base = url_base + '/'
 
