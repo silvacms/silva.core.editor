@@ -11,8 +11,8 @@ from silva.core.editor.transform.interfaces import ITransformerFactory
 from silva.core.editor.transform.interfaces import IDisplayFilter
 from zope.component import getMultiAdapter
 from zope.interface.verify import verifyObject
-from zope.publisher.browser import TestRequest
 
+from Products.Silva.testing import TestRequest
 from silva.core.editor.testing import FunctionalLayer
 
 

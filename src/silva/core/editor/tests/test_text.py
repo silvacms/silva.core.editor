@@ -6,13 +6,12 @@
 import unittest
 
 from five import grok
-from zope.publisher.browser import TestRequest
 
 from silva.core.editor.text import Text
 from silva.core.editor.transform.interfaces import IDisplayFilter
 
 from silva.core.editor.testing import FunctionalLayer
-from Products.Silva.testing import TestCase
+from Products.Silva.testing import TestCase, TestRequest
 
 HTML_CHUNK = """
 <html>

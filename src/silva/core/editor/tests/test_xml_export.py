@@ -7,13 +7,14 @@ import unittest
 import lxml
 
 from zope.component import getUtility
-from zope.publisher.browser import TestRequest
+
 from silva.core.editor.transform.silvaxml import xmlexport
 from silva.core.references.interfaces import IReferenceService
 from silva.core.references.reference import get_content_id
 from silva.core.editor.transform.silvaxml import NS_HTML_URI
+
 from Products.Silva.tests.helpers import open_test_file
-from Products.Silva.testing import FunctionalLayer
+from Products.Silva.testing import FunctionalLayer, TestRequest
 from Products.Silva.silvaxml.xmlexport import SilvaExportRoot
 from Products.Silva.silvaxml.xmlexport import ExportSettings, ExportContext
 

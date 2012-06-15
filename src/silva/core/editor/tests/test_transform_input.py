@@ -6,11 +6,10 @@
 
 import unittest
 
-from Products.Silva.testing import TestCase
+from Products.Silva.testing import TestCase, TestRequest
 
 from zope.interface.verify import verifyObject
 from zope.component import getMultiAdapter
-from zope.publisher.browser import TestRequest
 
 from silva.core.editor.testing import FunctionalLayer
 from silva.core.editor.text import Text

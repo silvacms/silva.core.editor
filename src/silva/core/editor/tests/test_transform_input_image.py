@@ -10,7 +10,7 @@ from Products.Silva.testing import TestCase
 from Products.Silva.tests.helpers import open_test_file
 
 from zope.component import getMultiAdapter, getUtility
-from zope.publisher.browser import TestRequest
+from Products.Silva.testing import TestRequest
 
 from silva.core.editor.testing import FunctionalLayer
 from silva.core.editor.text import Text

@@ -6,10 +6,9 @@
 import unittest
 
 from Acquisition import aq_chain
-from Products.Silva.testing import TestCase
+from Products.Silva.testing import TestCase, TestRequest
 
 from zope.component import getMultiAdapter, getUtility
-from zope.publisher.browser import TestRequest
 
 from silva.core.editor.testing import FunctionalLayer
 from silva.core.editor.text import Text
