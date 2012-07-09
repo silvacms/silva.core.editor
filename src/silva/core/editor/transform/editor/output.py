@@ -66,9 +66,6 @@ class LinkTransformer(SilvaReferenceTransformationFilter):
                 link.attrib['href'] = link.attrib['data-silva-href']
             if 'data-silva-anchor' in link.attrib:
                 link.attrib['anchor'] = link.attrib['data-silva-anchor']
-            if 'target' not in link.attrib or not link.attrib['target']:
-                # Cleanup empty target attributes.
-                link.attrib['target'] = '_self';
             clean_editor_attributes(link)
 
 
