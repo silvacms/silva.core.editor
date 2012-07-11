@@ -16,6 +16,7 @@ from silva.core.editor.transform.interfaces import IInputEditorFilter
 from silva.core.editor.utils import html_truncate_node
 from silva.core.interfaces import IVersionedContent
 from silva.core.messages.interfaces import IMessageService
+from silva.core.references.interfaces import IReferenceService
 from silva.translations import translate as _
 from zope.component import getMultiAdapter, getUtility
 from zope.event import notify
@@ -71,6 +72,13 @@ class Text(Persistent):
     def save_raw_text(self, text):
         self.__text = unicode(text)
         return self.__text
+
+    def truncate(self, context, request, type=None):
+        if type is None:
+            type = ISaveEditorFilter
+        factory = getMultiAdapter((context, request), ITransformerFactory)
+        transformer = factory(self.__name, self, None, type)
+        self.save_raw_text(transformer.truncate())
 
     def __str__(self):
         return str(self.__text)

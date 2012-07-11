@@ -44,11 +44,13 @@ class Transformer(object):
         self.__xhtml = xhtml
         self.__transformers = transformers
         self.__prepare = prepare
-        data = '<div id="sce-transform-root">' + data + '</div>'
-        if xhtml:
-            self.__trees = [lxml.etree.fromstring(data)]
-        else:
-            self.__trees = [lxml.html.fromstring(data)]
+        self.__trees = []
+        if data is not None:
+            data = '<div id="sce-transform-root">' + data + '</div>'
+            if xhtml:
+                self.__trees = [lxml.etree.fromstring(data)]
+            else:
+                self.__trees = [lxml.html.fromstring(data)]
 
     def restrict(self, xpath):
         restrictions = []
@@ -75,6 +77,11 @@ class Transformer(object):
             else:
                 yield tree
 
+    def truncate(self):
+        for transformer in self.__transformers:
+            transformer.truncate(*self.__prepare)
+        return u''
+
     def __unicode__(self):
         return u"\n".join(map(lxml.html.tostring, self.__call__()))
 
@@ -99,11 +106,15 @@ class TransformationFilter(grok.MultiSubscription):
     def finalize(self):
         pass
 
+    def truncate(self, name, text):
+        pass
+
 
 class ReferenceTransformationFilter(TransformationFilter):
     grok.baseclass()
     grok.name('reference')
 
+    _read_only = False
     _reference_tracking = True
 
     def __init__(self, context, request):
@@ -112,7 +123,10 @@ class ReferenceTransformationFilter(TransformationFilter):
         self._references_used = set()
         self._references = {}
 
-    def get_reference(self, link_name, read_only=False):
+    def _get_reference_name(self, name):
+        return u' '.join((name, grok.name.bind().get(self.__class__)))
+
+    def get_reference(self, link_name):
         """Retrieve an existing reference used in the XML.
 
         If read_only is set to True, when it will fail if the asked
@@ -126,7 +140,7 @@ class ReferenceTransformationFilter(TransformationFilter):
             # This is a new reference, or one that have already been
             # edited. In that case we create a new one, as it might be
             # a copy.
-            if read_only:
+            if self._read_only:
                 raise KeyError(u"Missing reference %s tagged %s" % (
                         self._reference_name, link_name))
             return self.new_reference()
@@ -135,7 +149,7 @@ class ReferenceTransformationFilter(TransformationFilter):
             self._references_used.add(link_name)
         else:
             # This can happen if we copied direct html
-            if read_only:
+            if self._read_only:
                 raise KeyError(u"Missing reference %s tagged %s" % (
                         self._reference_name, link_name))
             return self.new_reference()
@@ -154,15 +168,15 @@ class ReferenceTransformationFilter(TransformationFilter):
 
     def prepare(self, name, text):
         super(ReferenceTransformationFilter, self).prepare(name, text)
-        self._reference_name = u' '.join(
-            (name, grok.name.bind().get(self.__class__)))
+        self._reference_name = self._get_reference_name(name)
         self._references_used = set()
         self._references = dict(map(
                 lambda r: (r.tags[1], r),
                 filter(
                     lambda r: r.tags[0] == self._reference_name,
                     self._reference_service.get_references_from(
-                        self.context))))
+                        self.context,
+                        name=self._reference_name))))
 
     def __call__(self, tree):
         pass
@@ -174,3 +188,8 @@ class ReferenceTransformationFilter(TransformationFilter):
                 if link_name not in self._references_used:
                     # Reference has not been used, remove it.
                     del self._reference_service.references[reference.__name__]
+
+    def truncate(self, name, text):
+        if not self._read_only:
+            self._reference_service.delete_references(
+                self.context, name=self._get_reference_name(name))

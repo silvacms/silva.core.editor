@@ -122,7 +122,10 @@ class AnchorCollector(TransformationFilter):
         self.entries = ITextIndexEntries(text)
         self.entries.clear()
 
+    truncate = prepare
+
     def __call__(self, tree):
         for anchor in tree.xpath('//a[@class="anchor"]'):
             if 'name' in anchor.attrib and 'title' in anchor.attrib:
                 self.entries.add(anchor.attrib['name'], anchor.attrib['title'])
+

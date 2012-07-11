@@ -15,11 +15,12 @@ class LinkTransformer(ReferenceTransformationFilter):
     grok.order(10)
     grok.name('link')
 
+    _read_only = True
+
     def __call__(self, tree):
         for link in tree.xpath('//a[@class="link"]'):
             if 'reference' in link.attrib:
-                name, reference = self.get_reference(
-                    link.attrib['reference'], read_only=True)
+                name, reference = self.get_reference(link.attrib['reference'])
                 if reference is not None:
                     link.attrib['data-silva-reference'] = name
                     link.attrib['data-silva-target'] = str(reference.target_id)
@@ -39,14 +40,15 @@ class ImageTransformer(ReferenceTransformationFilter):
     grok.order(10)
     grok.name('image')
 
+    _read_only = True
+
     def __call__(self, tree):
         for block in tree.xpath('//div[contains(@class, "image")]'):
             images = block.xpath('descendant::img')
             assert len(images) == 1, u"Invalid image construction"
             image = images[0]
             if 'reference' in image.attrib:
-                name, reference = self.get_reference(
-                    image.attrib['reference'], read_only=True)
+                name, reference = self.get_reference(image.attrib['reference'])
                 if reference is not None:
                     image.attrib['data-silva-reference'] = name
                     if reference.target_id:
@@ -68,6 +70,8 @@ class ImageLinkTransformer(ReferenceTransformationFilter):
     grok.order(10)
     grok.name('image link')
 
+    _read_only = True
+
     def __call__(self, tree):
         for block in tree.xpath('//div[contains(@class, "image")]'):
             links = block.xpath('descendant::a[@class="image-link"]')
@@ -76,7 +80,7 @@ class ImageLinkTransformer(ReferenceTransformationFilter):
                 link = links[0]
                 if 'reference' in link.attrib:
                     name, reference = self.get_reference(
-                        link.attrib['reference'], read_only=True)
+                        link.attrib['reference'])
                     if reference is not None:
                         link.attrib['data-silva-reference'] = name
                         link.attrib['data-silva-target'] = str(

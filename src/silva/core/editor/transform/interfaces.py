@@ -34,6 +34,10 @@ class ITransformer(interface.Interface):
         """Generate transformed lxml trees (and return thoses).
         """
 
+    def truncate():
+        """Truncate the trees.
+        """
+
     def __unicode__():
         """Return transformed HTML.
         """
@@ -59,6 +63,12 @@ class ITransformationFilter(interface.Interface):
     def finalize():
         """Finialize the transformation process.
         """
+
+    def truncate(name, text):
+        """Truncate the text. The filter will remove any external data
+        associated to the named text (references, code sources).
+        """
+
 
 class IDisplayFilter(ITransformationFilter):
     """Filter to display text to the user.

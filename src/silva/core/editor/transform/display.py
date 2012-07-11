@@ -17,13 +17,13 @@ class LinkTransformer(ReferenceTransformationFilter):
     grok.order(10)
     grok.name('link')
 
+    _read_only = True
     _reference_tracking = False
 
     def __call__(self, tree):
         for link in tree.xpath('//a[@class="link"]'):
             if 'reference' in link.attrib:
-                name, reference = self.get_reference(
-                    link.attrib['reference'], read_only=True)
+                name, reference = self.get_reference(link.attrib['reference'])
                 if reference is not None and reference.target_id:
                     link.attrib['href'] = absoluteURL(
                         reference.target, self.request)
@@ -40,6 +40,7 @@ class ImageTransformationFilter(ReferenceTransformationFilter):
     grok.order(10)
     grok.name('image')
 
+    _read_only = True
     _reference_tracking = False
 
     def __call__(self, tree):
@@ -48,8 +49,7 @@ class ImageTransformationFilter(ReferenceTransformationFilter):
             assert len(images) == 1, u"Invalid image construction"
             image = images[0]
             if 'reference' in image.attrib:
-                name, reference = self.get_reference(
-                    image.attrib['reference'], read_only=True)
+                name, reference = self.get_reference(image.attrib['reference'])
                 if reference is not None and reference.target_id:
                     content = reference.target
                     image_url = absoluteURL(content, self.request)
@@ -67,6 +67,7 @@ class ImageLinkTransformationFilter(ReferenceTransformationFilter):
     grok.order(10)
     grok.name('image link')
 
+    _read_only = True
     _reference_tracking = False
 
     def __call__(self, tree):
@@ -77,7 +78,7 @@ class ImageLinkTransformationFilter(ReferenceTransformationFilter):
                 link = links[0]
                 if 'reference' in link.attrib:
                     name, reference = self.get_reference(
-                        link.attrib['reference'], read_only=True)
+                        link.attrib['reference'])
                     if reference is not None and reference.target_id:
                         content = reference.target
                         link.attrib['href'] = absoluteURL(content, self.request)
