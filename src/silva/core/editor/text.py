@@ -13,7 +13,6 @@ from silva.core.editor.transform.interfaces import ITransformerFactory
 from silva.core.editor.transform.interfaces import IDisplayFilter
 from silva.core.editor.transform.interfaces import ISaveEditorFilter
 from silva.core.editor.transform.interfaces import IInputEditorFilter
-from silva.core.editor.transform.interfaces import IFullTextFilter
 from silva.core.editor.utils import html_truncate_node, html_extract_text
 from silva.core.interfaces import IVersionedContent
 from silva.core.messages.interfaces import IMessageService
