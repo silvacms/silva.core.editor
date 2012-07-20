@@ -74,9 +74,36 @@ class IntroductionTestCase(TestCase):
         self.assertXMLEqual("""<p>First paragraph of &#8230;</p>""", intro)
 
 
+class FullTextTestCase(TestCase):
+    layer = FunctionalLayer
+
+    def setUp(self):
+        self.root = self.layer.get_application()
+        factory = self.root.manage_addProduct['Silva']
+        factory.manage_addMockupVersionedContent('test', 'Test Content')
+
+    def test_text_fulltext(self):
+        text = Text("test_fulltext", HTML_CHUNK)
+        fulltext = text.fulltext(self.root.test.get_editable(), TestRequest())
+        text = """
+
+
+
+    Title
+    
+        First paragraph of text, this is important
+        and there is a link in it.
+    
+     Second paragraph
+
+"""
+        self.assertEquals(fulltext, text)
+
+
 def test_suite():
     suite = unittest.TestSuite()
     suite.addTest(unittest.makeSuite(TextTestCase))
     suite.addTest(unittest.makeSuite(IntroductionTestCase))
+    suite.addTest(unittest.makeSuite(FullTextTestCase))
     return suite
 

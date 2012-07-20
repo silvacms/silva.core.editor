@@ -6,7 +6,9 @@
 import unittest
 import lxml.html
 
-from silva.core.editor.utils import html_truncate, parse_html_fragments
+from silva.core.editor.utils import html_truncate
+from silva.core.editor.utils import html_extract_text
+from silva.core.editor.utils import parse_html_fragments
 
 
 class TestStrip(unittest.TestCase):
@@ -35,6 +37,19 @@ class TestStrip(unittest.TestCase):
             html_truncate(12,
                 """<p>some text<img src="#somewhere" /> and some tail</p>"""))
 
+    def test_html_extract_text(self):
+        chunk = """
+<p>This is some text and <img alt="an image appears" src="#" />
+and then there
+<a href="#">is a link</a> then it is over.</p>
+"""
+        tree = parse_html_fragments(chunk)
+
+        text = """This is some text and  an image appears 
+and then there
+is a link then it is over.
+"""
+        self.assertEquals(unicode(html_extract_text(tree)), text)
 
     def test_spaces_does_not_count(self):
         html = """<p>some     text<a href="#somelink">link</a>

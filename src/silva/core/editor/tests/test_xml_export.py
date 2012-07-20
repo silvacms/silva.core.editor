@@ -86,4 +86,3 @@ class TestExport(unittest.TestCase):
         self.assertEqual(image.attrib['reference'], 'root/folder/image')
         self.assertEqual(image.attrib['reference-type'], 'document image')
 
-

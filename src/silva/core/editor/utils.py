@@ -15,6 +15,29 @@ def normalize_space(text):
     return u''
 
 
+def html_extract_text(el, buf=None):
+    if buf is None:
+        buf = bytearray()
+
+    if el.text:
+        buf.extend(el.text)
+
+    if el.tag.lower() == 'img':
+        alt = el.attrib.get('alt')
+        if alt:
+            buf.append(' ')
+            buf.extend(alt)
+            buf.append(' ')
+
+    for child in el.iterchildren():
+        html_extract_text(child, buf)
+
+    if el.tail:
+        buf.extend(el.tail)
+
+    return buf
+
+
 def html_truncate_node(el, remaining_length, append=u"…"):
     text = normalize_space(el.text)
     if text and len(text) >= remaining_length:

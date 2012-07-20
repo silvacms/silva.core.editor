@@ -13,7 +13,8 @@ from silva.core.editor.transform.interfaces import ITransformerFactory
 from silva.core.editor.transform.interfaces import IDisplayFilter
 from silva.core.editor.transform.interfaces import ISaveEditorFilter
 from silva.core.editor.transform.interfaces import IInputEditorFilter
-from silva.core.editor.utils import html_truncate_node
+from silva.core.editor.transform.interfaces import IFullTextFilter
+from silva.core.editor.utils import html_truncate_node, html_extract_text
 from silva.core.interfaces import IVersionedContent
 from silva.core.messages.interfaces import IMessageService
 from silva.core.references.interfaces import IReferenceService
@@ -62,6 +63,12 @@ class Text(Persistent):
         transformer.restrict('//p[1]')
         transformer.visit(lambda node: html_truncate_node(node, max_length))
         return unicode(transformer)
+
+    def fulltext(self, context, request):
+        transformer = self.get_transformer(context, request, type)
+        buf = bytearray()
+        transformer.visit(lambda node: html_extract_text(node, buf))
+        return unicode(buf)
 
     def save(self, context, request, text, type=None):
         if type is None:
