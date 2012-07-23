@@ -99,6 +99,10 @@ class FullTextTestCase(TestCase):
 """
         self.assertEquals(fulltext, text)
 
+    def test_fulltext_unicode(self):
+        text = Text("test_fulltext_unicode", u"<b>tête<b>")
+        fulltext = text.fulltext(self.root.test.get_editable(), TestRequest())
+        self.assertEquals(u"tête", fulltext)
 
 def test_suite():
     suite = unittest.TestSuite()

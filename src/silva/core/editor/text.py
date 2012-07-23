@@ -65,9 +65,9 @@ class Text(Persistent):
 
     def fulltext(self, context, request):
         transformer = self.get_transformer(context, request, type)
-        buf = bytearray()
-        transformer.visit(lambda node: html_extract_text(node, buf))
-        return unicode(buf)
+        buffer = bytearray()
+        transformer.visit(lambda node: html_extract_text(node, buffer, 'utf-8'))
+        return buffer.decode('utf-8')
 
     def save(self, context, request, text, type=None):
         if type is None:

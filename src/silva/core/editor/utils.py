@@ -15,27 +15,27 @@ def normalize_space(text):
     return u''
 
 
-def html_extract_text(el, buf=None):
-    if buf is None:
-        buf = bytearray()
+def html_extract_text(element, buffer=None, charset='utf-8'):
+    if buffer is None:
+        buffer = bytearray()
 
-    if el.text:
-        buf.extend(el.text)
+    if element.text:
+        buffer.extend(element.text.encode(charset))
 
-    if el.tag.lower() == 'img':
-        alt = el.attrib.get('alt')
+    if element.tag.lower() == 'img':
+        alt = element.attrib.get('alt')
         if alt:
-            buf.append(' ')
-            buf.extend(alt)
-            buf.append(' ')
+            buffer.append(' ')
+            buffer.extend(alt.encode(charset))
+            buffer.append(' ')
 
-    for child in el.iterchildren():
-        html_extract_text(child, buf)
+    for child in element.iterchildren():
+        html_extract_text(child, buffer)
 
-    if el.tail:
-        buf.extend(el.tail)
+    if element.tail:
+        buffer.extend(element.tail.encode(charset))
 
-    return buf
+    return buffer
 
 
 def html_truncate_node(el, remaining_length, append=u"…"):
