@@ -63,7 +63,7 @@ class Text(Persistent):
         transformer.visit(lambda node: html_truncate_node(node, max_length))
         return unicode(transformer)
 
-    def fulltext(self, context, request):
+    def fulltext(self, context, request, type=None):
         transformer = self.get_transformer(context, request, type)
         buffer = bytearray()
         transformer.visit(lambda node: html_extract_text(node, buffer, 'utf-8'))
