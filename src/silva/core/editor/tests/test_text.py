@@ -90,10 +90,10 @@ class FullTextTestCase(TestCase):
 
 
     Title
-    
+
         First paragraph of text, this is important
         and there is a link in it.
-    
+
      Second paragraph
 
 """

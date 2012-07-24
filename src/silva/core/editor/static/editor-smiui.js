@@ -25,6 +25,7 @@
                         var settings = {
                             entities: false,
                             fullPage: false,
+                            basicEntities: true,
                             language: smi.get_language(),
                             contentsCss: configuration['contents_css'],
                             silvaFormats: configuration['formats'],
@@ -120,7 +121,7 @@
                 };
 
                 return {
-                    jsont: '<textarea name="{data.name|htmltag}">{data.text}</textarea>',
+                    jsont: '<textarea name="{data.name|htmltag}">{data.text|html}</textarea>',
                     render: function() {
                         return get_settings(data.configuration).done(function(settings) {
                             var textarea = $content.children('textarea').get(0);
