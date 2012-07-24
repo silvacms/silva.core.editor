@@ -4,6 +4,7 @@
 # $Id$
 
 import unittest
+import re
 
 from five import grok
 
@@ -73,6 +74,8 @@ class IntroductionTestCase(TestCase):
             self.root.test.get_editable(), TestRequest(), max_length=20)
         self.assertXMLEqual("""<p>First paragraph of &#8230;</p>""", intro)
 
+def normalize(text):
+    return re.sub('\s+ ', ' ', text).strip()
 
 class FullTextTestCase(TestCase):
     layer = FunctionalLayer
@@ -86,23 +89,20 @@ class FullTextTestCase(TestCase):
         text = Text("test_fulltext", HTML_CHUNK)
         fulltext = text.fulltext(self.root.test.get_editable(), TestRequest())
         text = """
-
-
-
     Title
 
         First paragraph of text, this is important
         and there is a link in it.
 
      Second paragraph
-
 """
-        self.assertEquals(fulltext, text)
+        self.assertEquals(normalize(fulltext), normalize(text))
 
     def test_fulltext_unicode(self):
         text = Text("test_fulltext_unicode", u"<b>tête<b>")
         fulltext = text.fulltext(self.root.test.get_editable(), TestRequest())
         self.assertEquals(u"tête", fulltext)
+
 
 def test_suite():
     suite = unittest.TestSuite()
