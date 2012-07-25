@@ -9,33 +9,35 @@ import re
 
 norm_whitespace_re = re.compile(r'[ \t\n]{2,}')
 
-def normalize_space(text):
+def normalize_space(text, strip=False):
     if text is not None:
+        if strip:
+            text = text.strip()
         return re.sub(norm_whitespace_re, ' ', text)
     return u''
 
 
-def html_extract_text(element, buffer=None, charset='utf-8'):
-    if buffer is None:
-        buffer = bytearray()
+def html_extract_text(element, data=None):
+    if data is None:
+        data = []
+    tag = element.tag.lower()
 
-    if element.text:
-        buffer.extend(element.text.encode(charset))
+    def add(text):
+        normalized = normalize_space(text, True)
+        if normalized:
+            data.append(normalized)
 
-    if element.tag.lower() == 'img':
-        alt = element.attrib.get('alt')
-        if alt:
-            buffer.append(' ')
-            buffer.extend(alt.encode(charset))
-            buffer.append(' ')
+    add(element.text)
+    if tag == 'img':
+        add(element.attrib.get('alt'))
+    add(element.attrib.get('title'))
 
     for child in element.iterchildren():
-        html_extract_text(child, buffer)
+        html_extract_text(child, data)
 
-    if element.tail:
-        buffer.extend(element.tail.encode(charset))
+    add(element.tail)
 
-    return buffer
+    return data
 
 
 def html_truncate_node(el, remaining_length, append=u"…"):
@@ -78,51 +80,5 @@ def html_truncate(max_length, html_data, append=u"…"):
     return lxml.html.tostring(html_tree)
 
 
-empty_pattern = re.compile(r'^\s*$', re.UNICODE)
-
-
-def create_node_if_string(string_or_node, tag='div'):
-    if isinstance(string_or_node, basestring):
-        node = lxml.html.Element(tag)
-        node.text = string_or_node
-        return node
-    return string_or_node
-
-
-def parse_html_fragments(data, clear_tags=['p', 'span', 'br']):
-    """ Parse html fragments and return a tree with one root.
-
-    In case there is more that one fragment in data, it removes every
-    empty elements from top level nodes.
-    """
-    top_level_nodes = lxml.html.fragments_fromstring(data)
-    if len(top_level_nodes) == 1:
-        return create_node_if_string(top_level_nodes[0])
-    elif len(top_level_nodes) == 0:
-        return lxml.html.Element('div')
-    else:
-        for node in reversed(top_level_nodes):
-            if isinstance(node, basestring):
-                if empty_pattern.match(node):
-                    top_level_nodes.pop()
-                    continue
-            # no children
-            if len(node) == 0 and node.tag.lower() in clear_tags:
-                if node.text is None or empty_pattern.match(node.text):
-                    top_level_nodes.pop()
-                    continue
-            break
-
-        if len(top_level_nodes) == 1:
-            return create_node_if_string(top_level_nodes[0])
-        elif len(top_level_nodes) == 0:
-            return lxml.html.Element('div')
-        else:
-            new_root = lxml.html.Element('div')
-            if isinstance(top_level_nodes[0], basestring):
-                new_root.text = top_level_nodes[0]
-                del top_level_nodes[0]
-            new_root.extend(top_level_nodes)
-            return new_root
 
 

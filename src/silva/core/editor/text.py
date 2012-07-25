@@ -16,7 +16,6 @@ from silva.core.editor.transform.interfaces import IInputEditorFilter
 from silva.core.editor.utils import html_truncate_node, html_extract_text
 from silva.core.interfaces import IVersionedContent
 from silva.core.messages.interfaces import IMessageService
-from silva.core.references.interfaces import IReferenceService
 from silva.translations import translate as _
 from zope.component import getMultiAdapter, getUtility
 from zope.event import notify
@@ -65,9 +64,9 @@ class Text(Persistent):
 
     def fulltext(self, context, request, type=None):
         transformer = self.get_transformer(context, request, type)
-        buffer = bytearray()
-        transformer.visit(lambda node: html_extract_text(node, buffer, 'utf-8'))
-        return buffer.decode('utf-8')
+        fulltext = []
+        transformer.visit(lambda node: html_extract_text(node, fulltext))
+        return fulltext
 
     def save(self, context, request, text, type=None):
         if type is None:

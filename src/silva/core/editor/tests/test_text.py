@@ -4,7 +4,6 @@
 # $Id$
 
 import unittest
-import re
 
 from five import grok
 
@@ -23,7 +22,8 @@ HTML_CHUNK = """
         First paragraph of text, this is <strong>important</strong>
         <a href="http://infrae.com">and there is a link</a> in it.
     </p>
-    <p> Second paragraph</p>
+    <p> Second paragraph.</p><p>Last somewhat longer <b>para</b>graph.</p>
+    <img alt="Infrae" src="infrae.png" />
 </body>
 </html>"""
 
@@ -74,10 +74,8 @@ class IntroductionTestCase(TestCase):
             self.root.test.get_editable(), TestRequest(), max_length=20)
         self.assertXMLEqual("""<p>First paragraph of &#8230;</p>""", intro)
 
-def normalize(text):
-    return re.sub('\s+ ', ' ', text).strip()
 
-class FullTextTestCase(TestCase):
+class FullTextTestCase(unittest.TestCase):
     layer = FunctionalLayer
 
     def setUp(self):
@@ -88,20 +86,19 @@ class FullTextTestCase(TestCase):
     def test_text_fulltext(self):
         text = Text("test_fulltext", HTML_CHUNK)
         fulltext = text.fulltext(self.root.test.get_editable(), TestRequest())
-        text = """
-    Title
 
-        First paragraph of text, this is important
-        and there is a link in it.
-
-     Second paragraph
-"""
-        self.assertEquals(normalize(fulltext), normalize(text))
+        self.assertItemsEqual(
+            fulltext,
+            ['Title', 'First paragraph of text, this is', 'important',
+             'and there is a link', 'in it.', 'Second paragraph.',
+             'Last somewhat longer', 'para', 'graph.', 'Infrae'])
 
     def test_fulltext_unicode(self):
         text = Text("test_fulltext_unicode", u"<b>tête<b>")
         fulltext = text.fulltext(self.root.test.get_editable(), TestRequest())
-        self.assertEquals(u"tête", fulltext)
+        self.assertItemsEqual(
+            fulltext,
+            [u"tête"])
 
 
 def test_suite():
