@@ -194,9 +194,11 @@ class ICKEditorSettings(interface.Interface):
             CKEditorFormat(
                 u'Sub Heading', 'h3', []),
             CKEditorFormat(
-                u'Paragraph Heading', 'h4', []),
+                u'Sub Sub Heading', 'h4', []),
             CKEditorFormat(
-                u'Sub Paragraph Heading', 'h5', []),
+                u'Paragraph Heading', 'h5', []),
+            CKEditorFormat(
+                u'Sub Paragraph Heading', 'h6', []),
             CKEditorFormat(
                 u'Plain', 'p', [CKEditorHTMLAttribute('class', 'plain')]),
             CKEditorFormat(
