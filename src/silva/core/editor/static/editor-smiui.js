@@ -95,7 +95,7 @@
                         return infrae.ui.ConfirmationDialog({
                             title: 'Modifications',
                             message:'This document has been modified. ' +
-                                'If you continue you will looe these modifications. ' +
+                                'If you continue you will lose these modifications. ' +
                                 'Do you want to continue?',
                             buttons: {
                                 Save: function() {
