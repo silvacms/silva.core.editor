@@ -94,8 +94,8 @@
                     if (editor != null && editor.checkDirty()) {
                         return infrae.ui.ConfirmationDialog({
                             title: 'Modifications',
-                            message:'This document have been modified. ' +
-                                'If you continue you will loose thoses modifications. ' +
+                            message:'This document has been modified. ' +
+                                'If you continue you will looe these modifications. ' +
                                 'Do you want to continue?',
                             buttons: {
                                 Save: function() {
