@@ -62,8 +62,8 @@ class LinkTransformer(SilvaReferenceTransformationFilter):
                 del link.attrib['href']
             if 'data-silva-reference' in link.attrib:
                 self.update_reference_for(link.attrib)
-            if 'data-silva-href' in link.attrib:
-                link.attrib['href'] = link.attrib['data-silva-href']
+            elif 'data-silva-url' in link.attrib:
+                link.attrib['href'] = link.attrib['data-silva-url']
             if 'data-silva-anchor' in link.attrib:
                 link.attrib['anchor'] = link.attrib['data-silva-anchor']
             clean_editor_attributes(link)
@@ -103,8 +103,8 @@ class ImageLinkTransformer(SilvaReferenceTransformationFilter):
                 link = links[0]
                 if 'data-silva-reference' in link.attrib:
                     self.update_reference_for(link.attrib)
-                if 'data-silva-href' in link.attrib:
-                    link.attrib['href'] = link.attrib['data-silva-href']
+                elif 'data-silva-url' in link.attrib:
+                    link.attrib['href'] = link.attrib['data-silva-url']
                 if 'data-silva-anchor' in link.attrib:
                     link.attrib['anchor'] = link.attrib['data-silva-anchor']
                 clean_editor_attributes(link)

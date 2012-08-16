@@ -50,9 +50,9 @@ class InputTransformTestCase(TestCase):
             """
 <p>
    <a class="link"
-      href="http://somewhere.com"
+      href="javascript:void()"
       title="Silva"
-      data-silva-href="http://infrae.com/products/silva">
+      data-silva-url="http://infrae.com/products/silva">
       <i>To Silva</i></a>
 </p>
 """, ISaveEditorFilter)
@@ -77,8 +77,8 @@ class InputTransformTestCase(TestCase):
 <p>
    <a class="link"
       title="Silva"
-      href="http://infrae.com/products/silva"
-      data-silva-href="http://infrae.com/products/silva">
+      href="javascript:void()"
+      data-silva-url="http://infrae.com/products/silva">
       <i>To Silva</i></a>
 </p>
 """)

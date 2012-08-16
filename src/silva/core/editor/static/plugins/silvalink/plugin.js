@@ -39,11 +39,13 @@
         },
         getSelectedLink: function(editor) {
             try {
-                var selection = editor.getSelection();
+                var selection = editor.getSelection(),
+                    selected;
+
                 if (selection.getType() == CKEDITOR.SELECTION_ELEMENT) {
-                    var selectedElement = selection.getSelectedElement();
-                    if (CKEDITOR.plugins.silvalink.isLink(selectedElement)) {
-                        return selectedElement;
+                    selected = selection.getSelectedElement();
+                    if (CKEDITOR.plugins.silvalink.isLink(selected)) {
+                        return selected;
                     };
                 };
 
@@ -52,9 +54,9 @@
                     ranges.shrink(CKEDITOR.SHRINK_TEXT);
 
                     var base = ranges.getCommonAncestor();
-                    var selectedElement = base.getAscendant('a', true);
-                    if (CKEDITOR.plugins.silvalink.isLink(selectedElement)) {
-                        return selectedElement;
+                    selected = base.getAscendant('a', true);
+                    if (CKEDITOR.plugins.silvalink.isLink(selected)) {
+                        return selected;
                     };
                 };
                 return null;
@@ -63,8 +65,8 @@
             };
         },
         insertAndSelectTextIfNoneSelected: function(editor, text) {
-            var selection = editor.getSelection();
-            var ranges = selection.getRanges(true);
+            var selection = editor.getSelection(),
+                ranges = selection.getRanges(true);
 
             if (ranges.length == 1 && ranges[0].collapsed) {
                 var node = new CKEDITOR.dom.text(text);
@@ -176,14 +178,14 @@
                   },
                   validate: validatorDecorator(function() {
                       var dialog = this.getDialog();
-                      var type_value = dialog.getContentElement(
-                          'link', 'link_type').getValue();
+                      var type_value = dialog.getContentElement('link', 'link_type').getValue();
 
                       if (type_value == 'intern') {
-                          var checker = CKEDITOR.dialog.validate.notEmpty(
-                              'You need to select a content to link to !');
+                          var value = this.getValue();
 
-                          return checker.apply(this);
+                          if(!value || value == '0') {
+                              return  'You need to select a item to link to !';
+                          };
                       };
                       return true;
                   }),
@@ -450,17 +452,18 @@
                                 };
                             };
                             if (attributes['class'] == 'link') {
-                                if (!attributes['href']) {
-                                    attributes['href'] = 'javascript:void()';
-                                }
-                                if (!attributes['data-silva-href'] &&
+                                if (!attributes['data-silva-url'] &&
                                     !attributes['data-silva-reference']) {
                                     // Backup the href attribute into
-                                    // data-silva-href: href get removed in
+                                    // data-silva-url: href get removed in
                                     // case of copy and paste in some obscur cases.
-                                    attributes['data-silva-href'] =
-                                        attributes['href'] ||
-                                        attributes['data-cke-saved-href'];
+                                    attributes['data-silva-url'] =
+                                        attributes['data-cke-saved-href'] ||
+                                        attributes['href'];
+                                };
+                                if (!attributes['href']) {
+                                    // Ensure we have a disabled link;
+                                    attributes['href'] = 'javascript:void()';
                                 };
                             };
                             return null;

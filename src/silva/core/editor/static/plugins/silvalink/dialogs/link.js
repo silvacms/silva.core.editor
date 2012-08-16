@@ -31,7 +31,7 @@ CKEDITOR.dialog.add('silvalink', function(editor) {
                     data.link.type = 'intern';
                     data.link.content = link.getAttribute('data-silva-target');
                 } else {
-                    var href = link.getAttribute('data-silva-href');
+                    var href = link.getAttribute('data-silva-url');
 
                     if (!href || href == 'javascript:void()') {
                         data.link.type = 'anchor';
@@ -75,19 +75,19 @@ CKEDITOR.dialog.add('silvalink', function(editor) {
                 attributes['data-silva-target'] = data.link.content;
                 if (element == null || !element.hasAttribute('data-silva-reference')) {
                     attributes['data-silva-reference'] = 'new';
-                }
-                attributes_to_clean.push('data-silva-href');
+                };
+                attributes_to_clean.push('data-silva-url');
                 break;
             case 'extern':
-                // We save the value into data-silva-href. We set the href
+                // We save the value into data-silva-url. We set the href
                 // attribute to get the link underlined.
-                attributes['href'] = data.link.url;
-                attributes['data-silva-href'] = data.link.url;
+                attributes['href'] = 'javascript:void()';
+                attributes['data-silva-url'] = data.link.url;
                 attributes_to_clean.push('data-silva-reference');
                 attributes_to_clean.push('data-silva-target');
                 break;
             case 'anchor':
-                attributes_to_clean.push('data-silva-href');
+                attributes_to_clean.push('data-silva-url');
                 attributes_to_clean.push('data-silva-reference');
                 attributes_to_clean.push('data-silva-target');
                 break;
