@@ -32,6 +32,7 @@ class LinkTransformer(ReferenceTransformationFilter):
                 link.attrib['href'] = ''
             if 'anchor' in link.attrib:
                 link.attrib['href'] += '#' + link.attrib['anchor']
+                del link.attrib['anchor']
 
 
 class ImageTransformationFilter(ReferenceTransformationFilter):
@@ -87,6 +88,7 @@ class ImageLinkTransformationFilter(ReferenceTransformationFilter):
                     link.attrib['href'] = ''
                 if 'anchor' in link.attrib:
                     link.attrib['href'] += '#' + link.attrib['anchor']
+                    del link.attrib['anchor']
 
 
 

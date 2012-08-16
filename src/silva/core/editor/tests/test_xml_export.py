@@ -8,15 +8,16 @@ import lxml
 
 from zope.component import getUtility
 
-from silva.core.editor.transform.silvaxml import xmlexport
-from silva.core.references.interfaces import IReferenceService
-from silva.core.references.reference import get_content_id
-from silva.core.editor.transform.silvaxml import NS_HTML_URI
-
-from Products.Silva.tests.helpers import open_test_file
-from Products.Silva.testing import FunctionalLayer, TestRequest
+from Products.Silva.testing import TestRequest
 from Products.Silva.silvaxml.xmlexport import SilvaExportRoot
 from Products.Silva.silvaxml.xmlexport import ExportSettings, ExportContext
+
+from silva.core.references.interfaces import IReferenceService
+from silva.core.references.reference import get_content_id
+
+from ..transform.silvaxml import NS_HTML_URI
+from ..transform.silvaxml import xmlexport
+from ..testing import FunctionalLayer
 
 
 class TestExport(unittest.TestCase):
@@ -49,8 +50,8 @@ class TestExport(unittest.TestCase):
         factory = self.root.folder.manage_addProduct['Silva']
         factory.manage_addMockupVersionedContent('other', 'Other')
 
-        with open_test_file('content-listing.png', globals()) as image_file:
-            factory.manage_addImage('image', 'Image', image_file)
+        with self.layer.open_fixture('content-listing.png') as image:
+            factory.manage_addImage('image', 'Image', image)
 
         reference_service = getUtility(IReferenceService)
         reference = reference_service.get_reference(

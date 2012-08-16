@@ -239,22 +239,48 @@ class IText(IAttributeAnnotatable):
     """Editor rich text.
     """
 
+    def get_transformer(context, request, type=None):
+        """Return an instance of a ``ITransformer`` that can be used
+        to manipulate the text. ``type`` is the filter to use for the
+        transformer, default to ``IDisplayFilter``.
+        """
+
     def render(context, request, type=None):
-        """Transform the text to the given type and return it. Context
-        must be the content or version on which the text is set.
+        """Transform the stored text to the given type and return
+        it. Context must be the content or version on which the text
+        is set. ``type`` is the filter to use for the transformer,
+        default to ``IDisplayFilter``.
+        """
+
+    def introduction(context, request, max_length=300, type=None):
+        """Transform the stored text and return only the introduction:
+        the ``max_length`` first characters of the first paragraph.
+        """
+
+    def fulltext(context, request, type=None):
+        """Return the text fulltext as a list of strings.
         """
 
     def save(context, request, text, type=None):
-        """Tranform the input `text` to the given type and save it. Context
-        must be the content or version on which the text is set.
+        """Tranform the input ``text`` to the given type and save
+        it. Context must be the content or version on which the text
+        is set. ``type`` is the filter to use to save the text,
+        default to ``ISaveEditorFilter``.
+        """
+
+    def truncate(context, request, type=None):
+        """Transform and set text to an empty string. ``type`` is the
+        filter to use to truncate the text, default to
+        ``ISaveEditorFilter``.
         """
 
     def save_raw_text(text):
-        """Set the raw text as current text without any transformation.
+        """Set the raw text as current text without any
+        transformation.
         """
 
-    def __unicode__(self):
-        """Return stored text.
+    def __unicode__():
+        """Return stored text without any transformation.
         """
 
 

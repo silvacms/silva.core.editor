@@ -3,24 +3,23 @@
 # See also LICENSE.txt
 # $Id$
 
-
 import unittest
 
-from Products.Silva.testing import TestCase, TestRequest
+from Products.Silva.testing import TestRequest, tests
 
+from five import grok
 from zope.interface.verify import verifyObject
 from zope.component import getMultiAdapter
 
-from silva.core.editor.testing import FunctionalLayer
-from silva.core.editor.text import Text
-from silva.core.editor.transform.interfaces import IInputEditorFilter
-from silva.core.editor.transform.interfaces import ISaveEditorFilter
-from silva.core.editor.transform.interfaces import ITransformer
-from silva.core.editor.transform.interfaces import ITransformerFactory
-from silva.core.editor.interfaces import ITextIndexEntries
+from ..interfaces import ITextIndexEntries
+from ..testing import FunctionalLayer
+from ..text import Text
+from ..transform.interfaces import IInputEditorFilter, ISaveEditorFilter
+from ..transform.interfaces import ITransformer, ITransformerFactory
+from ..transform.interfaces import ITransformationFilter
 
 
-class InputTransformTestCase(TestCase):
+class InputTransformTestCase(unittest.TestCase):
     layer = FunctionalLayer
 
     def setUp(self):
@@ -34,6 +33,28 @@ class InputTransformTestCase(TestCase):
 
         version = self.root.document.get_editable()
         version.test = Text('test')
+
+    def test_input_editor_filters(self):
+        """Test that there are default input editor filters, and they
+        implement the proper API.
+        """
+        version = self.root.document.get_editable()
+        transformers = grok.queryOrderedMultiSubscriptions(
+            (version, TestRequest()), IInputEditorFilter)
+        self.assertNotEqual(len(transformers), 0)
+        for transformer in transformers:
+            self.assertTrue(verifyObject(ITransformationFilter, transformer))
+
+    def test_save_editor_filters(self):
+        """Test that there are default input editor filters, and they
+        implement the proper API.
+        """
+        version = self.root.document.get_editable()
+        transformers = grok.queryOrderedMultiSubscriptions(
+            (version, TestRequest()), ISaveEditorFilter)
+        self.assertNotEqual(len(transformers), 0)
+        for transformer in transformers:
+            self.assertTrue(verifyObject(ITransformationFilter, transformer))
 
     def transform(self, text, filter):
         """Helper to call transform.
@@ -52,14 +73,14 @@ class InputTransformTestCase(TestCase):
         intern_format = self.transform(
             "<p>Simple text<i>Italic</i></p>",
             ISaveEditorFilter)
-        self.assertXMLEqual(
+        tests.assertXMLEqual(
             intern_format,
             "<p>Simple text<i>Italic</i></p>")
 
         extern_format = self.transform(
             intern_format,
             IInputEditorFilter)
-        self.assertXMLEqual(
+        tests.assertXMLEqual(
             extern_format,
             "<p>Simple text<i>Italic</i></p>")
 
@@ -69,14 +90,14 @@ class InputTransformTestCase(TestCase):
         intern_format = self.transform(
             "<div><p>Simple text</p><p>Other text</p></div>",
             ISaveEditorFilter)
-        self.assertXMLEqual(
+        tests.assertXMLEqual(
             intern_format,
             "<div><p>Simple text</p><p>Other text</p></div>")
 
         extern_format = self.transform(
             intern_format,
             IInputEditorFilter)
-        self.assertXMLEqual(
+        tests.assertXMLEqual(
             extern_format,
             "<div><p>Simple text</p><p>Other text</p></div>")
 
@@ -86,14 +107,14 @@ class InputTransformTestCase(TestCase):
         intern_format = self.transform(
             "<div><p>Simple text</p><p>Other text</p></div><p>Last</p>",
             ISaveEditorFilter)
-        self.assertXMLEqual(
+        tests.assertXMLEqual(
             intern_format,
             "<div><p>Simple text</p><p>Other text</p></div><p>Last</p>")
 
         extern_format = self.transform(
             intern_format,
             IInputEditorFilter)
-        self.assertXMLEqual(
+        tests.assertXMLEqual(
             extern_format,
             "<div><p>Simple text</p><p>Other text</p></div><p>Last</p>")
 
@@ -116,7 +137,7 @@ class InputTransformTestCase(TestCase):
 </p>
 """,
             ISaveEditorFilter)
-        self.assertXMLEqual(
+        tests.assertXMLEqual(
             intern_format,
 """
 <p>
@@ -137,7 +158,7 @@ class InputTransformTestCase(TestCase):
         extern_format = self.transform(
             intern_format,
             IInputEditorFilter)
-        self.assertXMLEqual(
+        tests.assertXMLEqual(
             extern_format,
             """
 <p>
@@ -167,7 +188,7 @@ class InputTransformTestCase(TestCase):
 </p>
 """,
             ISaveEditorFilter)
-        self.assertXMLEqual(
+        tests.assertXMLEqual(
             intern_format,
 """
 <p>
@@ -184,7 +205,7 @@ class InputTransformTestCase(TestCase):
         extern_format = self.transform(
             intern_format,
             IInputEditorFilter)
-        self.assertXMLEqual(
+        tests.assertXMLEqual(
             extern_format,
             """
 <p>

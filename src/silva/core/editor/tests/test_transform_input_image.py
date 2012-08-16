@@ -7,18 +7,17 @@ import unittest
 
 from Acquisition import aq_chain
 from Products.Silva.testing import TestCase
-from Products.Silva.tests.helpers import open_test_file
-
-from zope.component import getMultiAdapter, getUtility
 from Products.Silva.testing import TestRequest
 
-from silva.core.editor.testing import FunctionalLayer
-from silva.core.editor.text import Text
-from silva.core.editor.transform.interfaces import IInputEditorFilter
-from silva.core.editor.transform.interfaces import ISaveEditorFilter
-from silva.core.editor.transform.interfaces import ITransformerFactory
+from zope.component import getMultiAdapter, getUtility
+
 from silva.core.references.reference import get_content_id
 from silva.core.references.interfaces import IReferenceService
+
+from ..testing import FunctionalLayer
+from ..text import Text
+from ..transform.interfaces import IInputEditorFilter, ISaveEditorFilter
+from ..transform.interfaces import ITransformerFactory
 
 
 class InputTransformTestCase(TestCase):
@@ -32,12 +31,10 @@ class InputTransformTestCase(TestCase):
         factory.manage_addMockupVersionedContent('document', 'Document')
         factory.manage_addMockupVersionedContent('target', 'Document Target')
 
-        with open_test_file('chocobo.png', globals()) as image:
-            factory.manage_addImage(
-                'chocobo', 'Chocobo', image)
+        with self.layer.open_fixture('chocobo.png') as image:
+            factory.manage_addImage('chocobo', 'Chocobo', image)
             image.seek(0)
-            factory.manage_addImage(
-                'ultimate_chocobo', 'Ultimate Chocobo', image)
+            factory.manage_addImage('ultimate_chocobo', 'Ultimate Chocobo', image)
 
         version = self.root.document.get_editable()
         version.test = Text('test')
@@ -232,7 +229,9 @@ class InputTransformTestCase(TestCase):
         reference.set_target(self.root.ultimate_chocobo)
         reference.add_tag(u"original-image-id")
         # So we have a reference, the one we will edit
-        self.assertEqual(list(service.get_references_from(version)), [reference])
+        self.assertEqual(
+            list(service.get_references_from(version)),
+            [reference])
         intern_format = self.transform(
             """
 <p>
@@ -269,7 +268,9 @@ class InputTransformTestCase(TestCase):
         target_id = get_content_id(self.root.chocobo)
         ultimate_target_id = get_content_id(self.root.ultimate_chocobo)
         # So we have a reference, the one we will edit
-        self.assertEqual(list(service.get_references_from(version)), [reference])
+        self.assertEqual(
+            list(service.get_references_from(version)),
+            [reference])
 
         intern_format = self.transform(
             """

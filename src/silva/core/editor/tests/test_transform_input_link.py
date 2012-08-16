@@ -10,13 +10,13 @@ from Products.Silva.testing import TestCase, TestRequest
 
 from zope.component import getMultiAdapter, getUtility
 
-from silva.core.editor.testing import FunctionalLayer
-from silva.core.editor.text import Text
-from silva.core.editor.transform.interfaces import IInputEditorFilter
-from silva.core.editor.transform.interfaces import ISaveEditorFilter
-from silva.core.editor.transform.interfaces import ITransformerFactory
 from silva.core.references.reference import get_content_id
 from silva.core.references.interfaces import IReferenceService
+
+from ..testing import FunctionalLayer
+from ..text import Text
+from ..transform.interfaces import IInputEditorFilter, ISaveEditorFilter
+from ..transform.interfaces import ITransformerFactory
 
 
 class InputTransformTestCase(TestCase):
@@ -90,7 +90,7 @@ class InputTransformTestCase(TestCase):
             """
 <p>
    <a class="link"
-      href="#foo"
+      href="javascript:void()"
       target="_blank"
       data-silva-anchor="bar">
       <b>To the nearest local bar</b></a>
@@ -136,7 +136,7 @@ class InputTransformTestCase(TestCase):
             """
 <p>
    <a class="link"
-      href="http://somewhere.com"
+      href="javascript:void()"
       data-silva-reference="new"
       data-silva-target="%s">To Target</a>
 </p>
@@ -181,7 +181,7 @@ class InputTransformTestCase(TestCase):
 </p>
 """ % (reference_name, target_id))
 
-    def test_edit_reference_link(self):
+    def test_edit_reference_link_with_anchor(self):
         """On input, a existing link sees its reference updated.
         """
         version = self.root.document.get_editable()
@@ -301,7 +301,7 @@ class InputTransformTestCase(TestCase):
       data-silva-anchor="world"
       data-silva-target="%s">Access the world</a>
    <a class="link"
-      href="http://somewhere.com"
+      href="javascript:void()"
       data-silva-reference="original-link-id"
       data-silva-target="%s">Other part of the world</a>
 </p>
@@ -342,6 +342,7 @@ class InputTransformTestCase(TestCase):
       href="javascript:void()">Other part of the world</a>
 </p>
 """ % (target_id, reference_name, target_id))
+
 
 
 def test_suite():

@@ -5,13 +5,13 @@
 
 import unittest
 
-from five import grok
-
-from silva.core.editor.text import Text
-from silva.core.editor.transform.interfaces import IDisplayFilter
-
-from silva.core.editor.testing import FunctionalLayer
+from zope.interface.verify import verifyObject
 from Products.Silva.testing import TestCase, TestRequest
+
+from ..interfaces import IText
+from ..text import Text
+from ..testing import FunctionalLayer
+
 
 HTML_CHUNK = """
 <html>
@@ -33,16 +33,10 @@ class TextTestCase(unittest.TestCase):
 
     def setUp(self):
         self.root = self.layer.get_application()
-        self.layer.login('author')
 
-        factory = self.root.manage_addProduct['Silva']
-        factory.manage_addMockupVersionedContent('document', 'Document')
-
-    def test_display(self):
-        version = self.root.document.get_editable()
-        transformers = grok.queryOrderedMultiSubscriptions(
-            (version, TestRequest()), IDisplayFilter)
-        self.assertNotEqual(len(transformers), 0)
+    def test_text(self):
+        text = Text('test_text', '')
+        self.assertTrue(verifyObject(IText, text))
 
 
 class IntroductionTestCase(TestCase):
@@ -55,7 +49,7 @@ class IntroductionTestCase(TestCase):
 
     def test_text_introduction(self):
         text = Text("test_intro", HTML_CHUNK)
-        intro = text.render_introduction(
+        intro = text.introduction(
             self.root.test.get_editable(), TestRequest())
         self.assertXMLEqual("""<p>
         First paragraph of text, this is <strong>important</strong>
@@ -64,13 +58,13 @@ class IntroductionTestCase(TestCase):
 
     def test_text_introduction_truncate(self):
         text = Text("test_intro", HTML_CHUNK)
-        intro = text.render_introduction(
+        intro = text.introduction(
             self.root.test.get_editable(), TestRequest(), max_length=50)
         self.assertXMLEqual("""<p>
         First paragraph of text, this is <strong>important</strong>
         <a href="http://infrae.com">and th&#8230;</a></p>""", intro)
 
-        intro = text.render_introduction(
+        intro = text.introduction(
             self.root.test.get_editable(), TestRequest(), max_length=20)
         self.assertXMLEqual("""<p>First paragraph of &#8230;</p>""", intro)
 
