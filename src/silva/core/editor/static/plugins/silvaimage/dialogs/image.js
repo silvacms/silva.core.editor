@@ -54,8 +54,7 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
                 },
                 validate: function() {
                     var dialog = this.getDialog();
-                    var type_value = dialog.getContentElement(
-                        'image', 'image_type').getValue();
+                    var type_value = dialog.getContentElement('image', 'image_type').getValue();
 
                     if (type_value == 'extern') {
                         var checker = CKEDITOR.dialog.validate.regex(
@@ -97,10 +96,11 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
                     var type = dialog.getContentElement('image', 'image_type').getValue();
 
                     if (type == 'intern') {
-                        var checker = CKEDITOR.dialog.validate.notEmpty(
-                            'You need to select an image to insert !');
+                        var value = this.getValue();
 
-                        return checker.apply(this);
+                        if (!value || value == '0') {
+                            return 'You need to select an image to insert !';
+                        };
                     };
                     return true;
                 },
