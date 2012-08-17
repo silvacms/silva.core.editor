@@ -1,7 +1,6 @@
 # -*- coding: utf-8 -*-
-# Copyright (c) 2011 Infrae. All rights reserved.
+# Copyright (c) 2011-2012 Infrae. All rights reserved.
 # See also LICENSE.txt
-# $Id$
 
 NS_EDITOR_URI = 'http://infrae.com/namespace/silva-core-editor'
 NS_HTML_URI = 'http://www.w3.org/1999/xhtml'
