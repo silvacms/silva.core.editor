@@ -170,7 +170,8 @@ class DisplayTransformTestCase(unittest.TestCase):
   This simple piece of text contains a magic chocobo:
 </p>
 <div class="image">
-  <img alt="Chocobo" src="http://localhost/root/chocobo" />
+  <img alt="Chocobo" height="256" width="256"
+       src="http://localhost/root/chocobo" />
 </div>""")
 
     def test_render_image_with_internal_link_and_anchor(self):
@@ -208,7 +209,8 @@ class DisplayTransformTestCase(unittest.TestCase):
 </p>
 <div class="image">
   <a class="image-link" href="http://localhost/root/other#top">
-    <img alt="Chocobo" src="http://localhost/root/chocobo" />
+    <img alt="Chocobo" height="256" width="256"
+         src="http://localhost/root/chocobo" />
   </a>
 </div>""")
 

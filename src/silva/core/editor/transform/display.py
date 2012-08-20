@@ -57,6 +57,10 @@ class ImageTransformationFilter(ReferenceTransformationFilter):
                         if 'resolution' in image.attrib:
                             image_url += '?' + image.attrib['resolution']
                             del image.attrib['resolution']
+                        size = content.get_dimensions()
+                        if size.height and size.width:
+                            image.attrib['height'] = str(size.height)
+                            image.attrib['width'] = str(size.width)
                     image.attrib['src'] = image_url
                 del image.attrib['reference']
 
