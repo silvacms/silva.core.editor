@@ -204,6 +204,8 @@ class ICKEditorSettings(interface.Interface):
                 u'Lead', 'p', [CKEditorHTMLAttribute('class', 'lead')]),
             CKEditorFormat(
                 u'Annotation', 'p', [CKEditorHTMLAttribute('class', 'annotation')]),
+            CKEditorFormat(
+                u'Preformatted', 'pre', []),
             ],
         required=True)
     contents_css = schema.TextLine(
