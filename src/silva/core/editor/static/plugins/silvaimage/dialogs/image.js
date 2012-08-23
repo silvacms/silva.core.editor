@@ -295,7 +295,7 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
                         data.image.content = img.$.getAttribute('data-silva-target');
                     } else {
                         data.image.type = 'extern';
-                        data.image.url = img.$.getAttribute('data-silva-src');
+                        data.image.url = img.$.getAttribute('data-silva-url');
                     };
                     if (img.hasNext()) {
                         var caption = img.getNext();
@@ -514,11 +514,13 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
             if (data.image.type == 'intern') {
                 img_attributes['data-silva-reference'] = 'new';
                 img_attributes['data-silva-target'] = data.image.content;
-                img_attributes_to_clean.push('data-silva-src');
+                img_attributes['data-silva-backup'] = data.image.url;
+                img_attributes_to_clean.push('data-silva-url');
             } else {
-                img_attributes['data-silva-src'] = data.image.url;
+                img_attributes['data-silva-url'] = data.image.url;
                 img_attributes_to_clean.push('data-silva-reference');
                 img_attributes_to_clean.push('data-silva-target');
+                img_attributes_to_clean.push('data-silva-backup');
             };
             img.setAttributes(img_attributes);
             if (img_attributes_to_clean.length) {

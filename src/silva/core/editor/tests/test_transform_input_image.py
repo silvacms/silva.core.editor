@@ -56,7 +56,7 @@ class InputTransformTestCase(TestCase):
   <p>Some description about the world</p>
   <div class="image">
     <img src="http://infrae.com/image.jpg"
-         data-silva-src="http://infrae.com/image.jpg"></img>
+         data-silva-url="http://infrae.com/image.jpg"></img>
   </div>
 </div>
 """, ISaveEditorFilter)
@@ -83,7 +83,7 @@ class InputTransformTestCase(TestCase):
   <p>Some description about the world</p>
   <div class="image">
     <img src="http://infrae.com/image.jpg"
-         data-silva-src="http://infrae.com/image.jpg" />
+         data-silva-url="http://infrae.com/image.jpg" />
   </div>
 </div>
 """)

@@ -210,13 +210,25 @@
                                 remove(attributes, 'height');
                                 remove(attributes, 'width');
                                 // Save the src tag
-                                if (!attributes['data-silva-src'] &&
+                                if (!attributes['data-silva-url'] &&
                                     !attributes['data-silva-reference']) {
-                                    attributes['data-silva-src'] =
-                                        attributes['src'] ||
-                                        attributes['data-cke-saved-src'];
+                                    attributes['data-silva-url'] =
+                                        attributes['data-cke-saved-src'] ||
+                                        attributes['src'];
                                 };
                                 return div;
+                            } else {
+                                if (!attributes['src']){
+                                    var src = attributes['data-silva-url'] || attributes['data-silva-backup'];
+                                    if (src) {
+                                        attributes['src'] = src;
+                                        attributes['data-cke-saved-src'] = src;
+                                    };
+                                } else if (attributes['data-silva-reference']) {
+                                    // Backup URL is used by reference to keep URL between
+                                    // source and edit mode.
+                                    attributes['data-silva-backup'] = attributes['src'];
+                                };
                             };
                             return null;
                         }
@@ -246,6 +258,7 @@
                         img: function(element) {
                             var attributes = element.attributes;
 
+                            remove(attributes, 'data-cke-saved-src');
                             remove(attributes, 'src');
                             return null;
                         }

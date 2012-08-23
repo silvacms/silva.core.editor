@@ -79,12 +79,12 @@ class ImageTransformer(SilvaReferenceTransformationFilter):
             images = block.xpath('descendant::img')
             assert len(images) == 1, u"Invalid image construction"
             image = images[0]
-            if 'data-silva-reference' in image.attrib:
-                self.update_reference_for(image.attrib)
             if 'src' in image.attrib:
                 del image.attrib['src']
-            if 'data-silva-src' in image.attrib:
-                image.attrib['src'] = image.attrib['data-silva-src']
+            if 'data-silva-reference' in image.attrib:
+                self.update_reference_for(image.attrib)
+            if 'data-silva-url' in image.attrib:
+                image.attrib['src'] = image.attrib['data-silva-url']
             clean_editor_attributes(image)
 
 
