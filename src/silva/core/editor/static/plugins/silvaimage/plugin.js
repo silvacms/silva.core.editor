@@ -83,25 +83,25 @@
                     'padding-left: 5px' +
                     '}');
             editor.addCss(
-                'div.image-float-left {' +
+                'div.image.float-left {' +
                     'float: left;' +
                     '}');
             editor.addCss(
-                'div.image-float-right {' +
+                'div.image.float-right {' +
                     'float: right;' +
                     '}');
             editor.addCss(
-                'div.image-left {' +
+                'div.image.align-left {' +
                     'text-align: left;' +
                     'display: block;' +
                     '}');
             editor.addCss(
-                'div.image-right {' +
+                'div.image.align-right {' +
                     'text-align: right;' +
                     'display: block;' +
                     '}');
             editor.addCss(
-                'div.image-center {' +
+                'div.image.align-center {' +
                     'text-align: center;' +
                     'display: block;' +
                     '}');

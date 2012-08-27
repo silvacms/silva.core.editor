@@ -114,11 +114,11 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
                 required: true,
                 items: [
                     ['default', 'default'],
-                    ['align left', 'image-left'],
-                    ['align center', 'image-center'],
-                    ['align right', 'image-right'],
-                    ['float left', 'image-float-left'],
-                    ['float right', 'image-float-right']
+                    ['align left', 'align-left'],
+                    ['align center', 'align-center'],
+                    ['align right', 'align-right'],
+                    ['float left', 'float-left'],
+                    ['float right', 'float-right']
                 ],
                 setup: function(data) {
                     this.setValue(data.image.align);
