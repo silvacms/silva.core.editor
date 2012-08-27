@@ -174,7 +174,7 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
                     }
                 },
                 setup: function(data) {
-                    var value = data.image.alt == data.image.caption;
+                    var value = data.image.caption && data.image.alt == data.image.caption;
                     this.setValue(value);
                 }
                 // Commit is done in caption field
@@ -210,8 +210,7 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
                         data.link.type = 'intern';
                         data.link.content = image.getValue();
                     } else {
-                        var custom = dialog.getContentElement(
-                            'link', 'link_custom');
+                        var custom = dialog.getContentElement('link', 'link_custom');
 
                         if (!custom.getValue()) {
                             // None of the two check box are checked.
