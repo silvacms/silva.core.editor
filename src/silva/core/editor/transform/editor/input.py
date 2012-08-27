@@ -85,8 +85,11 @@ class ImageLinkTransformer(ReferenceTransformationFilter):
                         link.attrib['data-silva-target'] = str(
                             reference.target_id)
                         del link.attrib['reference']
-                if 'href' in link.attrib:
+                elif 'href' in link.attrib:
                     link.attrib['data-silva-url'] = link.attrib['href']
+                if 'query' in link.attrib:
+                    link.attrib['data-silva-query'] = link.attrib['query']
+                    del link.attrib['query']
                 if 'anchor' in link.attrib:
                     link.attrib['data-silva-anchor'] = link.attrib['anchor']
                     del link.attrib['anchor']

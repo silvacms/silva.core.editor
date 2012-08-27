@@ -106,6 +106,8 @@ class ImageLinkTransformer(SilvaReferenceTransformationFilter):
                     link.attrib['href'] = link.attrib['data-silva-url']
                 if 'data-silva-anchor' in link.attrib:
                     link.attrib['anchor'] = link.attrib['data-silva-anchor']
+                if 'data-silva-query' in link.attrib:
+                    link.attrib['query'] = link.attrib['data-silva-query']
                 clean_editor_attributes(link)
 
 

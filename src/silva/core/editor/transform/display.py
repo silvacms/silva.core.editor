@@ -27,8 +27,11 @@ class LinkTransformer(ReferenceTransformationFilter):
                     link.attrib['href'] = absoluteURL(
                         reference.target, self.request)
                 del link.attrib['reference']
-            if 'href' not in link.attrib:
+            elif 'href' not in link.attrib:
                 link.attrib['href'] = ''
+            if 'query' in link.attrib:
+                link.attrib['href'] += '?' + link.attrib['query']
+                del link.attrib['query']
             if 'anchor' in link.attrib:
                 link.attrib['href'] += '#' + link.attrib['anchor']
                 del link.attrib['anchor']
@@ -89,6 +92,9 @@ class ImageLinkTransformationFilter(ReferenceTransformationFilter):
                     del link.attrib['reference']
                 if 'href' not in link.attrib:
                     link.attrib['href'] = ''
+                if 'query' in link.attrib:
+                    link.attrib['href'] += '?' + link.attrib['query']
+                    del link.attrib['query']
                 if 'anchor' in link.attrib:
                     link.attrib['href'] += '#' + link.attrib['anchor']
                     del link.attrib['anchor']

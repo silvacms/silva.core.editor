@@ -22,10 +22,8 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
                 onChange: function() {
                     var value = this.getValue();
                     var dialog = this.getDialog();
-                    var url_input = dialog.getContentElement(
-                        'image', 'image_url').getElement();
-                    var reference_input = dialog.getContentElement(
-                        'image', 'image_content').getElement();
+                    var url_input = dialog.getContentElement('image', 'image_url').getElement();
+                    var reference_input = dialog.getContentElement('image', 'image_content').getElement();
 
                     switch (value) {
                     case 'intern':
@@ -204,11 +202,12 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
                     var dialog = this.getDialog();
 
                     if (this.getValue()) {
-                        var image = dialog.getContentElement(
-                            'image', 'image_content');
+                        var image = dialog.getContentElement('image', 'image_content');
 
                         data.link.type = 'intern';
                         data.link.content = image.getValue();
+                        data.link.query = 'hires';
+                        data.link.hires = true;
                     } else {
                         var custom = dialog.getContentElement('link', 'link_custom');
 
@@ -218,12 +217,14 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
                             // link fields to be used.
                             data.link.type = null;
                         };
+                        data.link.query = null;
+                        data.link.hires = false;
                     };
                 }
             }, {
                 type: 'checkbox',
                 id: 'link_custom',
-                label: 'Link to an another content',
+                label: 'Link to an another item',
                 required: false,
                 onChange: function() {
                     var value = this.getValue();
@@ -239,7 +240,7 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
                     };
                 },
                 setup: function(data) {
-                    if (data.link.type != null) {
+                    if (data.link.type != null && !data.link.hires) {
                         this.setValue(true);
                     } else {
                         this.setValue(false);
@@ -285,7 +286,23 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
                 defaultSettings();
             };
 
+            var parseCaption = function(caption) {
+                // Search for caption in the given node.
+                while(caption.is('br') && caption.hasNext())
+                    caption = caption.getNext();
+
+                if (!caption.is('br')) {
+                    if (caption.is('span') &&
+                        caption.hasClass('image-caption')) {
+                        data.image.caption = caption.getText();
+                    } else {
+                        parseError("Invalid image caption", caption);
+                    };
+                };
+            };
+
             var parseImage = function(img) {
+                // Search for image in the given node.
                 if (img.is('img')) {
                     data.image.alt = img.$.getAttribute('alt');
                     data.image.url = img.$.getAttribute('src');
@@ -297,19 +314,8 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
                         data.image.url = img.$.getAttribute('data-silva-url');
                     };
                     if (img.hasNext()) {
-                        var caption = img.getNext();
-
-                        while(caption.is('br') && caption.hasNext())
-                            caption = caption.getNext();
-
-                        if (!caption.is('br')) {
-                            if (caption.is('span') &&
-                                caption.hasClass('image-caption')) {
-                                data.image.caption = caption.getText();
-                            } else {
-                                parseError("Invalid image caption", caption);
-                            };
-                        };
+                        // There might be a caption.
+                        parseCaption(img.getNext());
                     };
                 } else {
                     parseError("Invalid image tag", img);
@@ -328,9 +334,11 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
                     var a = div.getChild(0);
 
                     if (a.is('a')) {
+                        // Image have a link.
                         data.link.title = a.getAttribute('title');
                         data.link.target = a.getAttribute('target');
                         data.link.anchor = a.getAttribute('data-silva-anchor');
+                        data.link.query = a.getAttribute('data-silva-query');
                         if (a.$.hasAttribute('data-silva-reference')) {
                             data.link.type = 'intern';
                             data.link.content = a.getAttribute('data-silva-target');
@@ -344,11 +352,20 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
                                 data.link.url = href;
                             };
                         };
-
                         if (a.getChildCount()) {
+                            // Image lives inside the link.
                             parseImage(a.getChild(0));
                         };
+                        if (a.getNext()) {
+                            // Caption might be outside the link.
+                            parseCaption(a.getNext());
+                        };
+                        // Set hires flag if the image point to the same link.
+                        data.link.hires = (data.link.type == 'intern' &&
+                                           data.link.content == data.image.content &&
+                                           data.link.query == 'hires');
                     } else {
+                        // Image without link.
                         parseImage(a);
                     };
                 } else {
@@ -365,18 +382,23 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
             data.image = {};
             this.commitContent(data);
 
-            var div = CKEDITOR.plugins.silvaimage.getSelectedImage(editor);
-            var div_attributes = {};
+            var div = CKEDITOR.plugins.silvaimage.getSelectedImage(editor),
+                div_attributes = {};
+
             var a = null;
-            var img = null;
-            var img_attributes = {src: data.image.url};
-            var img_attributes_to_clean = [];
-            var caption = null;
+            var img = null,
+                img_attributes = {src: data.image.url},
+                img_attributes_to_clean = [];
+
+            var caption = null,
+                caption_attributes = {};
+
+            var start, node, candidate;
 
             // Div tag: image container
             div_attributes['class'] = 'image ' + data.image.align;
             if (div == null) {
-                // We basically don't edit an image. Create a new div and select it.
+                // We are adding a new image. Create a new div and select it.
                 var selection = editor.getSelection();
                 var ranges = selection.getRanges(true);
 
@@ -386,59 +408,62 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
                 ranges[0].insertNode(div);
                 selection.selectElement(div);
             } else {
-                var start = 0;
+                // Edit an image. Inspect div content.
+                start = 0,
+                node = null;
 
                 if (div.getChildCount()) {
-                    a = div.getChild(0);
-                    if (a.is('a')) {
+                    node = div.getChild(0);
+                    // We might have an link or an image.
+                    if (node.is('a')) {
+                        a = node;
                         start += 1;
-                    } else {
-                        if (a.is('img')) {
-                            img = a;
+                    };
+                    if (node.is('img')) {
+                        img = node;
+                        start += 1;
+                    };
+                    // After a caption.
+                    if (node.hasNext()) {
+                        candidate = node.getNext();
+                        if (candidate.is('span') && candidate.hasClass('image-caption')) {
+                            caption = candidate;
                             start += 1;
-                            if (a.hasNext()) {
-                                caption = a.getNext();
-                                if (caption.is('span') &&
-                                    caption.hasClass('image-caption')) {
-                                    start += 1;
-                                } else {
-                                    caption = null;
-                                };
-                            };
                         };
-                        a = null;
                     };
                 };
-                // Ok, we have what we went, clean all other nodes.
+                // Ok, we have what we want, clean all other nodes.
                 for (; start < div.getChildCount();) {
                     div.getChild(start).remove();
                 };
             };
-            div.setAttributes(div_attributes);
-            // Link tag
             if (a != null && a.getChildCount()) {
-                var start = 0;
+                // Edit an image link. Inspect link content.
+                start = 0;
 
-                img = a.getChild(0);
-                if (img.is('img')) {
+                node = a.getChild(0);
+                if (node.is('img')) {
+                    img = node;
                     start += 1;
-                    if (img.hasNext()) {
-                        caption = img.getNext();
-                        if (caption.is('span') &&
-                            caption.hasClass('image-caption')) {
-                            start += 1;
-                        } else {
-                            caption = null;
-                        };
-                    }
-                } else {
-                    img = null;
-                }
-                // Clean all following tags, they are faulty.
+                };
+                // After there might be a caption (if we don't already have one).
+                if (caption == null && node.hasNext()) {
+                    candidate = node.getNext();
+                    if (candidate.is('span') && candidate.hasClass('image-caption')) {
+                        caption = candidate;
+                        start += 1;
+                    };
+                };
+                // Ok, we have what we want, clean all other nodes.
                 for (; start < a.getChildCount();) {
                     a.getChild(start).remove();
                 };
             };
+
+            // Update div tag
+            div.setAttributes(div_attributes);
+
+            // Update link tag
             if (data.link.type) {
                 var attributes = {};
                 var attributes_to_clean = [];
@@ -472,6 +497,11 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
                 case 'intern':
                     attributes['data-silva-reference'] = 'new';
                     attributes['data-silva-target'] = data.link.content;
+                    if (data.link.query) {
+                        attributes['data-silva-query'] = data.link.query;
+                    } else {
+                        attributes_to_clean.push('data-silva-query');
+                    };
                     attributes_to_clean.push('data-silva-url');
                     break;
                 case 'extern':
@@ -479,11 +509,13 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
                     attributes['data-silva-url'] = data.link.url;
                     attributes_to_clean.push('data-silva-reference');
                     attributes_to_clean.push('data-silva-target');
+                    attributes_to_clean.push('data-silva-query');
                     break;
                 case 'anchor':
                     attributes_to_clean.push('data-silva-reference');
                     attributes_to_clean.push('data-silva-target');
                     attributes_to_clean.push('data-silva-url');
+                    attributes_to_clean.push('data-silva-query');
                     break;
                 };
                 a.setAttributes(attributes);
@@ -491,11 +523,13 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
                     a.removeAttributes(attributes_to_clean);
                 };
             } else {
+                // There was a link but it was removed.
                 if (a) {
                     a.remove(true);
                     a = null;
                 };
             };
+
             // Image tag
             if (img == null) {
                 img = new CKEDITOR.dom.element('img');
@@ -525,19 +559,14 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
             if (img_attributes_to_clean.length) {
                 img.removeAttributes(img_attributes_to_clean);
             };
-            // Span tag: caption
+
+            // Caption tag
             if (data.image.caption) {
                 if (caption == null) {
-                    var attributes = {};
-
                     caption = new CKEDITOR.dom.element('span');
-                    attributes['class'] = 'image-caption';
-                    caption.setAttributes(attributes);
-                    if (a) {
-                        a.append(caption);
-                    } else {
-                        div.append(caption);
-                    }
+                    caption_attributes['class'] = 'image-caption';
+                    caption.setAttributes(caption_attributes);
+                    div.append(caption);
                 };
                 caption.setText(data.image.caption);
             } else if (caption != null) {
