@@ -12,12 +12,20 @@ from zope.event import notify
 from zope.lifecycleevent import ObjectModifiedEvent
 
 import uuid
+import transaction
 
 
 class SilvaEditorLayer(SilvaLayer):
     default_packages = SilvaLayer.default_packages + [
         'silva.core.editor',
         ]
+
+    def _install_application(self, app):
+        super(SilvaEditorLayer, self)._install_application(app)
+        factory = app.root.manage_addProduct['silva.core.editor']
+        factory.manage_addCKEditorService('service_ckeditor')
+        transaction.commit()
+
 
 FunctionalLayer = SilvaEditorLayer(silva.core.editor)
 

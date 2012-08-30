@@ -26,11 +26,14 @@ from infrae import rest
 from silva.core import conf as silvaconf
 from silva.core.editor.interfaces import ICKEditorService
 from silva.core.editor.interfaces import ICKEditorSettings
+from silva.core.editor.utils import html_tags_whitelist, html_attributes_whitelist
 from silva.core.interfaces import ISilvaObject
 from silva.core.services.base import SilvaService, ZMIObject
 from silva.core.views.interfaces import IVirtualSite
 from silva.translations import translate as _
 from zeam.form import silva as silvaforms
+from zeam.form.ztk.actions import EditAction
+
 
 logger = logging.getLogger('silva.core.editor')
 
@@ -119,14 +122,21 @@ class CKEditorService(Folder, SilvaService):
 
     manage_options = (
         {'label': 'Editor settings',
-         'action': 'manage_settings'},) + SilvaService.manage_options
+         'action': 'manage_settings'},
+        {'label': 'HTML Sanitizer configuration',
+         'action': 'manage_html_sanitizer'},) + SilvaService.manage_options
 
     _config_declarations = None
+
+    _allowed_html_tags = None
+    _allowed_html_attributes = None
 
     def __init__(self, *args, **kw):
         Folder.__init__(self, *args, **kw)
         SilvaService.__init__(self, *args, **kw)
         self._config_declarations = {}
+        self._allowed_html_tags = set(html_tags_whitelist)
+        self._allowed_html_attributes = set(html_attributes_whitelist)
 
     def get_configuration(self, name):
         names = [name]
@@ -174,6 +184,18 @@ class CKEditorService(Folder, SilvaService):
                         path += '/'
                     extra_plugins[name] = '/'.join((base, path))
         return extra_plugins
+
+    def set_allowed_html_tags(self, tags):
+        self._allowed_html_tags = set(tags)
+
+    def set_allowed_html_attributes(self, attributes):
+        self._allowed_html_attributes = set(attributes)
+
+    def get_allowed_html_tags(self):
+        return self._allowed_html_tags
+
+    def get_allowed_html_attributes(self):
+        return self._allowed_html_attributes
 
 
 InitializeClass(CKEditorService)
@@ -262,7 +284,7 @@ class CKEditorServiceEditConfigurations(silvaforms.ZMISubTableForm):
 
     ignoreContent = False
     label = _(u"Manage existing configurations")
-    description = _(u"Edit or remove editor configuration for giving Silva "
+    description = _(u"Edit or remove editor configuration for the given Silva "
                     u"content types.")
     mode = silvaforms.DISPLAY
     tableFields = silvaforms.Fields(IConfigurationListItemFields)
@@ -323,3 +345,22 @@ def add_default_configuration(service, event):
     if service._getOb('default', None) is None:
         factory = service.manage_addProduct['silva.core.editor']
         factory.manage_addCKEditorConfiguration('default')
+
+
+class ISanitizerConfiguration(Interface):
+    _allowed_html_tags = schema.Set(title=u"Allowed tags",
+                      value_type=schema.TextLine())
+    _allowed_html_attributes = schema.Set(title=u"Allowed attributes",
+                            value_type=schema.TextLine())
+
+
+class CKEditorServiceHTMLSanitizerConfiguration(silvaforms.ZMIForm):
+    grok.context(ICKEditorService)
+    grok.name('manage_html_sanitizer')
+
+    ignoreContent = False
+    label = _(u"Manage HTML Sanitizer")
+    description = _(u"Manager allowed HTML tags and attributes allowed in editor.")
+
+    fields = silvaforms.Fields(ISanitizerConfiguration)
+    actions = silvaforms.Actions(EditAction(title=_(u"Save changes")))

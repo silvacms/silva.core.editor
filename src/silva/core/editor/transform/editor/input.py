@@ -3,9 +3,13 @@
 # See also LICENSE.txt
 
 from five import grok
-from silva.core.editor.transform.interfaces import IInputEditorFilter
-from silva.core.editor.transform.base import ReferenceTransformationFilter
 from zope.traversing.browser import absoluteURL
+from zope.component import getUtility
+
+from silva.core.editor.interfaces import ICKEditorService
+from silva.core.editor.transform.interfaces import IInputEditorFilter
+from silva.core.editor.transform.base import ReferenceTransformationFilter, TransformationFilter
+from silva.core.editor.utils import html_sanitize_node
 
 
 class LinkTransformer(ReferenceTransformationFilter):
@@ -95,3 +99,22 @@ class ImageLinkTransformer(ReferenceTransformationFilter):
                     del link.attrib['anchor']
                 # Ensure link is always disabled.
                 link.attrib['href'] = 'javascript:void()'
+
+
+class SanitizeTransformer(TransformationFilter):
+    grok.implements(IInputEditorFilter)
+    grok.provides(IInputEditorFilter)
+    grok.order(1000000)
+    grok.name('sanitizer')
+
+    extra_attributes = set(['data-silva-reference',
+                            'data-silva-target',
+                            'data-silva-url',
+                            'data-silva-anchor'])
+
+    def __call__(self, tree):
+        service = getUtility(ICKEditorService)
+        html_sanitize_node(
+            tree,
+            service.get_allowed_html_tags(),
+            service.get_allowed_html_attributes() | self.extra_attributes)

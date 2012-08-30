@@ -214,6 +214,27 @@ class InputTransformTestCase(unittest.TestCase):
 """)
 
 
+    def test_sanitize_input(self):
+        html = """
+<p>
+    <script type="text/javascript">
+        function hello() {
+            alert('hello');
+        }
+    </script>
+    <a class="anchor" name="advanced" title="Advanced Anchor">Advanced <form><input type="submit" value="send" /></form>Anchor</a>
+</p>
+"""
+
+        expected = """
+<p>
+    <a class="anchor" name="advanced" title="Advanced Anchor">Advanced Anchor</a>
+</p>
+"""
+        sanitized = self.transform(html, IInputEditorFilter)
+        tests.assertXMLEqual(expected, sanitized)
+
+
 def test_suite():
     suite = unittest.TestSuite()
     suite.addTest(unittest.makeSuite(InputTransformTestCase))

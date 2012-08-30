@@ -5,6 +5,7 @@
 import lxml
 import lxml.html
 import re
+from itertools import imap
 
 norm_whitespace_re = re.compile(r'[ \t\n]{2,}')
 
@@ -71,13 +72,158 @@ def html_truncate_node(el, remaining_length, append=u"…"):
     return remaining_length
 
 
-####### All the code below this comment is not used ####################
+def html_sanitize_node(el, allowed_tags_set, allowed_attributes_set):
+    attribute_names = set(el.attrib.iterkeys())
+    for attribute_name in attribute_names - allowed_attributes_set:
+        del el.attrib[attribute_name]
+
+    for child in el.iterchildren():
+        if child.tag in allowed_tags_set:
+            html_sanitize_node(child, allowed_tags_set, allowed_attributes_set)
+        else:
+            el.remove(child)
+            if child.tail:
+                el.text += child.tail
+
+
+html_tags_whitelist = set([
+    "a",
+    "abbr",
+    "acronym",
+    "address",
+    "area",
+    "article",
+    "aside",
+    "base",
+    "bdo",
+    "blink",
+    "blockquote",
+    "body",
+    "br",
+    "button",
+    "caption",
+    "col",
+    "colgroup",
+    "comment",
+    "datalist",
+    "dd",
+    "del",
+    "details",
+    "div",
+    "dl",
+    "dt",
+    "fieldset",
+    "figure",
+    "b",
+    "big",
+    "i",
+    "small",
+    "footer",
+    "head",
+    "header",
+    "hgroup",
+    "h1",
+    "h2",
+    "h3",
+    "h4",
+    "h5",
+    "h6",
+    "hr",
+    "img",
+    "ins",
+    "label",
+    "layer",
+    "legend",
+    "li",
+    "map",
+    "mark",
+    "marquee",
+    "meter",
+    "multicol",
+    "nav",
+    "nobr",
+    "ol",
+    "option",
+    "p",
+    "cite",
+    "code",
+    "dfn",
+    "em",
+    "kbd",
+    "samp",
+    "strong",
+    "pre",
+    "q",
+    "ruby",
+    "rp",
+    "rt",
+    "section",
+    "spacer",
+    "span",
+    "sub",
+    "sup",
+    "table",
+    "tbody",
+    "td",
+    "tfoot",
+    "th",
+    "thead",
+    "time",
+    "title",
+    "tr",
+    "ul",
+    "wbr",
+])
+
+html_attributes_whitelist = set([
+    "accesskey",
+    "alt",
+    "border",
+    "cite",
+    "class",
+    "colspan",
+    "coords",
+    "crossorigin",
+    "datetime",
+    "dir",
+    "for",
+    "headers",
+    "height",
+    "hidden",
+    "high",
+    "href",
+    "hreflang",
+    "id",
+    "ismap",
+    "low",
+    "media",
+    "min",
+    "name",
+    "open",
+    "rel",
+    "reversed",
+    "rowspan",
+    "spellcheck",
+    "scope",
+    "src",
+    "tabindex",
+    "target",
+    "title",
+    "translate",
+    "type",
+    "usemap",
+    "value",
+    "width",
+])
+
+####### All the code below is only used in tests ####################
+
+def html_sanitize(html_data, allowed_tags_set, allowed_attributes_set):
+    html_tree = lxml.html.fromstring(html_data)
+    html_sanitize_node(html_tree, set(allowed_tags_set), set(allowed_attributes_set))
+    return lxml.html.tostring(html_tree)
 
 def html_truncate(max_length, html_data, append=u"…"):
     html_tree = lxml.html.fromstring(html_data)
     html_truncate_node(html_tree, max_length, append=append)
     return lxml.html.tostring(html_tree)
-
-
-
-
