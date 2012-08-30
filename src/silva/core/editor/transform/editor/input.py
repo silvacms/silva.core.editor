@@ -112,9 +112,13 @@ class SanitizeTransformer(TransformationFilter):
                             'data-silva-url',
                             'data-silva-anchor'])
 
-    def __call__(self, tree):
+    def prepare(self, name, text):
         service = getUtility(ICKEditorService)
-        html_sanitize_node(
-            tree,
-            service.get_allowed_html_tags(),
-            service.get_allowed_html_attributes() | self.extra_attributes)
+        self._allowed_html_tags = service.get_allowed_html_tags()
+        self._allowed_html_attributes = \
+            service.get_allowed_html_attributes() | self.extra_attributes
+
+    def __call__(self, tree):
+        html_sanitize_node(tree,
+            self._allowed_html_tags,
+            self._allowed_html_attributes)

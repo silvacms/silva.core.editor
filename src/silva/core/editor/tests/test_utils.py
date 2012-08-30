@@ -161,5 +161,3 @@ def test_suite():
     suite.addTest(unittest.makeSuite(TestTruncate))
     suite.addTest(unittest.makeSuite(TestSanitize))
     return suite
-
-
