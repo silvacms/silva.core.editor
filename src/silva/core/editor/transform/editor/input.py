@@ -8,6 +8,8 @@ from zope.component import queryUtility
 
 from ...interfaces import ICKEditorService
 from ...utils import html_sanitize_node
+from ...utils import html_tags_whitelist, html_attributes_whitelist
+from ...utils import css_attributes_whitelist
 from ..base import ReferenceTransformationFilter, TransformationFilter
 from ..interfaces import IInputEditorFilter
 
@@ -110,10 +112,21 @@ class SanitizeTransformer(TransformationFilter):
         service = queryUtility(ICKEditorService)
         self._html_tags = None
         self._html_attributes = None
+        self._css_attributes = None
         if service is not None:
             self._html_tags = service.get_allowed_html_tags()
             self._html_attributes = service.get_allowed_html_attributes()
+            self._css_attributes = service.get_allowed_css_attributes()
+        if self._html_tags is None:
+            self._html_tags = html_tags_whitelist
+        if self._html_attributes is None:
+            self._html_attributes = html_attributes_whitelist
+        if self._css_attributes is None:
+            self._css_attributes = css_attributes_whitelist
 
     def __call__(self, tree):
         if self._html_tags is not None and self._html_attributes is not None:
-            html_sanitize_node(tree, self._html_tags, self._html_attributes)
+            html_sanitize_node(tree,
+                self._html_tags,
+                self._html_attributes,
+                self._css_attributes)

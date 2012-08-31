@@ -26,13 +26,16 @@ from infrae import rest
 from silva.core import conf as silvaconf
 from silva.core.editor.interfaces import ICKEditorService
 from silva.core.editor.interfaces import ICKEditorSettings
-from silva.core.editor.utils import html_tags_whitelist, html_attributes_whitelist
 from silva.core.interfaces import ISilvaObject
 from silva.core.services.base import SilvaService, ZMIObject
 from silva.core.views.interfaces import IVirtualSite
 from silva.translations import translate as _
 from zeam.form import silva as silvaforms
 from zeam.form.ztk.actions import EditAction
+
+from .utils import html_tags_whitelist
+from .utils import html_attributes_whitelist
+from .utils import css_attributes_whitelist
 
 
 logger = logging.getLogger('silva.core.editor')
@@ -129,6 +132,7 @@ class CKEditorService(Folder, SilvaService):
     _config_declarations = None
     _allowed_html_tags = None
     _allowed_html_attributes = None
+    _allowed_css_attributes = None
 
     def __init__(self, *args, **kw):
         Folder.__init__(self, *args, **kw)
@@ -136,6 +140,7 @@ class CKEditorService(Folder, SilvaService):
         self._config_declarations = {}
         self._allowed_html_tags = set(html_tags_whitelist)
         self._allowed_html_attributes = set(html_attributes_whitelist)
+        self._allowed_css_attributes = set(css_attributes_whitelist)
 
     def get_configuration(self, name):
         names = [name]
@@ -190,11 +195,17 @@ class CKEditorService(Folder, SilvaService):
     def set_allowed_html_attributes(self, attributes):
         self._allowed_html_attributes = set(attributes)
 
+    def set_allowed_css_attributes(self, attributes):
+        self._allowed_css_attributes = set(attributes)
+
     def get_allowed_html_tags(self):
         return self._allowed_html_tags
 
     def get_allowed_html_attributes(self):
         return self._allowed_html_attributes
+
+    def get_allowed_css_attributes(self):
+        return self._allowed_css_attributes
 
 
 InitializeClass(CKEditorService)
@@ -347,9 +358,11 @@ def add_default_configuration(service, event):
 
 
 class ISanitizerConfiguration(Interface):
-    _allowed_html_tags = schema.Set(title=u"Allowed tags",
+    _allowed_html_tags = schema.Set(title=u"Allowed HTML tags",
                       value_type=schema.TextLine())
-    _allowed_html_attributes = schema.Set(title=u"Allowed attributes",
+    _allowed_html_attributes = schema.Set(title=u"Allowed HTML attributes",
+                            value_type=schema.TextLine())
+    _allowed_css_attributes = schema.Set(title=u"Allowed CSS attributes",
                             value_type=schema.TextLine())
 
 

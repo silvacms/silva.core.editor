@@ -155,6 +155,46 @@ class TestSanitize(unittest.TestCase):
 """
         tests.assertXMLEqual(expected, sanitized)
 
+    def test_sanitize_css(self):
+        html = """
+<div>
+    <a href="http://infrae.com/" style="text-decoration: underline; font-size: 20px; display:block">link</a>
+</div>
+"""
+        sanitized = html_sanitize(html, ['a', 'div'], ['href'], ['text-decoration', 'display'])
+        expected = """
+<div>
+    <a href="http://infrae.com/" style="text-decoration: underline;display: block;">link</a>
+</div>
+"""
+        tests.assertXMLEqual(expected, sanitized)
+
+    def test_sanitize_css_with_error(self):
+        html = """
+<div>
+    <a href="http://infrae.com/" style="text-decoration: underline; invalid\asdchunck">link</a>
+</div>
+"""
+        sanitized = html_sanitize(html, ['a', 'div'], ['href'], ['text-decoration'])
+        expected = """
+<div>
+    <a href="http://infrae.com/" style="text-decoration: underline;">link</a>
+</div>
+"""
+
+    def test_sanitize_css_with_error_first(self):
+        html = """
+<div>
+    <a href="http://infrae.com/" style="invalid\asdchunck;text-decoration: underline;">link</a>
+</div>
+"""
+        sanitized = html_sanitize(html, ['a', 'div'], ['href'], ['text-decoration'])
+        expected = """
+<div>
+    <a href="http://infrae.com/" style="text-decoration: underline;">link</a>
+</div>
+"""
+
 
 def test_suite():
     suite = unittest.TestSuite()
