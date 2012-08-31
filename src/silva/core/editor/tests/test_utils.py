@@ -71,7 +71,7 @@ class TestSanitize(unittest.TestCase):
     document.getElementById("demo").innerHTML=Date();
     }
     </script>
-    <p AttriBute="self">
+    <p AttriBute="self" data-timestamp="42">
         Hélas! mon ami, l'époque est triste, et mes contes, je vous en préviens,
         <video width="320" height="240" controls="controls">
           <source src="movie.mp4" type="video/mp4" />
@@ -109,7 +109,7 @@ class TestSanitize(unittest.TestCase):
         sanitized = html_sanitize(self.HTML_CHUNCK, html_tags_whitelist, html_attributes_whitelist)
         expected = """
 <div>
-    <p>
+    <p data-timestamp="42">
         H&#233;las! mon ami, l'&#233;poque est triste, et mes contes, je vous en pr&#233;viens,
         
         ne seront pas gais. Seulement, vous permettrez que, lass&#233; de ce que je vois se passer tous les jours

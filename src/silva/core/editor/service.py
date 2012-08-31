@@ -127,7 +127,6 @@ class CKEditorService(Folder, SilvaService):
          'action': 'manage_html_sanitizer'},) + SilvaService.manage_options
 
     _config_declarations = None
-
     _allowed_html_tags = None
     _allowed_html_attributes = None
 

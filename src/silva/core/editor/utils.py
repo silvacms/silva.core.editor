@@ -5,7 +5,6 @@
 import lxml
 import lxml.html
 import re
-from itertools import imap
 
 norm_whitespace_re = re.compile(r'[ \t\n]{2,}')
 
@@ -75,7 +74,9 @@ def html_truncate_node(el, remaining_length, append=u"…"):
 def html_sanitize_node(el, allowed_tags_set, allowed_attributes_set):
     attribute_names = set(el.attrib.iterkeys())
     for attribute_name in attribute_names - allowed_attributes_set:
-        del el.attrib[attribute_name]
+        # We authorize data- attributes.
+        if not attribute_name.startswith('data-'):
+            del el.attrib[attribute_name]
 
     for child in el.iterchildren():
         if child.tag in allowed_tags_set:

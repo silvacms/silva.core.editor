@@ -4,12 +4,12 @@
 
 from five import grok
 from zope.traversing.browser import absoluteURL
-from zope.component import getUtility
+from zope.component import queryUtility
 
-from silva.core.editor.interfaces import ICKEditorService
-from silva.core.editor.transform.interfaces import IInputEditorFilter
-from silva.core.editor.transform.base import ReferenceTransformationFilter, TransformationFilter
-from silva.core.editor.utils import html_sanitize_node
+from ...interfaces import ICKEditorService
+from ...utils import html_sanitize_node
+from ..base import ReferenceTransformationFilter, TransformationFilter
+from ..interfaces import IInputEditorFilter
 
 
 class LinkTransformer(ReferenceTransformationFilter):
@@ -104,21 +104,16 @@ class ImageLinkTransformer(ReferenceTransformationFilter):
 class SanitizeTransformer(TransformationFilter):
     grok.implements(IInputEditorFilter)
     grok.provides(IInputEditorFilter)
-    grok.order(1000000)
-    grok.name('sanitizer')
-
-    extra_attributes = set(['data-silva-reference',
-                            'data-silva-target',
-                            'data-silva-url',
-                            'data-silva-anchor'])
+    grok.order(1000)
 
     def prepare(self, name, text):
-        service = getUtility(ICKEditorService)
-        self._allowed_html_tags = service.get_allowed_html_tags()
-        self._allowed_html_attributes = \
-            service.get_allowed_html_attributes() | self.extra_attributes
+        service = queryUtility(ICKEditorService)
+        self._html_tags = None
+        self._html_attributes = None
+        if service is not None:
+            self._html_tags = service.get_allowed_html_tags()
+            self._html_attributes = service.get_allowed_html_attributes()
 
     def __call__(self, tree):
-        html_sanitize_node(tree,
-            self._allowed_html_tags,
-            self._allowed_html_attributes)
+        if self._html_tags is not None and self._html_attributes is not None:
+            html_sanitize_node(tree, self._html_tags, self._html_attributes)
