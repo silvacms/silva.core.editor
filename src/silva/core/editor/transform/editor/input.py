@@ -108,11 +108,12 @@ class SanitizeTransformer(TransformationFilter):
     grok.provides(IInputEditorFilter)
     grok.order(1000)
 
+    _html_tags = None
+    _html_attributes = None
+    _css_attributes = None
+
     def prepare(self, name, text):
         service = queryUtility(ICKEditorService)
-        self._html_tags = None
-        self._html_attributes = None
-        self._css_attributes = None
         if service is not None:
             self._html_tags = service.get_allowed_html_tags()
             self._html_attributes = service.get_allowed_html_attributes()
