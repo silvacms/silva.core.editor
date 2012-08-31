@@ -127,7 +127,6 @@ html_tags_whitelist = set([
     "article",
     "aside",
     "bdo",
-    "blink",
     "blockquote",
     "body",
     "br",
@@ -195,7 +194,6 @@ html_tags_whitelist = set([
     "th",
     "thead",
     "time",
-    "title",
     "tr",
     "ul",
     "wbr",
@@ -244,9 +242,8 @@ html_attributes_whitelist = set([
 ])
 
 css_attributes_whitelist = set([
-    'margin-left',
-    'width',
-    'height',
+    'list-style-type',
+
 ])
 
 ####### All the code below is only used in tests ####################
