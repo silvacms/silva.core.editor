@@ -17,6 +17,7 @@ from silva.core.editor.transform.silvaxml import NS_EDITOR_URI, NS_HTML_URI
 from silva.core.editor.transform.interfaces import ISilvaXMLImportFilter
 from silva.core.editor.transform.base import TransformationFilter
 from silva.core.editor.transform.editor.output import AnchorCollector
+from silva.translations import translate as _
 
 
 class XHTMLImportTransformer(TransformationFilter):
@@ -50,6 +51,12 @@ class ReferenceImportTransformer(TransformationFilter):
             reference_type = unicode(node.attrib['reference-type'])
             reference_name = unicode(uuid.uuid1())
             path = node.attrib['reference']
+
+            if not path:
+                info.addAction(
+                    xmlimport.warning,
+                    [self.context, _('Contains a broken reference')])
+                continue
 
             reference = self.new_reference(self.context, reference_type)
             reference.add_tag(reference_name)
