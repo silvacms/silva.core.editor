@@ -53,9 +53,8 @@ class ReferenceImportTransformer(TransformationFilter):
             path = node.attrib['reference']
 
             if not path:
-                info.addAction(
-                    xmlimport.warning,
-                    [self.context, _('Contains a broken reference')])
+                info.reportError(
+                    _(u'Broken reference'), content=self.context)
                 continue
 
             reference = self.new_reference(self.context, reference_type)
