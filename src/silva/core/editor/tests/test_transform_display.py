@@ -43,6 +43,22 @@ class DisplayTransformTestCase(unittest.TestCase):
         for transformer in transformers:
             self.assertTrue(verifyObject(ITransformationFilter, transformer))
 
+    def test_self_closing_tags(self):
+        version = self.root.document.get_editable()
+        save_editor_text(version.test, """
+<h2>This is simple piece of text</h2>
+<p>That contains <br>a paragraph.</p>
+""")
+
+        factory = getMultiAdapter((version, TestRequest()), ITransformerFactory)
+        transformer = factory(
+            'test', version.test, unicode(version.test), IDisplayFilter)
+        tests.assertXMLEqual(
+            unicode(transformer),
+            u"""
+<h2>This is simple piece of text</h2>
+<p>That contains <br/>a paragraph.</p>""")
+
     def test_render(self):
         """Render a simple piece of text for the public.
         """

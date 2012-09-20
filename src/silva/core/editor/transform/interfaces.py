@@ -103,4 +103,3 @@ class ISilvaXMLImportFilter(ISilvaXMLFilter):
     """ silva xml import filter
     """
 
-
