@@ -23,6 +23,10 @@ TITLE_ATTRIBUTE = 'title'
 def html_extract_text(element, data=None):
     if data is None:
         data = []
+
+    if not isinstance(element, lxml.html.HtmlElement):
+        return data
+
     tag = element.tag.lower()
 
     def add(text):
@@ -36,6 +40,8 @@ def html_extract_text(element, data=None):
     add(element.attrib.get(TITLE_ATTRIBUTE))
 
     for child in element.iterchildren():
+        if not isinstance(element, lxml.html.HtmlElement):
+            continue
         html_extract_text(child, data)
 
     add(element.tail)
@@ -109,13 +115,19 @@ def html_sanitize_node(el, allowed_tags_set, allowed_attributes_set,
 
     # HTML tags sanitizing
     for child in el.iterchildren():
+        if not isinstance(child, lxml.html.HtmlElement):
+            el.remove(child)
+            continue
         if child.tag in allowed_tags_set:
             html_sanitize_node(child, allowed_tags_set, allowed_attributes_set,
                 allowed_css_style_attributes_set)
         else:
             el.remove(child)
             if child.tail:
-                el.text += child.tail
+                if el.text is not None:
+                    el.text += child.tail
+                else:
+                    el.text = child.tail
 
 
 html_tags_whitelist = set([

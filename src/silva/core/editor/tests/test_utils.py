@@ -71,6 +71,13 @@ class TestSanitize(unittest.TestCase):
     document.getElementById("demo").innerHTML=Date();
     }
     </script>
+    <style type="text/css">
+        p {
+            font-size: 1.1em;
+            color: dark;
+        }
+    </style>
+    <!-- this is a comment -->
     <p AttriBute="self" data-timestamp="42">
         Hélas! mon ami, l'époque est triste, et mes contes, je vous en préviens,
         <video width="320" height="240" controls="controls">
