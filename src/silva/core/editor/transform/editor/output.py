@@ -3,11 +3,19 @@
 # See also LICENSE.txt
 
 from five import grok
-from silva.core.editor.interfaces import ITextIndexEntries
+
+from zope.component import queryUtility
+
+from silva.core.editor.interfaces import ITextIndexEntries, ICKEditorService
 from silva.core.editor.transform.interfaces import ISaveEditorFilter
 from silva.core.editor.transform.base import ReferenceTransformationFilter
 from silva.core.editor.transform.base import TransformationFilter
 from silva.core.references.reference import get_content_from_id
+
+from silva.core.editor.utils import html_sanitize_node
+from silva.core.editor.utils import html_tags_whitelist
+from silva.core.editor.utils import html_attributes_whitelist
+from silva.core.editor.utils import css_attributes_whitelist
 
 
 def clean_editor_attributes(tag):
@@ -130,3 +138,34 @@ class AnchorCollector(TransformationFilter):
             if 'name' in anchor.attrib and 'title' in anchor.attrib:
                 self.entries.add(anchor.attrib['name'], anchor.attrib['title'])
 
+
+class SanitizeTransformer(TransformationFilter):
+    grok.implements(ISaveEditorFilter)
+    grok.provides(ISaveEditorFilter)
+    grok.order(1000)
+
+    _html_tags = None
+    _html_attributes = None
+    _extra_html_attributes = set(['reference', 'anchor'])
+    _css_attributes = None
+
+    def prepare(self, name, text):
+        service = queryUtility(ICKEditorService)
+        if service is not None:
+            self._html_tags = service.get_allowed_html_tags()
+            self._html_attributes = service.get_allowed_html_attributes()
+            self._css_attributes = service.get_allowed_css_attributes()
+        if self._html_tags is None:
+            self._html_tags = html_tags_whitelist
+        if self._html_attributes is None:
+            self._html_attributes = html_attributes_whitelist
+        if self._css_attributes is None:
+            self._css_attributes = css_attributes_whitelist
+        self._html_attributes |= self._extra_html_attributes
+
+    def __call__(self, tree):
+        if self._html_tags is not None and self._html_attributes is not None:
+            html_sanitize_node(tree,
+                self._html_tags,
+                self._html_attributes,
+                self._css_attributes)

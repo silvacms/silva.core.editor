@@ -101,33 +101,3 @@ class ImageLinkTransformer(ReferenceTransformationFilter):
                     del link.attrib['anchor']
                 # Ensure link is always disabled.
                 link.attrib['href'] = 'javascript:void()'
-
-
-class SanitizeTransformer(TransformationFilter):
-    grok.implements(IInputEditorFilter)
-    grok.provides(IInputEditorFilter)
-    grok.order(1000)
-
-    _html_tags = None
-    _html_attributes = None
-    _css_attributes = None
-
-    def prepare(self, name, text):
-        service = queryUtility(ICKEditorService)
-        if service is not None:
-            self._html_tags = service.get_allowed_html_tags()
-            self._html_attributes = service.get_allowed_html_attributes()
-            self._css_attributes = service.get_allowed_css_attributes()
-        if self._html_tags is None:
-            self._html_tags = html_tags_whitelist
-        if self._html_attributes is None:
-            self._html_attributes = html_attributes_whitelist
-        if self._css_attributes is None:
-            self._css_attributes = css_attributes_whitelist
-
-    def __call__(self, tree):
-        if self._html_tags is not None and self._html_attributes is not None:
-            html_sanitize_node(tree,
-                self._html_tags,
-                self._html_attributes,
-                self._css_attributes)

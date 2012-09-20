@@ -231,7 +231,7 @@ class InputTransformTestCase(unittest.TestCase):
     <a class="anchor" name="advanced" title="Advanced Anchor">Advanced Anchor</a>
 </p>
 """
-        sanitized = self.transform(html, IInputEditorFilter)
+        sanitized = self.transform(html, ISaveEditorFilter)
         tests.assertXMLEqual(expected, sanitized)
 
 
