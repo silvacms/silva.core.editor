@@ -82,11 +82,7 @@ class Transformer(object):
         return u''
 
     def __unicode__(self):
-        def stringify(tree):
-            return lxml.etree.tostring(tree,
-                method='c14n')
-
-        return u"\n".join(map(stringify, self.__call__()))
+        return u"\n".join(map(lxml.html.tostring, self.__call__()))
 
 
 class TransformationFilter(grok.MultiSubscription):

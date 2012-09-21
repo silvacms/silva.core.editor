@@ -57,7 +57,7 @@ class DisplayTransformTestCase(unittest.TestCase):
             unicode(transformer),
             u"""
 <h2>This is simple piece of text</h2>
-<p>That contains <br/>a paragraph.</p>""")
+<p>That contains <br>a paragraph.</p>""")
 
     def test_render(self):
         """Render a simple piece of text for the public.
