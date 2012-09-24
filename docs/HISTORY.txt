@@ -1,14 +1,23 @@
 Changes
 =======
 
-3.0 (unreleased)
-----------------
+3.0c1 (2012/09/24)
+------------------
 
-* add separator for link actions
-  [wim]
+* Add support to retrieve text fulltext, and purge it (set it empty).
 
-* make style box wider
-  [wim]
+* Add support to sanetize HTML.
+
+* Add support for multiple editor configuration (one per content
+  type), with built-in fallback.
+
+* Add a ``zeam.form`` widget to edit HTML with the editor.
+
+* Improve tests.
+
+* Fix bugs.
+
+* Update icons, default settings and CSS.
 
 3.0b1 (2011/11/11)
 ------------------
