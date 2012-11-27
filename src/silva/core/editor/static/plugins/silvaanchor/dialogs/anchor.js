@@ -64,6 +64,7 @@
 
                 var attributes = { contenteditable: 'false',
                                    name: data.anchor.name };
+                attributes['data-cke-saved-name'] = data.anchor.name;
                 if (data.anchor.title) {
                     attributes['title'] = data.anchor.title;
                 };

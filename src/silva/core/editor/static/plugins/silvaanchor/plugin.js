@@ -66,15 +66,34 @@
 
     var API = CKEDITOR.plugins.silvaanchor;
 
+    CKEDITOR.removeSilvaAnchorCommand = function() {};
+    CKEDITOR.removeSilvaAnchorCommand.prototype = {
+        exec: function(editor) {
+            var anchor = API.getSelectedAnchor(editor);
+            if (anchor !== null) {
+                anchor.remove();
+            }
+        },
+        startDisabled: true
+    };
+
     CKEDITOR.plugins.add('silvaanchor', {
         requires: ['dialog', 'htmldataprocessor'],
         init: function(editor) {
             editor.addCommand(
                 'silvaanchor',
                 new CKEDITOR.dialogCommand('silvaanchor'));
+            editor.addCommand(
+                'silvaremoveanchor',
+                new CKEDITOR.removeSilvaAnchorCommand());
             editor.ui.addButton('SilvaAnchor', {
                 label : 'Anchor properties',
                 command : 'silvaanchor',
+                className: 'cke_button_anchor'
+            });
+            editor.ui.addButton('SilvaAnchor', {
+                label : 'Remove anchor',
+                command : 'silvaremoveanchor',
                 className: 'cke_button_anchor'
             });
             editor.addCss(
@@ -87,19 +106,22 @@
             );
             // Events
             editor.on('selectionChange', function(event) {
-                var element = API.getSelectedAnchor(editor);
-                var anchorCommand = editor.getCommand('silvaanchor');
+                var anchor = API.getSelectedAnchor(editor);
+                var command_edit = editor.getCommand('silvaanchor');
+                var command_remove = editor.getCommand('silvaremoveanchor');
 
-                if (element != null) {
-                    anchorCommand.setState(CKEDITOR.TRISTATE_ON);
+                if (anchor != null) {
+                    command_edit.setState(CKEDITOR.TRISTATE_ON);
+                    command_remove.setState(CKEDITOR.TRISTATE_ON);
                 } else {
-                    anchorCommand.setState(CKEDITOR.TRISTATE_OFF);
+                    command_edit.setState(CKEDITOR.TRISTATE_OFF);
+                    command_remove.setState(CKEDITOR.TRISTATE_OFF);
                 };
             });
             editor.on('doubleclick', function(event) {
-                var element = API.getSelectedAnchor(editor);
+                var anchor = API.getSelectedAnchor(editor);
 
-                if (element != null) {
+                if (anchor != null) {
                     event.data.dialog = 'silvaanchor';
                 };
             });
@@ -108,11 +130,19 @@
             // Menu
             if (editor.addMenuItems) {
                 editor.addMenuItems({
-                    anchor: {
+                    silvaanchor: {
                         label: editor.lang.anchor.menu,
                         command : 'silvaanchor',
                         group : 'link',
+                        className: 'cke_button_anchor',
                         order: 5
+                    },
+                    silvaremoveanchor: {
+                        label: 'Remove anchor',
+                        command : 'silvaremoveanchor',
+                        className: 'cke_button_removediv',
+                        group : 'link',
+                        order: 6
                     }
                 });
             };
@@ -120,7 +150,8 @@
                 editor.contextMenu.addListener(function(element, selection) {
                     if (API.isAnchor(element)) {
                         return  {
-                            anchor: CKEDITOR.TRISTATE_OFF
+                            silvaanchor: CKEDITOR.TRISTATE_OFF,
+                            silvaremoveanchor: CKEDITOR.TRISTATE_OFF
                         };
                     };
                     return null;
