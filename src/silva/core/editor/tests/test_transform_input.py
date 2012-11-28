@@ -213,6 +213,51 @@ class InputTransformTestCase(unittest.TestCase):
 </p>
 """)
 
+    def test_empty_anchor(self):
+        """On input, empty anchors are not collected.
+        """
+        version = self.root.document.get_editable()
+        index = ITextIndexEntries(version.test)
+        self.assertTrue(verifyObject(ITextIndexEntries, index))
+        self.assertEqual(len(index.entries), 0)
+
+        intern_format = self.transform(
+            """
+<p>
+   <a class="anchor" name="missing">Missing Title</a>
+   The ultimate store of the anchors.
+   <a class="anchor" name="empty" title="">Empty Title</a>
+   <a class="anchor" name="space" title=" ">Title with a space</a>
+</p>
+""",
+            ISaveEditorFilter)
+        tests.assertXMLEqual(
+            intern_format,
+"""
+<p>
+   <a class="anchor" name="missing">Missing Title</a>
+   The ultimate store of the anchors.
+   <a class="anchor" name="empty" title="">Empty Title</a>
+   <a class="anchor" name="space" title=" ">Title with a space</a>
+</p>
+""")
+
+        index = ITextIndexEntries(version.test)
+        self.assertEqual(len(index.entries), 0)
+
+        extern_format = self.transform(
+            intern_format,
+            IInputEditorFilter)
+        tests.assertXMLEqual(
+            extern_format,
+            """
+<p>
+   <a class="anchor" name="missing">Missing Title</a>
+   The ultimate store of the anchors.
+   <a class="anchor" name="empty" title="">Empty Title</a>
+   <a class="anchor" name="space" title=" ">Title with a space</a>
+</p>
+""")
 
     def test_sanitize_input(self):
         html = """

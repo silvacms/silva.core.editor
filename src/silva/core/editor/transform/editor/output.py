@@ -136,7 +136,11 @@ class AnchorCollector(TransformationFilter):
     def __call__(self, tree):
         for anchor in tree.xpath('//a[@class="anchor"]'):
             if 'name' in anchor.attrib and 'title' in anchor.attrib:
-                self.entries.add(anchor.attrib['name'], anchor.attrib['title'])
+                name = anchor.attrib['name'].strip()
+                title = anchor.attrib['title'].strip()
+                if name and title:
+                    # Only collect entries with a name and a title
+                    self.entries.add(name, title)
 
 
 class SanitizeTransformer(TransformationFilter):
