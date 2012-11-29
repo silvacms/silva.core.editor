@@ -460,7 +460,7 @@ class InputTransformTestCase(TestCase):
     <a class="image-link"
        data-silva-reference="new"
        data-silva-target="%s"
-       data-silva-query="?hires">
+       data-silva-query="hires">
       <img src="http://localhost/root/chocobo"
            alt="image"
            data-silva-reference="new"
@@ -502,8 +502,8 @@ class InputTransformTestCase(TestCase):
   <p>Some description about the world</p>
   <div class="image">
     <a class="image-link"
-       query="?hires"
-       reference="%s">
+       reference="%s"
+       query="hires">
       <img alt="image"
            reference="%s" />
     </a>
@@ -524,7 +524,7 @@ class InputTransformTestCase(TestCase):
     <a class="image-link"
        data-silva-reference="%s"
        data-silva-target="%s"
-       data-silva-query="?hires"
+       data-silva-query="hires"
        href="javascript:void()">
       <img alt="image"
            data-silva-reference="%s"

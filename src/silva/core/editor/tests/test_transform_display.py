@@ -230,6 +230,46 @@ class DisplayTransformTestCase(unittest.TestCase):
   </a>
 </div>""")
 
+    def test_render_image_with_internal_link_and_anchor_and_query(self):
+        """Test render a piece of text with an image that is referring
+        an asset in Silva, and with a link referring an another
+        document in Silva, an anchor and an extra query.
+        """
+        version = self.root.document.get_editable()
+        save_editor_text(
+            version.test, u"""
+<h2>This is simple piece of text</h2>
+<p>
+  This simple piece of text contains a magic chocobo:
+</p>
+<div class="image">
+  <a class="image-link" anchor="top" reference={link} query="malabar">
+    <img alt="Chocobo" reference="{image}" />
+  </a>
+</div>""",
+            content=version,
+            link_content=self.root.other,
+            link_name=u'test image link',
+            image_content=self.root.chocobo,
+            image_name=u'test image')
+
+        factory = getMultiAdapter((version, TestRequest()), ITransformerFactory)
+        transformer = factory(
+            'test', version.test, unicode(version.test), IDisplayFilter)
+        tests.assertXMLEqual(
+            unicode(transformer),
+            u"""
+<h2>This is simple piece of text</h2>
+<p>
+  This simple piece of text contains a magic chocobo:
+</p>
+<div class="image">
+  <a class="image-link" href="http://localhost/root/other?malabar#top">
+    <img alt="Chocobo" height="256" width="256"
+         src="http://localhost/root/chocobo" />
+  </a>
+</div>""")
+
 
 def test_suite():
     suite = unittest.TestSuite()

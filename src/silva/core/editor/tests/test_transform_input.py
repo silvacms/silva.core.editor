@@ -128,7 +128,9 @@ class InputTransformTestCase(unittest.TestCase):
         intern_format = self.transform(
             """
 <p>
-   <a class="anchor" name="simple" title="Simple Anchor">Simple Anchor</a>
+   <a class="anchor" name="simple" title="Simple Anchor" href="javascript:void()">
+     Simple Anchor
+   </a>
    The ultimate store of the anchors.
 
    <a class="anchor" name="advanced" title="Advanced Anchor">Advanced Anchor</a>
@@ -161,10 +163,16 @@ class InputTransformTestCase(unittest.TestCase):
             extern_format,
             """
 <p>
-   <a class="anchor" name="simple" title="Simple Anchor">Simple Anchor</a>
+   <a class="anchor" name="simple" title="Simple Anchor"
+       href="javascript:void()">
+      Simple Anchor
+   </a>
    The ultimate store of the anchors.
 
-   <a class="anchor" name="advanced" title="Advanced Anchor">Advanced Anchor</a>
+   <a class="anchor" name="advanced" title="Advanced Anchor"
+      href="javascript:void()">
+      Advanced Anchor
+   </a>
 </p>
 """)
 
@@ -208,7 +216,10 @@ class InputTransformTestCase(unittest.TestCase):
             extern_format,
             """
 <p>
-   <a class="anchor" name="simple" title="Simple Anchor">Simple Anchor</a>
+   <a class="anchor" name="simple" title="Simple Anchor"
+      href="javascript:void()">
+      Simple Anchor
+   </a>
    The ultimate survivor.
 </p>
 """)
@@ -224,7 +235,7 @@ class InputTransformTestCase(unittest.TestCase):
         intern_format = self.transform(
             """
 <p>
-   <a class="anchor" name="missing">Missing Title</a>
+   <a class="anchor" name="missing" href="javascript:void()">Missing Title</a>
    The ultimate store of the anchors.
    <a class="anchor" name="empty" title="">Empty Title</a>
    <a class="anchor" name="space" title=" ">Title with a space</a>
@@ -238,7 +249,7 @@ class InputTransformTestCase(unittest.TestCase):
    <a class="anchor" name="missing">Missing Title</a>
    The ultimate store of the anchors.
    <a class="anchor" name="empty" title="">Empty Title</a>
-   <a class="anchor" name="space" title=" ">Title with a space</a>
+   <a class="anchor" name="space" title="">Title with a space</a>
 </p>
 """)
 
@@ -252,10 +263,14 @@ class InputTransformTestCase(unittest.TestCase):
             extern_format,
             """
 <p>
-   <a class="anchor" name="missing">Missing Title</a>
+   <a class="anchor" name="missing" href="javascript:void()">Missing Title</a>
    The ultimate store of the anchors.
-   <a class="anchor" name="empty" title="">Empty Title</a>
-   <a class="anchor" name="space" title=" ">Title with a space</a>
+   <a class="anchor" name="empty" title="" href="javascript:void()">
+     Empty Title
+   </a>
+   <a class="anchor" name="space" title="" href="javascript:void()">
+     Title with a space
+   </a>
 </p>
 """)
 

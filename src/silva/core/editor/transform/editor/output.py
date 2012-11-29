@@ -73,6 +73,8 @@ class LinkTransformer(SilvaReferenceTransformationFilter):
                 link.attrib['href'] = link.attrib['data-silva-url']
             if 'data-silva-anchor' in link.attrib:
                 link.attrib['anchor'] = link.attrib['data-silva-anchor']
+            if 'data-silva-query' in link.attrib:
+                link.attrib['query'] = link.attrib['data-silva-query']
             clean_editor_attributes(link)
 
 
@@ -141,6 +143,12 @@ class AnchorCollector(TransformationFilter):
                 if name and title:
                     # Only collect entries with a name and a title
                     self.entries.add(name, title)
+                # Save back stripped values
+                anchor.attrib['name'] = name
+                anchor.attrib['title'] = title
+            if 'href' in anchor.attrib:
+                # Those should not have any href, so clean them
+                del anchor.attrib['href']
 
 
 class SanitizeTransformer(TransformationFilter):
@@ -150,7 +158,7 @@ class SanitizeTransformer(TransformationFilter):
 
     _html_tags = None
     _html_attributes = None
-    _extra_html_attributes = set(['reference', 'anchor'])
+    _extra_html_attributes = set(['reference', 'anchor', 'query'])
     _css_attributes = None
 
     def prepare(self, name, text):

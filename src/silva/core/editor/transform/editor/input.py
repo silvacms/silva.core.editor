@@ -5,7 +5,7 @@
 from five import grok
 from zope.traversing.browser import absoluteURL
 
-from ..base import ReferenceTransformationFilter
+from ..base import ReferenceTransformationFilter, TransformationFilter
 from ..interfaces import IInputEditorFilter
 
 
@@ -27,11 +27,25 @@ class LinkTransformer(ReferenceTransformationFilter):
                     del link.attrib['reference']
             if 'href' in link.attrib:
                 link.attrib['data-silva-url'] = link.attrib['href']
+            if 'query' in link.attrib:
+                link.attrib['data-silva-query'] = link.attrib['query']
+                del link.attrib['query']
             if 'anchor' in link.attrib:
                 link.attrib['data-silva-anchor'] = link.attrib['anchor']
                 del link.attrib['anchor']
             # Ensure href is always disabled.
             link.attrib['href'] = 'javascript:void()'
+
+
+class AnchorTransformer(TransformationFilter):
+    grok.implements(IInputEditorFilter)
+    grok.provides(IInputEditorFilter)
+    grok.order(10)
+
+    def __call__(self, tree):
+        for anchor in tree.xpath('//a[@class="anchor"]'):
+            # Ensure href is always disabled.
+            anchor.attrib['href'] = 'javascript:void()'
 
 
 class ImageTransformer(ReferenceTransformationFilter):
