@@ -4,13 +4,8 @@
 
 from five import grok
 from zope.traversing.browser import absoluteURL
-from zope.component import queryUtility
 
-from ...interfaces import ICKEditorService
-from ...utils import html_sanitize_node
-from ...utils import html_tags_whitelist, html_attributes_whitelist
-from ...utils import css_attributes_whitelist
-from ..base import ReferenceTransformationFilter, TransformationFilter
+from ..base import ReferenceTransformationFilter
 from ..interfaces import IInputEditorFilter
 
 

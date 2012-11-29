@@ -6,12 +6,12 @@ from five import grok
 
 from zope.component import queryUtility
 
+from silva.core.references.reference import get_content_from_id
+
 from silva.core.editor.interfaces import ITextIndexEntries, ICKEditorService
 from silva.core.editor.transform.interfaces import ISaveEditorFilter
 from silva.core.editor.transform.base import ReferenceTransformationFilter
 from silva.core.editor.transform.base import TransformationFilter
-from silva.core.references.reference import get_content_from_id
-
 from silva.core.editor.utils import html_sanitize_node
 from silva.core.editor.utils import html_tags_whitelist
 from silva.core.editor.utils import html_attributes_whitelist
