@@ -91,10 +91,10 @@
                 command : 'silvaanchor',
                 className: 'cke_button_anchor'
             });
-            editor.ui.addButton('SilvaAnchor', {
+            editor.ui.addButton('SilvaRemoveAnchor', {
                 label : 'Remove anchor',
                 command : 'silvaremoveanchor',
-                className: 'cke_button_anchor'
+                className: 'cke_button_removeanchor'
             });
             editor.addCss(
                 'a.anchor' +
@@ -140,7 +140,7 @@
                     silvaremoveanchor: {
                         label: 'Remove anchor',
                         command : 'silvaremoveanchor',
-                        className: 'cke_button_removediv',
+                        className: 'cke_button_removeanchor',
                         group : 'link',
                         order: 6
                     }
