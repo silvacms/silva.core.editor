@@ -96,7 +96,7 @@
                       ['local anchor', 'anchor']
                   ],
                   required: true,
-                  onChange: function () {
+                  updateStatus: function () {
                       var value = this.getValue();
                       var dialog = this.getDialog();
                       var url_input = dialog.getContentElement(
@@ -127,6 +127,15 @@
                           extra_anchor_input.hide();
                           anchor_input.show();
                       };
+                  },
+                  onChange: function() {
+                      this.updateStatus();
+                  },
+                  onClick: function() {
+                      // IE doesn't trigger change when the radio is switched.
+                      if (CKEDITOR.env.ie) {
+                          this.updateStatus();
+                      }
                   },
                   setup: function(data) {
                       this.setValue(data.link.type);
@@ -272,6 +281,7 @@
                   ],
                   required: true,
                   onChange: function() {
+                      // IE triggers change when the select is changed !
                       var dialog = this.getDialog();
                       var target_value = dialog.getContentElement(
                           'link', 'link_target').getValue();

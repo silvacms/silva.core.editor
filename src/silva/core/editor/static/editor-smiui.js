@@ -35,7 +35,8 @@
                             height: '2000px',
                             toolbar_Silva: configuration['toolbars'],
                             resize_enabled: false,
-                            disable_colors: configuration['disable_colors']
+                            disable_colors: configuration['disable_colors'],
+                            dialog_buttonsOrder: 'rtl'
                         };
                         if (configuration['skin']) {
                             settings['skin'] = configuration['skin'];

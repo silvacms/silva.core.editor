@@ -19,7 +19,7 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
                 ],
                 'default': 'intern',
                 required: true,
-                onChange: function() {
+                updateStatus: function() {
                     var value = this.getValue();
                     var dialog = this.getDialog();
                     var url_input = dialog.getContentElement('image', 'image_url').getElement();
@@ -35,6 +35,15 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
                         url_input.show();
                         break;
                     }
+                },
+                onChange: function() {
+                    this.updateStatus();
+                },
+                onClick: function() {
+                    // IE doesn't trigger change event when radio is switched.
+                    if (CKEDITOR.env.ie) {
+                        this.updateStatus();
+                    };
                 },
                 setup: function(data) {
                     this.setValue(data.image.type);
@@ -160,7 +169,7 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
                 id: 'image_altAsCaption',
                 label: 'Use image alternative text as caption',
                 required: false,
-                onChange: function() {
+                updateStatus: function() {
                     var value = this.getValue();
                     var dialog = this.getDialog();
                     var caption = dialog.getContentElement('image', 'image_caption').getElement();
@@ -169,6 +178,15 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
                         caption.hide();
                     } else {
                         caption.show();
+                    }
+                },
+                onChange: function() {
+                    this.updateStatus();
+                },
+                onClick: function() {
+                    // IE doesn't trigger change event when checkbox is clicked.
+                    if (CKEDITOR.env.ie) {
+                        this.updateStatus();
                     }
                 },
                 setup: function(data) {
@@ -186,13 +204,22 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
                 id: 'link_hires',
                 label: 'Link to the hires version of the image',
                 required: false,
-                onChange: function() {
+                updateStatus: function() {
                     var value = this.getValue();
                     var dialog = this.getDialog();
                     var custom = dialog.getContentElement('link', 'link_custom');
 
                     if (value) {
                         custom.setValue(false);
+                    }
+                },
+                onChange: function() {
+                    this.updateStatus();
+                },
+                onClick: function() {
+                    // IE doesn't trigger change event when checkbox is clicked.
+                    if (CKEDITOR.env.ie) {
+                        this.updateStatus();
                     }
                 },
                 setup: function(data) {
@@ -226,7 +253,7 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
                 id: 'link_custom',
                 label: 'Link to an another item',
                 required: false,
-                onChange: function() {
+                updateStatus: function() {
                     var value = this.getValue();
                     var dialog = this.getDialog();
                     var hires = dialog.getContentElement('link', 'link_hires');
@@ -237,6 +264,15 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
                         options.show();
                     } else {
                         options.hide();
+                    };
+                },
+                onChange: function() {
+                    this.updateStatus();
+                },
+                onClick: function() {
+                    // IE doesn't trigger change when the checkbox is clicked.
+                    if (CKEDITOR.env.ie) {
+                        this.updateStatus();
                     };
                 },
                 setup: function(data) {
