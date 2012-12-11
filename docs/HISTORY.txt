@@ -1,10 +1,15 @@
 Changes
 =======
 
-3.0 (unreleased)
-----------------
+3.0c2 (2012/12/11)
+------------------
 
-* ...
+* Add a menu and a button to remove an anchor.
+
+* Only index anchor that do have a title.
+
+* Bug fixes on IE and Webkit for Silva integration.
+
 
 3.0c1 (2012/09/24)
 ------------------
