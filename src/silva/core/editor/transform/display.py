@@ -57,10 +57,18 @@ class ImageTransformationFilter(ReferenceTransformationFilter):
                     content = reference.target
                     image_url = absoluteURL(content, self.request)
                     if IImage.providedBy(content):
+                        resolution = None
                         if 'resolution' in image.attrib:
-                            image_url += '?' + image.attrib['resolution']
+                            resolution = image.attrib['resolution']
                             del image.attrib['resolution']
-                        size = content.get_dimensions()
+                        if resolution == 'hires':
+                            image_url += '?hires'
+                            size = content.get_dimensions(hires=True)
+                        elif resolution == 'thumbnail':
+                            image_url += '?thumbnail'
+                            size = content.get_dimensions(thumbnail=True)
+                        else:
+                            size = content.get_dimensions()
                         if size.height and size.width:
                             image.attrib['height'] = str(size.height)
                             image.attrib['width'] = str(size.width)
