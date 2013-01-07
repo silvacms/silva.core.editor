@@ -104,6 +104,7 @@ class InputTransformTestCase(TestCase):
   <div class="image">
     <img src="http://localhost/root/chocobo"
          alt="image"
+         data-silva-resolution="hires"
          data-silva-reference="new"
          data-silva-target="%s"></img>
   </div>
@@ -129,7 +130,8 @@ class InputTransformTestCase(TestCase):
   <p>Some description about the world</p>
   <div class="image">
     <img alt="image"
-         reference="%s" />
+         reference="%s"
+         resolution="hires" />
   </div>
 </div>
 """ % (reference_name))
@@ -145,6 +147,7 @@ class InputTransformTestCase(TestCase):
   <p>Some description about the world</p>
   <div class="image">
     <img alt="image"
+         data-silva-resolution="hires"
          data-silva-reference="%s"
          data-silva-target="%s"
          src="http://localhost/root/chocobo"></img>

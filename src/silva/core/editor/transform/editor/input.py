@@ -61,6 +61,9 @@ class ImageTransformer(ReferenceTransformationFilter):
             images = block.xpath('descendant::img')
             assert len(images) == 1, u"Invalid image construction"
             image = images[0]
+            if 'resolution' in image.attrib:
+                image.attrib['data-silva-resolution'] = image.attrib['resolution']
+                del image.attrib['resolution']
             if 'reference' in image.attrib:
                 name, reference = self.get_reference(image.attrib['reference'])
                 if reference is not None:

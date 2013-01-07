@@ -95,6 +95,10 @@ class ImageTransformer(SilvaReferenceTransformationFilter):
                 self.update_reference_for(image.attrib)
             if 'data-silva-url' in image.attrib:
                 image.attrib['src'] = image.attrib['data-silva-url']
+            if 'data-silva-resolution' in image.attrib:
+                resolution = image.attrib['data-silva-resolution']
+                if resolution in ('thumbnail', 'hires'):
+                    image.attrib['resolution'] = resolution
             clean_editor_attributes(image)
 
 
@@ -158,7 +162,7 @@ class SanitizeTransformer(TransformationFilter):
 
     _html_tags = None
     _html_attributes = None
-    _extra_html_attributes = set(['reference', 'anchor', 'query'])
+    _extra_html_attributes = set(['reference', 'anchor', 'query', 'resolution'])
     _css_attributes = None
 
     def prepare(self, name, text):
