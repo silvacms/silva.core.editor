@@ -6,23 +6,22 @@ from five import grok
 import lxml.sax
 import lxml.html
 
-
-from zope.component import getUtility
-from silva.core.interfaces import IVersion, ISilvaXMLExportHandler
 from silva.core.editor.transform.base import TransformationFilter
 from silva.core.editor.transform.interfaces import ISilvaXMLExportFilter
-from silva.core.editor.transform.silvaxml import NS_EDITOR_URI, NS_HTML_URI
+from silva.core.editor.transform.silvaxml import NS_EDITOR_URI
+from silva.core.interfaces import IVersion, ISilvaXMLProducer
+from silva.core.interfaces.errors import ExternalReferenceError
 from silva.core.references.interfaces import IReferenceService
 from silva.core.references.utils import canonical_path
-from silva.core.interfaces.errors import ExternalReferenceError
+from silva.core.xml.xmlexport import registry
 from silva.translations import translate as _
-from Products.Silva.silvaxml import xmlexport
+from zope.component import getUtility
 
 
 # Transformers
 
 class XHTMLExportTransformer(TransformationFilter):
-    grok.adapts(IVersion, ISilvaXMLExportHandler)
+    grok.adapts(IVersion, ISilvaXMLProducer)
     grok.provides(ISilvaXMLExportFilter)
     grok.order(0)
 
@@ -35,7 +34,7 @@ class XHTMLExportTransformer(TransformationFilter):
 
 
 class ReferenceExportTransformer(TransformationFilter):
-    grok.adapts(IVersion, ISilvaXMLExportHandler)
+    grok.adapts(IVersion, ISilvaXMLProducer)
     grok.provides(ISilvaXMLExportFilter)
 
     def __init__(self, context, handler):
@@ -44,7 +43,8 @@ class ReferenceExportTransformer(TransformationFilter):
         self.get_reference = getUtility(IReferenceService).get_reference
 
     def __call__(self, tree):
-        root = self.handler.getInfo().root
+        exporter = self.handler.getExported()
+        root = exporter.root
         for node in tree.xpath('//*[@reference]'):
             name = unicode(node.attrib['reference'])
             reference = self.get_reference(self.context, name=name)
@@ -59,10 +59,10 @@ class ReferenceExportTransformer(TransformationFilter):
                 # Give the relative, prepended with the root id.
                 node.attrib['reference'] = canonical_path(
                     '/'.join([root.getId()] + reference.relative_path_to(root)))
-
-
-xmlexport.theXMLExporter.registerNamespace('silva-core-editor', NS_EDITOR_URI)
-xmlexport.theXMLExporter.registerNamespace('html', NS_HTML_URI)
+            else:
+                exporter.reportProblem(
+                    u'Text contains a broken reference',
+                    content=self.context)
 
 
 class ProxyHandler(lxml.sax.ElementTreeContentHandler):
@@ -71,7 +71,7 @@ class ProxyHandler(lxml.sax.ElementTreeContentHandler):
         lxml.sax.ElementTreeContentHandler.__init__(self)
         self.producer = producer
         self.__prefixes = {}
-        self.__namespaces = xmlexport.theXMLExporter._namespaces.values()
+        self.__namespaces = registry.getNamespaces()
 
     def startPrefixMapping(self, prefix, uri):
         if uri not in self.__namespaces:

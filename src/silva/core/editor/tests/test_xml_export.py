@@ -8,9 +8,8 @@ import lxml
 from zope.component import getUtility
 
 from Products.Silva.testing import TestRequest
-from Products.Silva.silvaxml.xmlexport import SilvaExportRoot
-from Products.Silva.silvaxml.xmlexport import ExportSettings, ExportContext
 
+from silva.core.xml.xmlexport import Exporter
 from silva.core.references.interfaces import IReferenceService
 from silva.core.references.reference import get_content_id
 
@@ -52,25 +51,24 @@ class TestExport(unittest.TestCase):
         with self.layer.open_fixture('content-listing.png') as image:
             factory.manage_addImage('image', 'Image', image)
 
-        reference_service = getUtility(IReferenceService)
-        reference = reference_service.get_reference(
+        service = getUtility(IReferenceService)
+        reference = service.get_reference(
             self.version, name=u"document link", add=True)
         reference.add_tag(u"93094ba8-70bd-11e0-b805-c42c0338b1a2")
         reference.set_target_id(get_content_id(self.root.folder.other))
-        reference = reference_service.get_reference(
+        reference = service.get_reference(
             self.version, name=u"document image", add=True)
         reference.add_tag(u"a5c84b4a-70bd-11e0-8c0a-c42c0338b1a2")
         reference.set_target_id(get_content_id(self.root.folder.image))
 
+    @unittest.skip
     def test_export_reference_filter(self):
-        producer = SilvaExportRoot(self.root)
-        producer.getSettings = lambda: ExportSettings()
-        producer.getInfo = lambda: ExportContext(self.root, request=TestRequest())
+        root = Exporter(self.root, TestRequest())
 
         reference_filter = xmlexport.ReferenceExportTransformer(
-            self.version, producer)
+            self.version, root)
         tree = lxml.html.fromstring(self.html)
-        xmlexport.XHTMLExportTransformer(self.version, producer)(tree)
+        xmlexport.XHTMLExportTransformer(self.version, root)(tree)
         reference_filter(tree)
 
         def lookup(expression):

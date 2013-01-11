@@ -10,18 +10,18 @@ import lxml.etree
 import lxml.sax
 import lxml.html
 
-from silva.core.references.interfaces import IReferenceService
-from Products.Silva.silvaxml import xmlimport
-from silva.core.interfaces import IVersion, ISilvaXMLImportHandler
-from silva.core.editor.transform.silvaxml import NS_EDITOR_URI, NS_HTML_URI
-from silva.core.editor.transform.interfaces import ISilvaXMLImportFilter
 from silva.core.editor.transform.base import TransformationFilter
 from silva.core.editor.transform.editor.output import AnchorCollector
+from silva.core.editor.transform.interfaces import ISilvaXMLImportFilter
+from silva.core.editor.transform.silvaxml import NS_EDITOR_URI, NS_HTML_URI
+from silva.core.interfaces import IVersion, ISilvaXMLHandler
+from silva.core.references.interfaces import IReferenceService
+from silva.core.xml import handlers
 from silva.translations import translate as _
 
 
 class XHTMLImportTransformer(TransformationFilter):
-    grok.adapts(IVersion, ISilvaXMLImportHandler)
+    grok.adapts(IVersion, ISilvaXMLHandler)
     grok.provides(ISilvaXMLImportFilter)
     grok.order(100)
 
@@ -35,7 +35,7 @@ class XHTMLImportTransformer(TransformationFilter):
 
 
 class ReferenceImportTransformer(TransformationFilter):
-    grok.adapts(IVersion, ISilvaXMLImportHandler)
+    grok.adapts(IVersion, ISilvaXMLHandler)
     grok.provides(ISilvaXMLImportFilter)
     grok.implements(ISilvaXMLImportFilter)
     grok.order(10)
@@ -46,23 +46,21 @@ class ReferenceImportTransformer(TransformationFilter):
         self.new_reference = getUtility(IReferenceService).new_reference
 
     def __call__(self, tree):
-        info = self.handler.getInfo()
+        importer = self.handler.getExtra()
         for node in tree.xpath('//*[@reference]'):
             reference_type = unicode(node.attrib['reference-type'])
             reference_name = unicode(uuid.uuid1())
             path = node.attrib['reference']
 
             if not path:
-                info.reportError(
-                    _(u'Broken reference'), content=self.context)
+                importer.reportProblem(u'Broken reference', self.context)
                 continue
 
             reference = self.new_reference(self.context, reference_type)
             reference.add_tag(reference_name)
 
-            info.addAction(
-                xmlimport.resolve_path,
-                [reference.set_target, info, path])
+            importer.resolveImportedPath(
+                self.context, reference.set_target, path)
 
             node.attrib['reference'] = reference_name
             del node.attrib['reference-type']
@@ -71,13 +69,13 @@ class ReferenceImportTransformer(TransformationFilter):
 # This one must be executed after XHTMLImportTransformer that cleanup
 # the namespaces.
 class ImportAnchorCollector(AnchorCollector):
-    grok.adapts(IVersion, ISilvaXMLImportHandler)
+    grok.adapts(IVersion, ISilvaXMLHandler)
     grok.provides(ISilvaXMLImportFilter)
     grok.implements(ISilvaXMLImportFilter)
     grok.order(150)
 
 
-class TextHandler(xmlimport.SilvaBaseHandler):
+class TextHandler(handlers.SilvaHandler):
     proxy = None
 
     def startElementNS(self, name, qname, attrs):

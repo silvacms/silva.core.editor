@@ -10,7 +10,7 @@ from zope.interface import Interface
 from silva.core.editor.transform.interfaces import ITransformer
 from silva.core.editor.transform.interfaces import ITransformerFactory
 from silva.core.editor.transform.interfaces import ITransformationFilter
-from silva.core.interfaces import IVersion, ISilvaXMLImportHandler
+from silva.core.interfaces import IVersion, ISilvaXMLHandler
 from silva.core.references.interfaces import IReferenceService
 from zope import component
 
@@ -31,7 +31,7 @@ class TransformerFactory(grok.MultiAdapter):
             transformers,
             data,
             prepare=(name, text),
-            xhtml=ISilvaXMLImportHandler.providedBy(self.request))
+            xhtml=ISilvaXMLHandler.providedBy(self.request))
 
 
 class Transformer(object):
