@@ -44,6 +44,7 @@ class ReferenceExportTransformer(TransformationFilter):
 
     def __call__(self, tree):
         exporter = self.handler.getExported()
+        options = self.handler.getOptions()
         root = exporter.root
         for node in tree.xpath('//*[@reference]'):
             name = unicode(node.attrib['reference'])
@@ -52,16 +53,24 @@ class ReferenceExportTransformer(TransformationFilter):
             node.attrib['reference'] = ''
             if reference.target_id:
                 if not reference.is_target_inside_container(root):
-                    raise ExternalReferenceError(
-                        _(u"External reference"),
-                        self.context, reference.target, root)
+                    if options.external_references:
+                        exporter.reportProblem(
+                            u'Text contains a reference pointing outside of '
+                            u'the export ({0}).'.format(
+                                '/'.join(reference.relative_path_to(root))),
+                            content=self.context)
+                        continue
+                    else:
+                        raise ExternalReferenceError(
+                            _(u"External reference"),
+                            self.context, reference.target, root)
 
                 # Give the relative, prepended with the root id.
                 node.attrib['reference'] = canonical_path(
                     '/'.join([root.getId()] + reference.relative_path_to(root)))
             else:
                 exporter.reportProblem(
-                    u'Text contains a broken reference',
+                    u'Text contains a broken reference in the export.',
                     content=self.context)
 
 
