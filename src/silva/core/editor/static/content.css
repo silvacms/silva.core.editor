@@ -52,3 +52,7 @@ p.lead {
 p.annotation {
   font-style: italic;
 }
+
+a.broken-link {
+  color: #a00;
+}

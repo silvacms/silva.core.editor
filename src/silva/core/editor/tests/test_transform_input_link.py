@@ -180,6 +180,52 @@ class InputTransformTestCase(TestCase):
 </p>
 """ % (reference_name, target_id))
 
+    def test_edit_reference_link_broken(self):
+        """On input, a broken link gains a broken class, and this get
+        removed when saving.
+        """
+        version = self.root.document.get_editable()
+        service = getUtility(IReferenceService)
+        reference = service.new_reference(version, name=u"test link")
+        reference.add_tag(u"broken-link-id")
+
+        extern_format = self.transform(
+            """
+<p>
+   <a class="link"
+      reference="broken-link-id"
+      anchor="world">Access the world</a>
+</p>
+""",
+            IInputEditorFilter)
+        self.assertXMLEqual(
+            extern_format,
+            """
+<p>
+ <a class="link broken-link" data-silva-reference="broken-link-id" data-silva-target="0" data-silva-anchor="world" href="javascript:void()">
+  Access the world
+ </a>
+</p>
+""")
+        intern_format = self.transform(
+            extern_format,
+            ISaveEditorFilter)
+        self.assertXMLEqual(
+            intern_format,
+            """
+<p>
+ <a class="link" reference="broken-link-id" anchor="world">
+  Access the world
+ </a>
+</p>
+""")
+        references = list(service.get_references_from(version))
+        self.assertEqual(len(references), 1)
+        reference = references[0]
+        self.assertEqual(reference.source, version)
+        self.assertEqual(aq_chain(reference.source), aq_chain(version))
+        self.assertEqual(reference.target, None)
+
     def test_edit_reference_link_with_anchor(self):
         """On input, a existing link sees its reference updated.
         """

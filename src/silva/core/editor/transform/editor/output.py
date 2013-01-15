@@ -64,7 +64,13 @@ class LinkTransformer(SilvaReferenceTransformationFilter):
     grok.name('link')
 
     def __call__(self, tree):
-        for link in tree.xpath('//a[@class="link"]'):
+        for link in tree.xpath('//a[contains(@class, "link")]'):
+            classes = link.attrib['class'].split()
+            if 'link' not in classes:
+                continue
+            if 'broken-link' in classes:
+                classes.remove('broken-link')
+                link.attrib['class'] = ' '.join(classes)
             if 'href' in link.attrib:
                 del link.attrib['href']
             if 'data-silva-reference' in link.attrib:

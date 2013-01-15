@@ -18,13 +18,19 @@ class LinkTransformer(ReferenceTransformationFilter):
     _read_only = True
 
     def __call__(self, tree):
-        for link in tree.xpath('//a[@class="link"]'):
+        for link in tree.xpath('//a[contains(@class, "link")]'):
+            classes = link.attrib['class'].split()
+            if 'link' not in classes:
+                continue
             if 'reference' in link.attrib:
                 name, reference = self.get_reference(link.attrib['reference'])
                 if reference is not None:
                     link.attrib['data-silva-reference'] = name
                     link.attrib['data-silva-target'] = str(reference.target_id)
                     del link.attrib['reference']
+                    if not reference.target_id and 'broken-link' not in classes:
+                        classes.append('broken-link')
+                        link.attrib['class'] = ' '.join(classes)
             if 'href' in link.attrib:
                 link.attrib['data-silva-url'] = link.attrib['href']
             if 'query' in link.attrib:
