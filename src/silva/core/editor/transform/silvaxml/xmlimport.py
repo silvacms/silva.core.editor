@@ -52,15 +52,16 @@ class ReferenceImportTransformer(TransformationFilter):
             reference_name = unicode(uuid.uuid1())
             path = node.attrib['reference']
 
-            if not path:
-                importer.reportProblem(u'Broken reference', self.context)
-                continue
-
             reference = self.new_reference(self.context, reference_type)
             reference.add_tag(reference_name)
 
-            importer.resolveImportedPath(
-                self.context, reference.set_target, path)
+            if not path:
+                importer.reportProblem(
+                    u'Broken reference in import file.',
+                    self.context)
+            else:
+                importer.resolveImportedPath(
+                    self.context, reference.set_target, path)
 
             node.attrib['reference'] = reference_name
             del node.attrib['reference-type']
