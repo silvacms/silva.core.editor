@@ -65,7 +65,7 @@
                 data.form.bind('serialize-smiform', function () {
                     $textarea.val(editor.getData());
                 });
-                data.form.bind('clean-smiform', function () {
+                data.container.bind('clean-smiform', function () {
                     try {
                         editor.destroy(true);
                     } catch(error) {
