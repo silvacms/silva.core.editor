@@ -16,7 +16,7 @@ from silva.core.references.utils import canonical_path
 from silva.core.xml.xmlexport import registry
 from silva.translations import translate as _
 from zope.component import getUtility
-
+from zope.traversing.browser import absoluteURL
 
 # Transformers
 
@@ -31,6 +31,16 @@ class XHTMLExportTransformer(TransformationFilter):
 
     def __call__(self, tree):
         lxml.html.html_to_xhtml(tree)
+
+
+def get_url_attribute_for(node):
+    if (node.tag == '{http://www.w3.org/1999/xhtml}a' and
+        'class' in node.attrib and
+        'link' in node.attrib['class']):
+        return 'href'
+    if node.tag == '{http://www.w3.org/1999/xhtml}img':
+        return 'src'
+    return None
 
 
 class ReferenceExportTransformer(TransformationFilter):
@@ -49,6 +59,18 @@ class ReferenceExportTransformer(TransformationFilter):
         for node in tree.xpath('//*[@reference]'):
             name = unicode(node.attrib['reference'])
             reference = self.get_reference(self.context, name=name)
+            if options.external_rendering:
+                external_attribute = get_url_attribute_for(node)
+                del node.attrib['reference']
+                if external_attribute is None:
+                    exporter.reportProblem(
+                        u'Text contains a reference that cannot be converted '
+                        u'to a real URL.',
+                        content=self.context)
+                    continue
+                node.attrib[external_attribute] = absoluteURL(
+                    reference.target, exporter.request)
+                continue
             node.attrib['reference-type'] = reference.tags[0]
             node.attrib['reference'] = ''
             if reference.target_id:
