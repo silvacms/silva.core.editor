@@ -172,6 +172,7 @@ html_tags_whitelist = set([
     "code",
     "em",
     "strong",
+    "strike",
     "pre",
     "section",
     "spacer",
