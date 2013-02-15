@@ -50,8 +50,10 @@ class AnchorTransformer(TransformationFilter):
 
     def __call__(self, tree):
         for anchor in tree.xpath('//a[@class="anchor"]'):
-            # Ensure href is always disabled.
-            anchor.attrib['href'] = 'javascript:void()'
+            # You can set href here (or it will be extermitated by
+            # CKEDITOR.htmlParser.fragment.fromHtml).
+            if 'href' in anchor.attrib:
+                del anchor.attrib['href']
 
 
 class ImageTransformer(ReferenceTransformationFilter):
