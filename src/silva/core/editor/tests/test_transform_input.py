@@ -163,14 +163,12 @@ class InputTransformTestCase(unittest.TestCase):
             extern_format,
             """
 <p>
-   <a class="anchor" name="simple" title="Simple Anchor"
-       href="javascript:void()">
+   <a class="anchor" name="simple" title="Simple Anchor">
       Simple Anchor
    </a>
    The ultimate store of the anchors.
 
-   <a class="anchor" name="advanced" title="Advanced Anchor"
-      href="javascript:void()">
+   <a class="anchor" name="advanced" title="Advanced Anchor">
       Advanced Anchor
    </a>
 </p>
@@ -216,8 +214,7 @@ class InputTransformTestCase(unittest.TestCase):
             extern_format,
             """
 <p>
-   <a class="anchor" name="simple" title="Simple Anchor"
-      href="javascript:void()">
+   <a class="anchor" name="simple" title="Simple Anchor">
       Simple Anchor
    </a>
    The ultimate survivor.
@@ -263,12 +260,12 @@ class InputTransformTestCase(unittest.TestCase):
             extern_format,
             """
 <p>
-   <a class="anchor" name="missing" href="javascript:void()">Missing Title</a>
+   <a class="anchor" name="missing">Missing Title</a>
    The ultimate store of the anchors.
-   <a class="anchor" name="empty" title="" href="javascript:void()">
+   <a class="anchor" name="empty" title="">
      Empty Title
    </a>
-   <a class="anchor" name="space" title="" href="javascript:void()">
+   <a class="anchor" name="space" title="">
      Title with a space
    </a>
 </p>
