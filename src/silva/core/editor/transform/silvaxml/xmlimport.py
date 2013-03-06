@@ -17,7 +17,6 @@ from silva.core.editor.transform.silvaxml import NS_EDITOR_URI, NS_HTML_URI
 from silva.core.interfaces import IVersion, ISilvaXMLHandler
 from silva.core.references.interfaces import IReferenceService
 from silva.core.xml import handlers
-from silva.translations import translate as _
 
 
 class XHTMLImportTransformer(TransformationFilter):
