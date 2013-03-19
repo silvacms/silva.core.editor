@@ -122,6 +122,32 @@ class InputTransformTestCase(TestCase):
 </p>
 """)
 
+    def test_anchor_link_invalid_url(self):
+        """Test anchor link only that have an invalid URL. The URL
+        should be lost and the anchor preserved.
+        """
+        intern_format = self.transform(
+            """
+<p>
+   <a class="link"
+      href="javascript:void()"
+      target="_blank"
+      data-silva-url="javascript:void()"
+      data-silva-anchor="bar">
+      <b>To the nearest local bar</b></a>
+</p>
+""", ISaveEditorFilter)
+
+        self.assertXMLEqual(
+            intern_format,
+"""
+<p>
+   <a class="link"
+      target="_blank"
+      anchor="bar"><b>To the nearest local bar</b></a>
+</p>
+""")
+
     def test_new_reference_link(self):
         """On input, a new link creates a new reference.
         """

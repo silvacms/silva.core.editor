@@ -463,7 +463,8 @@
                             };
                             if (attributes['class'] == 'link') {
                                 if (!attributes['data-silva-url'] &&
-                                    !attributes['data-silva-reference']) {
+                                    !attributes['data-silva-reference'] &&
+                                    !attributes['data-silva-anchor']) {
                                     // Backup the href attribute into
                                     // data-silva-url: href get removed in
                                     // case of copy and paste in some obscur cases.

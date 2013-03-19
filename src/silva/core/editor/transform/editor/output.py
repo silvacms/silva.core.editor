@@ -2,8 +2,9 @@
 # Copyright (c) 2010-2013 Infrae. All rights reserved.
 # See also LICENSE.txt
 
-from five import grok
+import urlparse
 
+from five import grok
 from zope.component import queryUtility
 
 from silva.core.references.reference import get_content_from_id
@@ -13,9 +14,20 @@ from silva.core.editor.transform.interfaces import ISaveEditorFilter
 from silva.core.editor.transform.base import ReferenceTransformationFilter
 from silva.core.editor.transform.base import TransformationFilter
 from silva.core.editor.utils import html_sanitize_node
-from silva.core.editor.utils import html_tags_whitelist
-from silva.core.editor.utils import html_attributes_whitelist
-from silva.core.editor.utils import css_attributes_whitelist
+from silva.core.editor.utils import HTML_TAGS_WHITELIST, URL_SCHEMES_WHITELIST
+from silva.core.editor.utils import HTML_ATTRIBUTES_WHITELIST
+from silva.core.editor.utils import CSS_ATTRIBUTES_WHITELIST
+
+
+def extract_url(url, url_schemes=URL_SCHEMES_WHITELIST):
+    """Analyse and return a valid URL or None.
+    """
+    if url:
+        info = urlparse.urlparse(url)
+        # We just check the URL scheme at the moment.
+        if info.scheme in url_schemes:
+            return url
+    return None
 
 
 def clean_editor_attributes(tag):
@@ -76,11 +88,14 @@ class LinkTransformer(SilvaReferenceTransformationFilter):
             if 'data-silva-reference' in link.attrib:
                 self.update_reference_for(link.attrib)
             elif 'data-silva-url' in link.attrib:
-                link.attrib['href'] = link.attrib['data-silva-url']
+                url = extract_url(link.attrib['data-silva-url'])
+                if url is not None:
+                    link.attrib['href'] = url
             if 'data-silva-anchor' in link.attrib:
                 link.attrib['anchor'] = link.attrib['data-silva-anchor']
             if 'data-silva-query' in link.attrib:
                 link.attrib['query'] = link.attrib['data-silva-query']
+            # XXX It is possible the link looses its reference, url and anchor.
             clean_editor_attributes(link)
 
 
@@ -100,7 +115,11 @@ class ImageTransformer(SilvaReferenceTransformationFilter):
             if 'data-silva-reference' in image.attrib:
                 self.update_reference_for(image.attrib)
             if 'data-silva-url' in image.attrib:
-                image.attrib['src'] = image.attrib['data-silva-url']
+                src = extract_url(
+                    image.attrib['data-silva-url'],
+                    set(['http', 'https']))
+                if src is not None:
+                    image.attrib['src'] = src
             if 'data-silva-resolution' in image.attrib:
                 resolution = image.attrib['data-silva-resolution']
                 if resolution in ('thumbnail', 'hires'):
@@ -123,7 +142,9 @@ class ImageLinkTransformer(SilvaReferenceTransformationFilter):
                 if 'data-silva-reference' in link.attrib:
                     self.update_reference_for(link.attrib)
                 elif 'data-silva-url' in link.attrib:
-                    link.attrib['href'] = link.attrib['data-silva-url']
+                    url = extract_url(link.attrib['data-silva-url'])
+                    if url is not None:
+                        link.attrib['href'] = url
                 if 'data-silva-anchor' in link.attrib:
                     link.attrib['anchor'] = link.attrib['data-silva-anchor']
                 if 'data-silva-query' in link.attrib:
@@ -178,11 +199,11 @@ class SanitizeTransformer(TransformationFilter):
             self._html_attributes = service.get_allowed_html_attributes()
             self._css_attributes = service.get_allowed_css_attributes()
         if self._html_tags is None:
-            self._html_tags = html_tags_whitelist
+            self._html_tags = HTML_TAGS_WHITELIST
         if self._html_attributes is None:
-            self._html_attributes = html_attributes_whitelist
+            self._html_attributes = HTML_ATTRIBUTES_WHITELIST
         if self._css_attributes is None:
-            self._css_attributes = css_attributes_whitelist
+            self._css_attributes = CSS_ATTRIBUTES_WHITELIST
         self._html_attributes |= self._extra_html_attributes
 
     def __call__(self, tree):

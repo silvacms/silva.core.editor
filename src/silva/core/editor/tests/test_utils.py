@@ -5,9 +5,9 @@
 import unittest
 import lxml.html
 
-from silva.core.editor.utils import html_truncate
-from silva.core.editor.utils import html_extract_text
-from silva.core.editor.utils import html_sanitize, html_tags_whitelist, html_attributes_whitelist
+from ..utils import html_truncate, html_extract_text
+from ..utils import html_sanitize
+from ..utils import HTML_TAGS_WHITELIST, HTML_ATTRIBUTES_WHITELIST
 
 from Products.Silva.testing import tests
 
@@ -113,7 +113,8 @@ class TestSanitize(unittest.TestCase):
 """
 
     def test_sanitize_chunk(self):
-        sanitized = html_sanitize(self.HTML_CHUNCK, html_tags_whitelist, html_attributes_whitelist)
+        sanitized = html_sanitize(
+            self.HTML_CHUNCK, HTML_TAGS_WHITELIST, HTML_ATTRIBUTES_WHITELIST)
         expected = """
 <div>
     <p data-timestamp="42">

@@ -24,8 +24,6 @@ from zExceptions import Redirect
 
 from infrae import rest
 from silva.core import conf as silvaconf
-from silva.core.editor.interfaces import ICKEditorService
-from silva.core.editor.interfaces import ICKEditorSettings
 from silva.core.interfaces import ISilvaObject
 from silva.core.services.base import SilvaService, ZMIObject
 from silva.core.views.interfaces import IVirtualSite
@@ -33,13 +31,14 @@ from silva.translations import translate as _
 from zeam.form import silva as silvaforms
 from zeam.form.ztk.actions import EditAction
 
-from .utils import html_tags_whitelist
-from .utils import html_attributes_whitelist
-from .utils import css_attributes_whitelist
+from .interfaces import ICKEditorService
+from .interfaces import ICKEditorSettings
+from .utils import HTML_TAGS_WHITELIST
+from .utils import HTML_ATTRIBUTES_WHITELIST
+from .utils import CSS_ATTRIBUTES_WHITELIST
 
 
 logger = logging.getLogger('silva.core.editor')
-
 FORMAT_IDENTIFIER_BASE = 'format%0004d'
 
 
@@ -138,9 +137,9 @@ class CKEditorService(Folder, SilvaService):
         Folder.__init__(self, *args, **kw)
         SilvaService.__init__(self, *args, **kw)
         self._config_declarations = {}
-        self._allowed_html_tags = set(html_tags_whitelist)
-        self._allowed_html_attributes = set(html_attributes_whitelist)
-        self._allowed_css_attributes = set(css_attributes_whitelist)
+        self._allowed_html_tags = set(HTML_TAGS_WHITELIST)
+        self._allowed_html_attributes = set(HTML_ATTRIBUTES_WHITELIST)
+        self._allowed_css_attributes = set(CSS_ATTRIBUTES_WHITELIST)
 
     def get_configuration(self, name):
         names = [name]

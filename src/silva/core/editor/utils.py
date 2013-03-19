@@ -129,8 +129,12 @@ def html_sanitize_node(el, allowed_tags_set, allowed_attributes_set,
                 else:
                     el.text = child.tail
 
+URL_SCHEMES_WHITELIST = set([
+        'http', 'https', 'ftp', 'ftps', 'ssh', 'news', 'mailto',
+        'tel', 'webcal', 'itms'
+        ])
 
-html_tags_whitelist = set([
+HTML_TAGS_WHITELIST = set([
     "a",
     "abbr",
     "acronym",
@@ -191,7 +195,7 @@ html_tags_whitelist = set([
     "wbr",
 ])
 
-html_attributes_whitelist = set([
+HTML_ATTRIBUTES_WHITELIST = set([
     "accesskey",
     "alt",
     "cite",
@@ -219,7 +223,7 @@ html_attributes_whitelist = set([
     "value",
 ])
 
-css_attributes_whitelist = set([
+CSS_ATTRIBUTES_WHITELIST = set([
     'clear',
     'list-style-type',
     'margin',
