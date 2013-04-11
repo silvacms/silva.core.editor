@@ -9,6 +9,7 @@ import lxml.html
 from silva.core.editor.transform.base import TransformationFilter
 from silva.core.editor.transform.interfaces import ISilvaXMLExportFilter
 from silva.core.editor.transform.silvaxml import NS_EDITOR_URI
+from silva.core.editor.transform.silvaxml.treeproducer import saxify
 from silva.core.interfaces import IVersion, ISilvaXMLProducer
 from silva.core.interfaces.errors import ExternalReferenceError
 from silva.core.references.interfaces import IReferenceService
@@ -96,38 +97,6 @@ class ReferenceExportTransformer(TransformationFilter):
                     content=self.context)
 
 
-class ProxyHandler(lxml.sax.ElementTreeContentHandler):
-
-    def __init__(self, producer):
-        lxml.sax.ElementTreeContentHandler.__init__(self)
-        self.producer = producer
-        self.__prefixes = {}
-        self.__namespaces = registry.getNamespaces()
-
-    def startPrefixMapping(self, prefix, uri):
-        if uri not in self.__namespaces:
-            # This is an not known prefix.
-            self.producer.handler.startPrefixMapping(prefix, uri)
-
-        lxml.sax.ElementTreeContentHandler.startPrefixMapping(
-            self, prefix, uri)
-
-    def startElementNS(self, name, qname, attributes):
-        prefix, localname = name
-        if prefix in self.__prefixes:
-            prefix = self.__prefixes[prefix]
-        self.producer.startElementNS(prefix, localname, attributes)
-
-    def endElementNS(self, name, qname):
-        prefix, localname = name
-        if prefix in self.__prefixes:
-            prefix = self.__prefixes[prefix]
-        self.producer.endElementNS(prefix, localname)
-
-    def characters(self, content):
-        self.producer.handler.characters(content)
-
-
 class TextProducerProxy(object):
 
     def __init__(self, context, text):
@@ -136,11 +105,11 @@ class TextProducerProxy(object):
 
     def sax(self, producer):
         producer.startElementNS(NS_EDITOR_URI, 'text')
-        proxy= ProxyHandler(producer)
+        prefixes = dict(registry.getNamespaces(prefix=True))
         transformer = self.text.get_transformer(
             self.context, producer, ISilvaXMLExportFilter)
         for part in transformer():
-            lxml.sax.saxify(part, proxy)
+            saxify(part, producer, prefixes=prefixes)
         producer.endElementNS(NS_EDITOR_URI, 'text')
 
 
