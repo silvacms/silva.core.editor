@@ -30,7 +30,7 @@ class ICKEditorResources(IReferenceUIResources):
 class ICKEditorSilvaUIResources(ISilvaUIDependencies, ICKEditorResources):
     """Javascript resources to load a CKEditor in silva.ui.
     """
-    silvaconf.resource('editor-smiui.js')
+    silvaconf.resource('editor.js')
 
 
 tools_vocabulary = SimpleVocabulary([

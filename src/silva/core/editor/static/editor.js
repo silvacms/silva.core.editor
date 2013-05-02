@@ -1,17 +1,56 @@
 
 
 (function($, infrae, CKEDITOR) {
-
     infrae.interfaces.register('editor');
 
-    var MODULE_BLACKLIST = ['save', 'link', 'flash', 'image' , 'filebrowser', 'iframe','forms'];
-    var configurations = [];
+    // There are two settings registry, one used for full mode, one used then embded (like inside a form).
+    var MODULE_BLACKLIST = ['save', 'link', 'flash', 'image' , 'filebrowser', 'iframe','forms'],
+        FULL_SETTINGS = [],
+        EMBDED_SETTINGS = [];
 
     $(document).bind('load-smiplugins', function(event, smi) {
 
-        var get_settings = function(name) {
-            return configurations[name] !== undefined ?
-                $.when(configurations[name]) :
+        var build_settings = function(configuration, embded) {
+            // Create settings out of the configuration that is fetched from the server.
+            var plugins_blacklist = MODULE_BLACKLIST.slice(),
+                plugins_extra = configuration['plugins'];
+
+            if (embded) {
+                // In embded mode we remove the save plugin.
+                var index = $.inArray('silvasave', plugins_extra);
+
+                plugins_blacklist.push('silvasave');
+                if (index > -1) {
+                    plugins_extra.splice(index, 1);
+                };
+            };
+            var settings = {
+                entities: false,
+                fullPage: false,
+                basicEntities: true,
+                language: smi.get_language(),
+                contentsCss: configuration['contents_css'],
+                silvaFormats: configuration['formats'],
+                extraPlugins: plugins_extra.join(','),
+                removePlugins: plugins_blacklist.join(','),
+                toolbar: 'Silva',
+                toolbar_Silva: configuration['toolbars'],
+                height: '2000px',
+                resize_enabled: false,
+                disable_colors: configuration['disable_colors'],
+                dialog_buttonsOrder: 'rtl'
+            };
+            if (configuration['skin']) {
+                settings['skin'] = configuration['skin'];
+            };
+            return settings;
+        };
+
+        var get_settings = function(name, embded) {
+            var registry = embded ? EMBDED_SETTINGS : FULL_SETTINGS;
+
+            return registry[name] !== undefined ?
+                $.when(registry[name]) :
                 (function () {
                     return $.ajax({
                         url: smi.options.editor.configuration,
@@ -21,39 +60,21 @@
                         for (var key in configuration['paths']) {
                             CKEDITOR.plugins.addExternal(key, configuration['paths'][key]);
                         };
-
-                        var settings = {
-                            entities: false,
-                            fullPage: false,
-                            basicEntities: true,
-                            language: smi.get_language(),
-                            contentsCss: configuration['contents_css'],
-                            silvaFormats: configuration['formats'],
-                            extraPlugins: configuration['plugins'],
-                            removePlugins: MODULE_BLACKLIST.join(','),
-                            toolbar: 'Silva',
-                            height: '2000px',
-                            toolbar_Silva: configuration['toolbars'],
-                            resize_enabled: false,
-                            disable_colors: configuration['disable_colors'],
-                            dialog_buttonsOrder: 'rtl'
-                        };
-                        if (configuration['skin']) {
-                            settings['skin'] = configuration['skin'];
-                        };
-                        configurations[name] = settings;
-                        return settings;
+                        // Create and register the settings for reuse later on.
+                        FULL_SETTINGS[name] = build_settings(configuration, false);
+                        EMBDED_SETTINGS[name] = build_settings(configuration, true);
+                        return registry[name];
                     }, function(request) {
                         return $.Deferred().reject(request);
                     });
                 })();
         };
 
-        // This is used by the form field.
+        // This is used by the form field (the editor is embded)
         var create_html_field = function(data) {
             var $textarea = $(this);
 
-            get_settings($textarea.data('editor-configuration')).done(function(settings) {
+            get_settings($textarea.data('editor-configuration'), true).done(function(settings) {
                 var editor = CKEDITOR.replace(
                     $textarea.get(0), $.extend({}, settings, {height: '300px'}));
 
@@ -84,7 +105,7 @@
             event.stopPropagation();
         });
 
-        // This is the full size editor screen (no form).
+        // This is the full size editor screen (the editor is full).
         infrae.views.view({
             iface: 'editor',
             name: 'content',
@@ -100,6 +121,7 @@
                                 'Do you want to continue?',
                             buttons: {
                                 Save: function() {
+                                    // This URL should be configurable ...
                                     var url =  $('#content-url').attr('href') +
                                             '/++rest++silva.core.editor.save';
                                     var data = {};

@@ -344,7 +344,7 @@ class CKEditorRESTConfiguration(rest.REST):
              'paths': plugins_url,
              'contents_css': configuration.contents_css,
              'formats': configuration.get_formats(),
-             'plugins': ','.join(plugins_url.keys()),
+             'plugins': list(plugins_url.keys()),
              'disable_colors': configuration.disable_colors,
              'skin': skin})
 

@@ -98,6 +98,8 @@ class CKEditorRESTSave(rest.REST):
     grok.name('silva.core.editor.save')
 
     def POST(self):
+        # This view should be only available on versioned content have
+        # a text block.
         version = self.context.get_editable()
         if version is None:
             return self.json_response(
