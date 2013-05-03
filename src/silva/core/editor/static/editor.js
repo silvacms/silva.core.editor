@@ -56,7 +56,7 @@
                         url: smi.options.editor.configuration,
                         dataType: 'json',
                         data: [{name: 'name', value: name}]
-                    }).pipe(function(configuration) {
+                    }).then(function(configuration) {
                         for (var key in configuration['paths']) {
                             CKEDITOR.plugins.addExternal(key, configuration['paths'][key]);
                         };
