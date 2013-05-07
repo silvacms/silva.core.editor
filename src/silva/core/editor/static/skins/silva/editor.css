@@ -74,10 +74,11 @@ background-position:0 -1088px;
 background-repeat:no-repeat;
 cursor:se-resize;
 display:block;
-float:right;
 height:12px;
-margin-top:30px;
 width:12px;
+position:absolute;
+bottom:0px;
+right:0px;
 }
 
 .cke_skin_silva .cke_resizer_horizontal,.cke_skin_silva .cke_rtl .cke_resizer_horizontal {
