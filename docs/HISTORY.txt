@@ -1,10 +1,26 @@
 Changes
 =======
 
-3.0.1 (unreleased)
+3.0.2 (unreleased)
 ------------------
 
 * ...
+
+3.0.1 (2013/05/24)
+------------------
+
+* Fix xml import and export to work with multiple block of text in the
+  same content.
+
+* Update javascript for jQuery 1.9.
+
+* Don't include the Silva save plugin when the editor is created as a
+  form field.
+
+* Fix CSS that prevent to resize CKEditor dialog.
+
+* Ensure that link's URL are never saved with ``javascript:void()`` in
+  it.
 
 3.0 (2013/03/06)
 ----------------
