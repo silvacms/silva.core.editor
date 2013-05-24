@@ -98,7 +98,7 @@
             });
         };
 
-        $('.form-fields-container').live('loadwidget-smiform', function(event, data) {
+        $(document).on('loadwidget-smiform', '.form-fields-container', function(event, data) {
             $(this).find('.field-htmltext').each(function () {
                 create_html_field.call(this, data);
             });
