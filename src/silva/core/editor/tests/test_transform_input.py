@@ -83,6 +83,16 @@ class InputTransformTestCase(unittest.TestCase):
             extern_format,
             "<p>Simple text<i>Italic</i></p>")
 
+    def test_paragraph_windows_lines(self):
+        """Windows new lines stays windows new lines (LXML bug).
+        """
+        intern_format = self.transform(
+            u"<p><i>Italic</i>.\r\n\tReally dude</p>\r\n\t<p>Énd</p>\r\n",
+            ISaveEditorFilter)
+        tests.assertStringEqual(
+            intern_format,
+            u"<p><i>Italic</i>.\r\n\tReally dude</p>\r\n\t<p>&#201;nd</p>\r\n")
+
     def test_div(self):
         """On input, div stays unchanged.
         """
