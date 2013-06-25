@@ -55,7 +55,8 @@ class Text(Persistent):
     def render(self, context, request, type=None):
         return unicode(self.get_transformer(context, request, type))
 
-    def introduction(self, context, request, max_length=300, type=None):
+    def introduction(self, context, request, max_length=300, max_words=None,
+                     type=None):
         transformer = self.get_transformer(context, request, type)
         transformer.restrict('//p[1]')
         transformer.visit(lambda node: html_truncate_node(node, max_length))
