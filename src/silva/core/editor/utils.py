@@ -49,10 +49,15 @@ def html_extract_text(element, data=None):
     return data
 
 
-def html_truncate_node(el, remaining_length, append=u"…"):
+def html_truncate_node(el, remaining_length, append=u"…",
+        truncate_words=False):
+
+    if truncate_words:
+        return html_truncate_node_words(el, remaining_length, append=append);
+
     text = normalize_space(el.text)
     if text and len(text) >= remaining_length:
-        el.text = text[0:remaining_length] + append
+        el.text = text[:remaining_length] + append
         el.tail = None
         for child in el.iterchildren():
             el.remove(child)
@@ -73,13 +78,50 @@ def html_truncate_node(el, remaining_length, append=u"…"):
 
     tail = normalize_space(el.tail)
     if tail and len(tail) >= remaining_length:
-        el.tail = tail[0:remaining_length] + append
+        el.tail = tail[:remaining_length] + append
         return 0
 
     remaining_length -= len(tail)
 
     return remaining_length
 
+def html_truncate_node_words(el, remaining_words, append=u"…"):
+    word_pattern = re.compile(r'\s*[^\s]+\s*')
+    re_append    = re.compile(r'\s*$')
+
+    norm_text    = normalize_space(el.text)
+    found_words  = re.findall(word_pattern, norm_text)
+
+    if len(found_words) >= remaining_words:
+        el.text = ''.join(found_words[:remaining_words])
+        el.text = re.sub(re_append, append, el.text)
+        el.tail = None
+        for child in el.iterchildren():
+            el.remove(child);
+        return 0
+
+    remaining_words -= len(found_words)
+
+    for child in el.iterchildren():
+        if not remaining_words:
+            el.remove(child)
+        remaining_words = html_truncate_node_words(
+            child, remaining_words, append=append)
+        if not remaining_words:
+            el.tail = None
+
+    if not remaining_words:
+        return 0
+
+    norm_tail    = normalize_space(el.tail)
+    found_words  = re.findall(word_pattern, norm_tail)
+
+    if len(found_words) >= remaining_words:
+        el.tail = ''.join(found_words[:remaining_words])
+        el.tail = re.sub(re_append, append, el.tail)
+        return 0
+
+    return remaining_words - len(found_words)
 
 STYLE_ATTRIBUTE = 'style'
 UTF8 = 'utf-8'
@@ -242,7 +284,11 @@ def html_sanitize(html_data, allowed_tags, allowed_attributes, allowed_css_style
 
 ELLIPSIS = u"…"
 
-def html_truncate(max_length, html_data, append=ELLIPSIS):
+def html_truncate(max_length, html_data, append=ELLIPSIS, truncate_words=False):
     html_tree = lxml.html.fromstring(html_data)
-    html_truncate_node(html_tree, max_length, append=append)
+    html_truncate_node(html_tree, max_length, append=append,
+            truncate_words=truncate_words)
     return lxml.html.tostring(html_tree)
+
+def html_truncate_words(max_length, html_data, append=ELLIPSIS):
+    return html_truncate(max_length, html_data, append=append, truncate_words=True)

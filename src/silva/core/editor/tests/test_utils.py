@@ -5,7 +5,7 @@
 import unittest
 import lxml.html
 
-from ..utils import html_truncate, html_extract_text
+from ..utils import html_truncate, html_truncate_words, html_extract_text
 from ..utils import html_sanitize
 from ..utils import HTML_TAGS_WHITELIST, HTML_ATTRIBUTES_WHITELIST
 
@@ -37,6 +37,29 @@ class TestTruncate(unittest.TestCase):
             """<p>some text<img src="#somewhere"> an&#8230;</p>""",
             html_truncate(12,
                 """<p>some text<img src="#somewhere" /> and some tail</p>"""))
+
+    def test_html_truncate_words(self):
+        html = """<p>some text<a href="#somelink">link</a> and some<span> tail<div></div></span>asdf</p>"""
+
+        self.assertEquals(
+            """<p>some text&#8230;</p>""",
+            html_truncate_words(2, html))
+
+        self.assertEquals(
+            """<p>some text<a href="#somelink">link&#8230;</a></p>""",
+            html_truncate_words(3, html))
+
+        self.assertEquals(
+            """<p>some text<a href="#somelink">link</a> and&#8230;</p>""",
+            html_truncate_words(4, html))
+
+        self.assertEquals(
+            """<p>some text<a href="#somelink">link</a> and some<span> tail&#8230;</span></p>""",
+            html_truncate_words(6, html))
+
+        self.assertEquals(
+            """<p>&#8230;</p>""",
+            html_truncate_words(0, html))
 
     def test_html_truncate_spaces_does_not_count(self):
         html = """<p>some     text<a href="#somelink">link</a>
