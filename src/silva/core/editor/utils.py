@@ -16,11 +16,15 @@ def normalize_space(text, strip=False):
         return re.sub(norm_whitespace_re, ' ', text)
     return u''
 
+
 IMG_TAG = 'img'
 ALT_ATTRIBUTE = 'alt'
 TITLE_ATTRIBUTE = 'title'
 
+
 def html_extract_text(element, data=None):
+    """Extract the text of an lxml tree and return it inside a list.
+    """
     if data is None:
         data = []
 
@@ -49,12 +53,11 @@ def html_extract_text(element, data=None):
     return data
 
 
-def html_truncate_node(el, remaining_length, append=u"…",
-        truncate_words=False):
-
-    if truncate_words:
-        return html_truncate_node_words(el, remaining_length, append=append);
-
+def html_truncate_characters(el, remaining_length, append=u"…"):
+    """Truncate the content of the lxml node ``el`` to contains not
+    more than ``remaining_length`` characters. ``append`` is added at
+    the end of the last node is truncation happened.
+    """
     text = normalize_space(el.text)
     if text and len(text) >= remaining_length:
         el.text = text[:remaining_length] + append
@@ -68,7 +71,7 @@ def html_truncate_node(el, remaining_length, append=u"…",
     for child in el.iterchildren():
         if remaining_length <= 0:
             el.remove(child)
-        remaining_length = html_truncate_node(
+        remaining_length = html_truncate_characters(
             child, remaining_length, append=append)
         if remaining_length == 0:
             el.tail = None
@@ -85,16 +88,22 @@ def html_truncate_node(el, remaining_length, append=u"…",
 
     return remaining_length
 
-def html_truncate_node_words(el, remaining_words, append=u"…"):
-    word_pattern = re.compile(r'\s*[^\s]+\s*')
-    re_append    = re.compile(r'\s*$')
 
+WORD_PATTERN = re.compile(r'\s*[^\s]+\s*')
+RE_APPEND    = re.compile(r'\s*$')
+
+
+def html_truncate_words(el, remaining_words, append=u"…"):
+    """Truncate the content of the lxml node ``el`` to contains not
+    more than ``remaining_words`` words. ``append`` is added at
+    the end of the last node is truncation happened.
+    """
     norm_text    = normalize_space(el.text)
-    found_words  = re.findall(word_pattern, norm_text)
+    found_words  = re.findall(WORD_PATTERN, norm_text)
 
     if len(found_words) >= remaining_words:
         el.text = ''.join(found_words[:remaining_words])
-        el.text = re.sub(re_append, append, el.text)
+        el.text = re.sub(RE_APPEND, append, el.text)
         el.tail = None
         for child in el.iterchildren():
             el.remove(child);
@@ -105,7 +114,7 @@ def html_truncate_node_words(el, remaining_words, append=u"…"):
     for child in el.iterchildren():
         if not remaining_words:
             el.remove(child)
-        remaining_words = html_truncate_node_words(
+        remaining_words = html_truncate_words(
             child, remaining_words, append=append)
         if not remaining_words:
             el.tail = None
@@ -114,19 +123,21 @@ def html_truncate_node_words(el, remaining_words, append=u"…"):
         return 0
 
     norm_tail    = normalize_space(el.tail)
-    found_words  = re.findall(word_pattern, norm_tail)
+    found_words  = re.findall(WORD_PATTERN, norm_tail)
 
     if len(found_words) >= remaining_words:
         el.tail = ''.join(found_words[:remaining_words])
-        el.tail = re.sub(re_append, append, el.tail)
+        el.tail = re.sub(RE_APPEND, append, el.tail)
         return 0
 
     return remaining_words - len(found_words)
+
 
 STYLE_ATTRIBUTE = 'style'
 UTF8 = 'utf-8'
 _CSS_RULE_FORMAT = "%s: %s;"
 _DATA_ATTRIBUTE = 'data-'
+
 
 def html_sanitize_node(el, allowed_tags_set, allowed_attributes_set,
         allowed_css_style_attributes_set=None):
@@ -274,7 +285,8 @@ CSS_ATTRIBUTES_WHITELIST = set([
 
 ####### All the code below is only used in tests ####################
 
-def html_sanitize(html_data, allowed_tags, allowed_attributes, allowed_css_style_attributes=None):
+def html_sanitize(html_data, allowed_tags, allowed_attributes,
+                  allowed_css_style_attributes=None):
     html_tree = lxml.html.fromstring(html_data)
     if allowed_css_style_attributes is not None:
         allowed_css_style_attributes = set(allowed_css_style_attributes)
@@ -282,13 +294,3 @@ def html_sanitize(html_data, allowed_tags, allowed_attributes, allowed_css_style
         allowed_css_style_attributes)
     return lxml.html.tostring(html_tree)
 
-ELLIPSIS = u"…"
-
-def html_truncate(max_length, html_data, append=ELLIPSIS, truncate_words=False):
-    html_tree = lxml.html.fromstring(html_data)
-    html_truncate_node(html_tree, max_length, append=append,
-            truncate_words=truncate_words)
-    return lxml.html.tostring(html_tree)
-
-def html_truncate_words(max_length, html_data, append=ELLIPSIS):
-    return html_truncate(max_length, html_data, append=append, truncate_words=True)

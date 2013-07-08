@@ -6,19 +6,22 @@ import collections
 from five import grok
 from infrae import rest
 from persistent import Persistent
-from silva.core.editor.interfaces import IText
-from silva.core.editor.interfaces import ITextIndexEntries
-from silva.core.editor.transform.interfaces import ITransformerFactory
-from silva.core.editor.transform.interfaces import IDisplayFilter
-from silva.core.editor.transform.interfaces import ISaveEditorFilter
-from silva.core.editor.transform.interfaces import IInputEditorFilter
-from silva.core.editor.utils import html_truncate_node, html_extract_text
-from silva.core.interfaces import IVersionedContent
-from silva.core.messages.interfaces import IMessageService
-from silva.translations import translate as _
 from zope.component import getMultiAdapter, getUtility
 from zope.event import notify
 from zope.lifecycleevent import ObjectModifiedEvent
+
+from silva.core.interfaces import IVersionedContent
+from silva.core.messages.interfaces import IMessageService
+from silva.translations import translate as _
+
+from .interfaces import IText
+from .interfaces import ITextIndexEntries
+from .transform.interfaces import ITransformerFactory
+from .transform.interfaces import IDisplayFilter
+from .transform.interfaces import ISaveEditorFilter
+from .transform.interfaces import IInputEditorFilter
+from .utils import html_truncate_words, html_truncate_characters
+from .utils import html_extract_text
 
 
 IndexEntry = collections.namedtuple('IndexEntry', ['anchor', 'title'])
@@ -55,11 +58,16 @@ class Text(Persistent):
     def render(self, context, request, type=None):
         return unicode(self.get_transformer(context, request, type))
 
-    def introduction(self, context, request, max_length=300, max_words=None,
-                     type=None):
+    def introduction(self, context, request, max_length=300, max_words=None, type=None):
+        if max_words is not None:
+            count = max_words
+            truncate = html_truncate_words
+        else:
+            count = max_length
+            truncate = html_truncate_characters
         transformer = self.get_transformer(context, request, type)
         transformer.restrict('//p[1]')
-        transformer.visit(lambda node: html_truncate_node(node, max_length))
+        transformer.visit(lambda node: truncate(node, count))
         return unicode(transformer)
 
     def fulltext(self, context, request, type=None):

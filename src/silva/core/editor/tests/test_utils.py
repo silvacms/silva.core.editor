@@ -5,11 +5,26 @@
 import unittest
 import lxml.html
 
-from ..utils import html_truncate, html_truncate_words, html_extract_text
-from ..utils import html_sanitize
+from ..utils import html_truncate_characters, html_truncate_words
+from ..utils import html_extract_text, html_sanitize
 from ..utils import HTML_TAGS_WHITELIST, HTML_ATTRIBUTES_WHITELIST
 
 from Products.Silva.testing import tests
+
+
+ELLIPSIS = u"…"
+
+def html_truncate_test_characters(max_length, html_data, append=ELLIPSIS):
+    # Helper for test purposes
+    html_tree = lxml.html.fromstring(html_data)
+    html_truncate_characters(html_tree, max_length, append=append)
+    return lxml.html.tostring(html_tree)
+
+def html_truncate_test_words(max_length, html_data, append=ELLIPSIS):
+    # Helper for test purposes
+    html_tree = lxml.html.fromstring(html_data)
+    html_truncate_words(html_tree, max_length, append=append)
+    return lxml.html.tostring(html_tree)
 
 
 class TestTruncate(unittest.TestCase):
@@ -19,23 +34,23 @@ class TestTruncate(unittest.TestCase):
 
         self.assertEquals(
             """<p>some text<a href="#somelink">link</a> and&#8230;</p>""",
-            html_truncate(17, html))
+            html_truncate_test_characters(17, html))
 
         self.assertEquals(
             """<p>some text<a href="#somelink">link</a> and some<span> t&#8230;</span></p>""",
-            html_truncate(24, html))
+            html_truncate_test_characters(24, html))
 
         self.assertEquals(
             """<p>some text<a href="#somelink">link</a> and some<span> tail<div></div></span>a&#8230;</p>""",
-            html_truncate(28, html))
+            html_truncate_test_characters(28, html))
 
         self.assertEquals(
             """<p>&#8230;</p>""",
-            html_truncate(0, html))
+            html_truncate_test_characters(0, html))
 
         self.assertEquals(
             """<p>some text<img src="#somewhere"> an&#8230;</p>""",
-            html_truncate(12,
+            html_truncate_test_characters(12,
                 """<p>some text<img src="#somewhere" /> and some tail</p>"""))
 
     def test_html_truncate_words(self):
@@ -43,23 +58,23 @@ class TestTruncate(unittest.TestCase):
 
         self.assertEquals(
             """<p>some text&#8230;</p>""",
-            html_truncate_words(2, html))
+            html_truncate_test_words(2, html))
 
         self.assertEquals(
             """<p>some text<a href="#somelink">link&#8230;</a></p>""",
-            html_truncate_words(3, html))
+            html_truncate_test_words(3, html))
 
         self.assertEquals(
             """<p>some text<a href="#somelink">link</a> and&#8230;</p>""",
-            html_truncate_words(4, html))
+            html_truncate_test_words(4, html))
 
         self.assertEquals(
             """<p>some text<a href="#somelink">link</a> and some<span> tail&#8230;</span></p>""",
-            html_truncate_words(6, html))
+            html_truncate_test_words(6, html))
 
         self.assertEquals(
             """<p>&#8230;</p>""",
-            html_truncate_words(0, html))
+            html_truncate_test_words(0, html))
 
     def test_html_truncate_spaces_does_not_count(self):
         html = """<p>some     text<a href="#somelink">link</a>
@@ -68,7 +83,7 @@ class TestTruncate(unittest.TestCase):
 
         self.assertEquals(
             '<p>some     text<a href="#somelink">link</a> and&#8230;</p>',
-            html_truncate(17, html))
+            html_truncate_test_characters(17, html))
 
     def test_html_extract_text(self):
         chunk = """
@@ -212,6 +227,7 @@ class TestSanitize(unittest.TestCase):
     <a href="http://infrae.com/" style="text-decoration: underline;">link</a>
 </div>
 """
+        tests.assertXMLEqual(expected, sanitized)
 
     def test_sanitize_css_with_error_first(self):
         html = """
@@ -225,6 +241,7 @@ class TestSanitize(unittest.TestCase):
     <a href="http://infrae.com/" style="text-decoration: underline;">link</a>
 </div>
 """
+        tests.assertXMLEqual(expected, sanitized)
 
 
 def test_suite():

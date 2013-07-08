@@ -67,6 +67,16 @@ class IntroductionTestCase(TestCase):
             self.root.test.get_editable(), TestRequest(), max_length=20)
         self.assertXMLEqual("""<p>First paragraph of &#8230;</p>""", intro)
 
+        intro = text.introduction(
+            self.root.test.get_editable(), TestRequest(), max_words=4)
+        self.assertXMLEqual("""<p>First paragraph of text,&#8230;</p>""", intro)
+
+        intro = text.introduction(
+            self.root.test.get_editable(), TestRequest(), max_words=8)
+        self.assertXMLEqual("""<p>
+        First paragraph of text, this is <strong>important</strong>
+        <a href="http://infrae.com">and&#8230;</a></p>""", intro)
+
 
 class FullTextTestCase(unittest.TestCase):
     layer = FunctionalLayer
