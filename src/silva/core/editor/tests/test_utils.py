@@ -55,6 +55,8 @@ class TestTruncate(unittest.TestCase):
 
     def test_html_truncate_words(self):
         html = """<p>some text<a href="#somelink">link</a> and                some<span> tail<div></div></span>asdf</p>"""
+        spaced_html = """<p>              </p>"""
+        empty_html = """<p></p>"""
 
         self.assertEquals(
             """<p>some text &#8230;</p>""",
@@ -75,6 +77,14 @@ class TestTruncate(unittest.TestCase):
         self.assertEquals(
             """<p>&#8230;</p>""",
             html_truncate_test_words(0, html))
+
+        self.assertEquals(
+            """<p>&#8230;</p>""",
+            html_truncate_test_words(0, spaced_html))
+
+        self.assertEquals(
+            """<p>&#8230;</p>""",
+            html_truncate_test_words(0, empty_html))
 
     def test_html_truncate_spaces_does_not_count(self):
         html = """<p>some     text<a href="#somelink">link</a>

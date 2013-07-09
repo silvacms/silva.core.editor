@@ -89,7 +89,7 @@ def html_truncate_characters(el, remaining_length, append=u"…"):
     return remaining_length
 
 
-WORD_PATTERN    = re.compile(r'\s*[^\s]+\s*')
+WORD_PATTERN = re.compile(r'\s*[^\s]+\s*')
 RE_TRAIL_SPC = re.compile(r'\s*$')
 
 def html_truncate_words(el, remaining_words, append=u"…"):
@@ -97,8 +97,7 @@ def html_truncate_words(el, remaining_words, append=u"…"):
     more than ``remaining_words`` words. ``append`` is appended to
     the end of the final truncated node, if any.
     """
-    norm_text    = normalize_space(el.text)
-    found_words  = re.findall(WORD_PATTERN, norm_text)
+    found_words  = re.findall(WORD_PATTERN, el.text or u'')
 
     if len(found_words) >= remaining_words:
         el.text = ''.join(found_words[:remaining_words])
@@ -123,8 +122,7 @@ def html_truncate_words(el, remaining_words, append=u"…"):
     if not remaining_words:
         return 0
 
-    norm_tail    = normalize_space(el.tail)
-    found_words  = re.findall(WORD_PATTERN, norm_tail)
+    found_words  = re.findall(WORD_PATTERN, el.tail or u'')
 
     if len(found_words) >= remaining_words:
         el.tail = ''.join(found_words[:remaining_words])
