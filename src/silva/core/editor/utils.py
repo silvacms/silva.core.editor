@@ -89,21 +89,22 @@ def html_truncate_characters(el, remaining_length, append=u"…"):
     return remaining_length
 
 
-WORD_PATTERN = re.compile(r'\s*[^\s]+\s*')
-RE_APPEND    = re.compile(r'\s*$')
-
+WORD_PATTERN    = re.compile(r'\s*[^\s]+\s*')
+RE_TRAIL_SPC = re.compile(r'\s*$')
 
 def html_truncate_words(el, remaining_words, append=u"…"):
-    """Truncate the content of the lxml node ``el`` to contains not
-    more than ``remaining_words`` words. ``append`` is added at
-    the end of the last node is truncation happened.
+    """Truncate the content of the lxml node ``el`` to contain no
+    more than ``remaining_words`` words. ``append`` is appended to
+    the end of the final truncated node, if any.
     """
     norm_text    = normalize_space(el.text)
     found_words  = re.findall(WORD_PATTERN, norm_text)
 
     if len(found_words) >= remaining_words:
         el.text = ''.join(found_words[:remaining_words])
-        el.text = re.sub(RE_APPEND, append, el.text)
+        if len(el.text):
+            el.text = re.sub(RE_TRAIL_SPC, ' ', el.text)
+        el.text += append
         el.tail = None
         for child in el.iterchildren():
             el.remove(child);
@@ -127,7 +128,9 @@ def html_truncate_words(el, remaining_words, append=u"…"):
 
     if len(found_words) >= remaining_words:
         el.tail = ''.join(found_words[:remaining_words])
-        el.tail = re.sub(RE_APPEND, append, el.tail)
+        if len(el.tail):
+            el.tail = re.sub(RE_TRAIL_SPC, ' ', el.tail)
+        el.tail += append
         return 0
 
     return remaining_words - len(found_words)

@@ -54,22 +54,22 @@ class TestTruncate(unittest.TestCase):
                 """<p>some text<img src="#somewhere" /> and some tail</p>"""))
 
     def test_html_truncate_words(self):
-        html = """<p>some text<a href="#somelink">link</a> and some<span> tail<div></div></span>asdf</p>"""
+        html = """<p>some text<a href="#somelink">link</a> and                some<span> tail<div></div></span>asdf</p>"""
 
         self.assertEquals(
-            """<p>some text&#8230;</p>""",
+            """<p>some text &#8230;</p>""",
             html_truncate_test_words(2, html))
 
         self.assertEquals(
-            """<p>some text<a href="#somelink">link&#8230;</a></p>""",
+            """<p>some text<a href="#somelink">link &#8230;</a></p>""",
             html_truncate_test_words(3, html))
 
         self.assertEquals(
-            """<p>some text<a href="#somelink">link</a> and&#8230;</p>""",
+            """<p>some text<a href="#somelink">link</a> and &#8230;</p>""",
             html_truncate_test_words(4, html))
 
         self.assertEquals(
-            """<p>some text<a href="#somelink">link</a> and some<span> tail&#8230;</span></p>""",
+            """<p>some text<a href="#somelink">link</a> and                some<span> tail &#8230;</span></p>""",
             html_truncate_test_words(6, html))
 
         self.assertEquals(
