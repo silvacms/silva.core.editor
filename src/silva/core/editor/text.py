@@ -58,6 +58,7 @@ class Text(Persistent):
     def render(self, context, request, downgrade_titles=False, type=None):
         transformer = self.get_transformer(context, request, type)
         if downgrade_titles:
+            transformer.transform()
             transformer.visit(downgrade_title_nodes)
         return unicode(transformer)
 

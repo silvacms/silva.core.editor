@@ -44,6 +44,7 @@ class Transformer(object):
         self.__transformers = transformers
         self.__prepare = prepare
         self.__trees = []
+        self.__processed = False
         if data is not None:
             data = '<div id="sce-transform-root">' + data + '</div>'
             if xhtml:
@@ -60,14 +61,19 @@ class Transformer(object):
     def visit(self, function):
         map(function, self.__trees)
 
-    def __call__(self):
-        for transformer in self.__transformers:
-            transformer.prepare(*self.__prepare)
-        for tree in self.__trees:
+    def transform(self):
+        if not self.__processed:
             for transformer in self.__transformers:
-                transformer(tree)
-        for transformer in self.__transformers:
-            transformer.finalize()
+                transformer.prepare(*self.__prepare)
+            for tree in self.__trees:
+                for transformer in self.__transformers:
+                    transformer(tree)
+            for transformer in self.__transformers:
+                transformer.finalize()
+            self.__processed = True
+
+    @property
+    def trees(self):
         for tree in self.__trees:
             if tree.attrib.get('id') == 'sce-transform-root':
                 # Ignore transformation root
@@ -75,6 +81,10 @@ class Transformer(object):
                     yield child
             else:
                 yield tree
+
+    def __call__(self):
+        self.transform()
+        return self.trees
 
     def truncate(self):
         for transformer in self.__transformers:
