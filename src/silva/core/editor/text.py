@@ -21,7 +21,7 @@ from .transform.interfaces import IDisplayFilter
 from .transform.interfaces import ISaveEditorFilter
 from .transform.interfaces import IInputEditorFilter
 from .utils import html_truncate_words, html_truncate_characters
-from .utils import html_extract_text
+from .utils import html_extract_text, downgrade_title_nodes
 
 
 IndexEntry = collections.namedtuple('IndexEntry', ['anchor', 'title'])
@@ -55,8 +55,11 @@ class Text(Persistent):
         factory = getMultiAdapter((context, request), ITransformerFactory)
         return factory(self.__name, self, unicode(self), type)
 
-    def render(self, context, request, type=None):
-        return unicode(self.get_transformer(context, request, type))
+    def render(self, context, request, downgrade_titles=False, type=None):
+        transformer = self.get_transformer(context, request, type)
+        if downgrade_titles:
+            transformer.visit(downgrade_title_nodes)
+        return unicode(transformer)
 
     def introduction(self, context, request, max_length=300, max_words=None, type=None):
         if max_words is not None:

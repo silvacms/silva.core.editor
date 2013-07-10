@@ -53,6 +53,16 @@ def html_extract_text(element, data=None):
     return data
 
 
+def downgrade_title_nodes(element):
+    """Downgrade title nodes (h2 -> h3, h3 -> h4, h4 -> h5, h5-> h6).
+    """
+    for (expr, tag) in [('//h5', 'h6'), ('//h4', 'h5'),
+                        ('//h3', 'h4'), ('//h2', 'h3'),
+                        ('//h1', 'h2')]:
+        for node in element.xpath(expr):
+            node.tag = tag
+
+
 def html_truncate_characters(el, remaining_length, append=u"…"):
     """Truncate the content of the lxml node ``el`` to contains not
     more than ``remaining_length`` characters. ``append`` is added at
