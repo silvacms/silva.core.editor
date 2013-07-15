@@ -42,6 +42,155 @@ class InputTransformTestCase(TestCase):
         transformer = factory('test', version.test, text, filter)
         return unicode(transformer)
 
+    def test_external_absolute_link(self):
+        """Even though you can't input them through the U.I you can
+        have absolute link (coming from the migration of the old Silva
+        Document). In that case, they should be keept.
+        """
+        intern_format = self.transform(
+            """
+<p>
+   <a class="link"
+      href="javascript:void()"
+      title="Silva"
+      data-silva-url=" /silva/some-broken/path  ">
+      <i>To Silva</i></a>
+</p>
+""", ISaveEditorFilter)
+
+        self.assertXMLEqual(
+            intern_format,
+"""
+<p>
+   <a class="link"
+       title="Silva"
+       href="/silva/some-broken/path"><i>To Silva</i></a>
+</p>
+""")
+
+        # And changing it back to the editor format.
+        extern_format = self.transform(
+            intern_format,
+            IInputEditorFilter)
+        self.assertXMLEqual(
+            extern_format,
+            """
+<p>
+   <a class="link broken-link"
+      title="Silva"
+      href="javascript:void()"
+      data-silva-url="/silva/some-broken/path">
+      <i>To Silva</i></a>
+</p>
+""")
+
+    def test_external_new_broken_link(self):
+        """Even though you can't input them through the U.I you can
+        have invalid links. It is possible they have been migrated
+        from the old Silva Document and should be kept so that the
+        editor fixes them.
+        """
+        intern_format = self.transform(
+            """
+<p>
+   <a class="link"
+      href="javascript:void()"
+      title="Silva"
+      data-silva-url="mail to: /silva/some-broken/path  ">
+      <i>To Silva</i></a>
+</p>
+""", ISaveEditorFilter)
+
+        self.assertXMLEqual(
+            intern_format,
+"""
+<p>
+   <a class="link"
+       title="Silva"
+       href="broken:mail%20to:%20/silva/some-broken/path"><i>To Silva</i></a>
+</p>
+""")
+        # And changing it back to the editor format.
+        extern_format = self.transform(
+            intern_format,
+            IInputEditorFilter)
+        self.assertXMLEqual(
+            extern_format,
+            """
+<p>
+   <a class="link broken-link"
+      title="Silva"
+      href="javascript:void()"
+      data-silva-url="broken:mail%20to:%20/silva/some-broken/path">
+      <i>To Silva</i></a>
+</p>
+""")
+
+    def test_external_existing_broken_link(self):
+        """Even though you can't input them through the U.I you can
+        have invalid links. It is possible they have been migrated
+        from the old Silva Document and should be kept so that the
+        editor fixes them.
+        """
+        intern_format = self.transform(
+            """
+<p>
+   <a class="link broken-link"
+      href="javascript:void()"
+      title="Silva"
+      data-silva-url="broken:mail%20to:%20/silva/some-broken/path  ">
+      <i>To Silva</i></a>
+</p>
+""", ISaveEditorFilter)
+
+        self.assertXMLEqual(
+            intern_format,
+"""
+<p>
+   <a class="link"
+       title="Silva"
+       href="broken:mail%20to:%20/silva/some-broken/path"><i>To Silva</i></a>
+</p>
+""")
+        # And changing it back to the editor format.
+        extern_format = self.transform(
+            intern_format,
+            IInputEditorFilter)
+        self.assertXMLEqual(
+            extern_format,
+            """
+<p>
+   <a class="link broken-link"
+      title="Silva"
+      href="javascript:void()"
+      data-silva-url="broken:mail%20to:%20/silva/some-broken/path">
+      <i>To Silva</i></a>
+</p>
+""")
+
+    def test_external_javascript_link(self):
+        """Javascript links should always be removed.
+        """
+        intern_format = self.transform(
+            """
+<p>
+   <a class="link"
+      href="javascript:void()"
+      title="Silva"
+      data-silva-url="javascript:window.open('http://hack.org')  ">
+      <i>To Silva</i></a>
+</p>
+""", ISaveEditorFilter)
+
+        self.assertXMLEqual(
+            intern_format,
+"""
+<p>
+   <a class="link"
+       title="Silva"><i>To Silva</i></a>
+</p>
+""")
+
     def test_external_link(self):
         """On input, an external link is slightly modified.
         """

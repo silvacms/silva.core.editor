@@ -32,7 +32,11 @@ class LinkTransformer(ReferenceTransformationFilter):
                         classes.append('broken-link')
                         link.attrib['class'] = ' '.join(classes)
             if 'href' in link.attrib:
-                link.attrib['data-silva-url'] = link.attrib['href']
+                href = link.attrib['href']
+                link.attrib['data-silva-url'] = href
+                if href.startswith('broken:') or href.startswith('/'):
+                    classes.append('broken-link')
+                    link.attrib['class'] = ' '.join(classes)
             if 'query' in link.attrib:
                 link.attrib['data-silva-query'] = link.attrib['query']
                 del link.attrib['query']

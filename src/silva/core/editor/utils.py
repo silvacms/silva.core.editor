@@ -193,9 +193,12 @@ def html_sanitize_node(el, allowed_tags_set, allowed_attributes_set,
                 else:
                     el.text = child.tail
 
+URL_SCHEMES_BLACKLIST = set([
+        'javascript'])
+
 URL_SCHEMES_WHITELIST = set([
         'http', 'https', 'ftp', 'ftps', 'ssh', 'news', 'mailto',
-        'tel', 'webcal', 'itms'
+        'tel', 'webcal', 'itms', 'broken',
         ])
 
 HTML_TAGS_WHITELIST = set([

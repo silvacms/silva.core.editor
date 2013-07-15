@@ -14,7 +14,8 @@ from silva.core.editor.transform.interfaces import ISaveEditorFilter
 from silva.core.editor.transform.base import ReferenceTransformationFilter
 from silva.core.editor.transform.base import TransformationFilter
 from silva.core.editor.utils import html_sanitize_node
-from silva.core.editor.utils import HTML_TAGS_WHITELIST, URL_SCHEMES_WHITELIST
+from silva.core.editor.utils import HTML_TAGS_WHITELIST
+from silva.core.editor.utils import URL_SCHEMES_WHITELIST, URL_SCHEMES_BLACKLIST
 from silva.core.editor.utils import HTML_ATTRIBUTES_WHITELIST
 from silva.core.editor.utils import CSS_ATTRIBUTES_WHITELIST
 
@@ -22,11 +23,21 @@ from silva.core.editor.utils import CSS_ATTRIBUTES_WHITELIST
 def extract_url(url, url_schemes=URL_SCHEMES_WHITELIST):
     """Analyse and return a valid URL or None.
     """
+    url = url and url.strip()
     if url:
         info = urlparse.urlparse(url)
         # We just check the URL scheme at the moment.
-        if info.scheme in url_schemes:
-            return url
+        if not info.scheme:
+            if url.startswith('/'):
+                # Allow URL that starts with a '/'
+                return url
+            # Keep other URLs as broken
+            return 'broken:' + url
+        if info.scheme not in URL_SCHEMES_BLACKLIST:
+            if info.scheme in url_schemes:
+                return url
+            # Keep other URLs as broken
+            return 'broken:' + url
     return None
 
 
