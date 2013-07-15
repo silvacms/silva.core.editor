@@ -7,6 +7,11 @@ margin:1px 16px 20px;
 position:relative;
 }
 
+.cke_skin_silva .cke_dialog_title {
+overflow:hidden;
+text-overflow:ellipsis;
+}
+
 .cke_skin_silva .cke_dialog_tl,.cke_skin_silva .cke_dialog_tr,.cke_skin_silva .cke_dialog_tc,.cke_skin_silva .cke_dialog_bl,.cke_skin_silva .cke_dialog_br,.cke_skin_silva .cke_dialog_bc {
 background-image:url(images/sprites.png);
 background-repeat:no-repeat;
