@@ -5,11 +5,22 @@ visibility:visible;
 .cke_skin_silva .cke_dialog_body {
 margin:1px 16px 20px;
 position:relative;
+background:#f7f8fd;
 }
 
 .cke_skin_silva .cke_dialog_title {
 overflow:hidden;
 text-overflow:ellipsis;
+border-bottom: 1px solid #BBBBBB;
+}
+
+.cke_skin_silva .cke_dialog table {
+  table-layout: fixed;
+}
+
+.cke_skin_silva .cke_dialog textarea {
+  width: 100%;
+  max-width: 100%;
 }
 
 .cke_skin_silva .cke_dialog_tl,.cke_skin_silva .cke_dialog_tr,.cke_skin_silva .cke_dialog_tc,.cke_skin_silva .cke_dialog_bl,.cke_skin_silva .cke_dialog_br,.cke_skin_silva .cke_dialog_bc {
@@ -136,7 +147,7 @@ unicode-bidi:bidi-override;
 .cke_skin_silva .cke_dialog_contents {
 background-color:#f7f8fd;
 /* border:#2b66c9 1px solid; */
-border-top:1px solid #bbb;
+/* border-top:1px solid #bbb; */
 overflow:auto;
 padding:5px 10px;
 }
@@ -204,6 +215,7 @@ opacity:1;
 
 .cke_skin_silva .cke_single_page .cke_dialog_title {
 padding-bottom:3px;
+padding-right: 30px;
 }
 
 .cke_skin_silva .cke_dialog_ui_vbox table,.cke_skin_silva .cke_dialog_ui_hbox table {
