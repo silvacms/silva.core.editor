@@ -19,9 +19,10 @@ border-bottom: 1px solid #bbb;
 }
 
 .cke_skin_silva .cke_dialog textarea {
-  width: 100%;
-  max-width: 100%;
+  width: 99%;
+  max-width: 99%;
   background: #fff;
+  border: 1px solid #aaa;
 }
 
 .cke_skin_silva .cke_dialog_tl,.cke_skin_silva .cke_dialog_tr,.cke_skin_silva .cke_dialog_tc,.cke_skin_silva .cke_dialog_bl,.cke_skin_silva .cke_dialog_br,.cke_skin_silva .cke_dialog_bc {
