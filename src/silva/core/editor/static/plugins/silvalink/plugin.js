@@ -365,7 +365,7 @@
     var API = CKEDITOR.plugins.silvalink;
 
     CKEDITOR.plugins.add('silvalink', {
-        requires: ['dialog', 'silvareference'],
+        requires: ['dialog', 'silvautils'],
         init: function(editor) {
             editor.addCommand(
                 'silvalink',

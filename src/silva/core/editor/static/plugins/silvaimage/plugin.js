@@ -41,7 +41,7 @@
     var API = CKEDITOR.plugins.silvaimage;
 
     CKEDITOR.plugins.add('silvaimage', {
-        requires: ['dialog', 'silvareference', 'silvalink', 'selection'],
+        requires: ['dialog', 'silvautils', 'silvalink', 'selection'],
         init: function(editor) {
             // Patch selection to select the whole contenteditable
             // instead of only a element in it (this prevent to select an image in FF)
