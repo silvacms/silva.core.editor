@@ -1,8 +1,10 @@
 
+
 (function(CKEDITOR, $){
 
     CKEDITOR.plugins.silvaimage = {
         isImage: function(element) {
+            // Given an element return true if it is an image.
             if (element != null &&
                 element.is('div') &&
                 element.hasClass('image')) {
@@ -10,30 +12,48 @@
             };
             return false;
         },
-        getSelectedImage: function(editor, select_element) {
-            try {
-                var selection = editor.getSelection();
-                var base = null;
+        findImage: function(element) {
+            // Given an element find the nearest image.
+            var image;
 
-                if (selection.getType() == CKEDITOR.SELECTION_ELEMENT) {
-                    base = selection.getSelectedElement();
-                } else {
-                    base = selection.getStartElement();
+            if (element !== null) {
+                image = element.getAscendant('div', true);
+
+                if (API.isImage(image)) {
+                    return image;
                 };
+            };
+            return null;
 
-                var element = base.getAscendant('div', true);
+        },
+        setCurrentImage: function(editor, image) {
+            // Save the currently edited image in the editor. This is
+            // used to pass the image to the command.
+            editor._.silvaWorkingImage = image;
+        },
+        getCurrentImage: function(editor) {
+            // Return the image that is currently being modified. This
+            // is used instead of getSelectedImage because the editor
+            // selection can change during the modification, and the
+            // reference to the image lost.
+            if (editor._.silvaWorkingImage  !== undefined) {
+                return editor._.silvaWorkingImage;
+            };
+            return null;
+        },
+        getSelectedImage: function(editor, no_selection) {
+            // Find the currently selected image. Correct the selection if needed.
+            var selected = CKEDITOR.plugins.silvautils.getSelectedElement(editor),
+                image = API.findImage(selected);
 
-                if (CKEDITOR.plugins.silvaimage.isImage(element)) {
-                    if (select_element !== false && element.$ !== base.$) {
-                        // Be sure the source is selected
-                        selection.selectElement(element);
-                    };
-                    return element;
+            console.log(selected && selected.$);
+            if (image !== null) {
+                if (!no_selection && selected.$ !== image.$) {
+                    CKEDITOR.plugins.silvautils.selectBlock(editor, image);
                 };
-                return null;
-            } catch(e) {
-                return null;
-            }
+                return image;
+            };
+            return null;
         }
     };
 
@@ -41,26 +61,9 @@
     var API = CKEDITOR.plugins.silvaimage;
 
     CKEDITOR.plugins.add('silvaimage', {
-        requires: ['dialog', 'silvautils', 'silvalink', 'selection'],
+        requires: ['dialog', 'silvautils', 'silvalink'],
         init: function(editor) {
-            // Patch selection to select the whole contenteditable
-            // instead of only a element in it (this prevent to select an image in FF)
-            (function () {
-                if (CKEDITOR.dom.selection.prototype.origSelectElement === undefined) {
-                    CKEDITOR.dom.selection.prototype.origSelectElement = CKEDITOR.dom.selection.prototype.selectElement;
-                    CKEDITOR.dom.selection.prototype.selectElement = function(element) {
-                        var div = element.getAscendant('div', true);
-
-                        while (div !== null && div.getAttribute('contenteditable') !== 'false') {
-                            div = div.getAscendant('div', false);
-                        };
-                        if (div !== null) {
-                            element = div;
-                        };
-                        return this.origSelectElement(element);
-                    };
-                };
-            })();
+            var UTILS = CKEDITOR.plugins.silvautils;
 
             editor.addCommand(
                 'silvaimage',
@@ -111,22 +114,59 @@
                     '}');
             // Events
             editor.on('selectionChange', function(event) {
-                var element = API.getSelectedImage(editor);
-                var imageCommand = editor.getCommand('silvaimage');
+                var image = API.getSelectedImage(editor),
+                    command = editor.getCommand('silvaimage');
 
-                if (element != null) {
-                    imageCommand.setState(CKEDITOR.TRISTATE_ON);
+                API.setCurrentImage(editor, image);
+                if (image != null) {
+                    command.setState(CKEDITOR.TRISTATE_ON);
                 } else {
-                    imageCommand.setState(CKEDITOR.TRISTATE_OFF);
+                    command.setState(CKEDITOR.TRISTATE_OFF);
                 };
             });
             editor.on('doubleclick', function(event) {
-                var element = API.getSelectedImage(editor);
+                var image = API.getSelectedImage(editor);
 
-                if (element != null) {
+                API.setCurrentImage(editor, image);
+                if (image != null) {
                     event.data.dialog = 'silvaimage';
                 };
             });
+            if (!CKEDITOR.env.gecko) {
+                editor.on('contentDom', function() {
+                    editor.document.on('mousedown', function(event) {
+                        var selected,
+                            image = API.findImage(event.data.getTarget());
+
+                        if (image !== null) {
+                            selected = UTILS.getSelectedElement(editor);
+                            if (selected === null || selected.$ !== image.$) {
+                                UTILS.selectBlock(editor, image);
+                            };
+                            // Prevent broken drag'n drop.
+                            event.data.preventDefault();
+                        };
+                    });
+                });
+                };
+            editor.on('key', function(event) {
+                if (editor.mode != 'wysiwyg')
+                    return;
+
+                var code = event.data.keyCode;
+                // Improve the navigation before and after the code source with the arrows.
+                if (code in {9:1, 37:1, 38:1, 39:1, 40:1}) {
+                    setTimeout(function() {
+                        var image = API.getSelectedImage(editor, true),
+                            on_top = code in {37:1, 38:1};
+
+                        if (image !== null) {
+                            UTILS.selectText(editor, UTILS.getParagraph(editor, image, on_top), on_top);
+                        };
+                    }, 25);
+                };
+            });
+
             // Dialog
             CKEDITOR.dialog.add('silvaimage', this.path + 'dialogs/image.js');
             // Menu

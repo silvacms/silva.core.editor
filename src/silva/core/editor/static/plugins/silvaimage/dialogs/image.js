@@ -304,7 +304,7 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
         onShow: function() {
             var data = {};
             var editor = this.getParentEditor();
-            var div = CKEDITOR.plugins.silvaimage.getSelectedImage(editor);
+            var div = CKEDITOR.plugins.silvaimage.getCurrentImage(editor);
 
             var defaultSettings = function() {
                 data.link = {};
@@ -418,7 +418,7 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
             data.image = {};
             this.commitContent(data);
 
-            var div = CKEDITOR.plugins.silvaimage.getSelectedImage(editor),
+            var div = CKEDITOR.plugins.silvaimage.getCurrentImage(editor),
                 div_attributes = {};
 
             var a = null;

@@ -1,38 +1,47 @@
 (function($, jsontemplate, CKEDITOR) {
     if (CKEDITOR.env.ie) {
         CKEDITOR.plugins.silvautils = {
+            /**
+             * Return a element where the current selection points to
+             * (IE implementation).
+             */
             getSelectedElement: function(editor) {
                 var selection = selection = editor.document.$.selection,
-                    range;
+                    range,
+                    element = null;
 
                 if (selection.type != "None") {
                     range = editor.document.$.selection.createRange();
                     if (selection.type == "Text") {
-                        return new CKEDITOR.dom.element(range.parentElement);
+                        element = range.parentElement();
+                    } else if (range.length > 0) {
+                        element = range.item(0);
                     };
-                    if (range.length > 0) {
-                        return new CKEDITOR.dom.element(range.item(0));
-                    };
+                };
+                if (element !== null) {
+                    return new CKEDITOR.dom.element(element);
                 };
                 return null;
             },
             /**
              * Given a block element with contenteditable set to false,
-             * select it in the editor.
+             * select it in the editor (IE implementation).
              */
             selectBlock: function(editor, block) {
                 var selection = editor.getSelection(),
                     range;
 
-                if (selection === null)  {
-                    return;
+                if (selection !== null)  {
+                    selection.unlock();
                 };
-                selection.unlock();
                 range = editor.document.$.body.createControlRange();
                 range.add(block.$);
                 range.select();
                 // Force CKEditor to refresh it caches. We need to 'lock'
                 // our changes to prevent them to be reverted by CKEditor.
+                if (selection === null) {
+                    selection = editor.getSelection();
+                };
                 selection.lock();
                 editor.forceNextSelectionCheck();
                 editor.selectionChange(true);
@@ -44,16 +53,15 @@
             },
             /**
              * Given a text node, move the caret at the begining or the
-             * end of it.
+             * end of it (IE implementation).
              */
             selectText: function(editor, text, at_the_end) {
                 var selection = editor.getSelection(),
                     range;
 
-                if (selection === null)  {
-                    return;
+                if (selection !== null)  {
+                    selection.unlock();
                 };
-                selection.unlock();
                 // CKEditor utilities doesn't seems to work on IE. Do
                 // it manually.
                 range = editor.document.$.body.createTextRange();
@@ -63,6 +71,9 @@
                 range.select();
                 // Force CKEditor to refresh it caches. We need to 'lock'
                 // our changes to prevent them to be reverted by CKEditor.
+                if (selection === null) {
+                    selection = editor.getSelection();
+                };
                 selection.lock();
                 editor.forceNextSelectionCheck();
                 editor.selectionChange(true);
@@ -75,6 +86,10 @@
         };
     } else {
         CKEDITOR.plugins.silvautils = {
+            /**
+             * Return a element where the current selection points to
+             * (non-IE implementation).
+             */
             getSelectedElement: function(editor) {
                 var selection = editor.document.$.getSelection(),
                     range;
@@ -89,14 +104,11 @@
             },
             /**
              * Given a block element with contenteditable set to false,
-             * select it in the editor.
+             * select it in the editor (non-IE implementation).
              */
             selectBlock: function(editor, block) {
                 var selection, range;
 
-                if (editor.getSelection() === null)  {
-                    return;
-                };
                 range = editor.document.$.createRange();
                 if (CKEDITOR.env.webkit) {
                     range.selectNodeContents(block.$);
@@ -110,14 +122,11 @@
             },
             /**
              * Given a text node, move the caret at the begining or the
-             * end of it.
+             * end of it (non-IE implementation).
              */
             selectText: function(editor, text, at_the_end) {
                 var selection, range;
 
-                if (editor.getSelection() === null)  {
-                    return;
-                };
                 range = editor.document.$.createRange();
                 range.selectNodeContents(text.$);
                 range.collapse(!at_the_end);
@@ -129,9 +138,55 @@
             }
         };
     };
+    CKEDITOR.plugins.silvautils = CKEDITOR.tools.extend(CKEDITOR.plugins.silvautils, {
+        /**
+         * Get (or add) a paragraph before (or after) the targeted
+         * element.
+         */
+        getParagraph: function(editor, target, before_target) {
+            var result;
+
+            if (before_target) {
+                result = target.getPrevious();
+                if (result === null || result.getName() != 'p') {
+                    result = editor.document.createElement('p');
+                    CKEDITOR.env.webkit && result.appendBogus();
+                    result.insertBefore(target);
+                };
+            } else {
+                result = target.getNext();
+                if (result === null || result.getName() != 'p') {
+                    result = editor.document.createElement('p');
+                    CKEDITOR.env.webkit && result.appendBogus();
+                    result.insertAfter(target);
+                };
+            };
+            return result;
+        }
+    });
 
     CKEDITOR.plugins.add('silvautils', {
+        requires: ['selection'],
         init: function(editor) {
+            // Patch selection to select the whole contenteditable
+            // instead of only a element in it (this prevent to select an image in FF)
+            (function () {
+                if (CKEDITOR.dom.selection.prototype.origSelectElement === undefined) {
+                    CKEDITOR.dom.selection.prototype.origSelectElement = CKEDITOR.dom.selection.prototype.selectElement;
+                    CKEDITOR.dom.selection.prototype.selectElement = function(element) {
+                        var div = element.getAscendant('div', true);
+
+                        while (div !== null && div.getAttribute('contenteditable') !== 'false') {
+                            div = div.getAscendant('div', false);
+                        };
+                        if (div !== null) {
+                            element = div;
+                        };
+                        return this.origSelectElement(element);
+                    };
+                };
+            })();
+
             /**
              * Support for the reference widget inside CKEditor.
              */
