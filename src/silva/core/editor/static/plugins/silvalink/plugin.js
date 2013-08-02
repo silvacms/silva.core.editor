@@ -474,7 +474,7 @@
                                 };
                                 if (!attributes['href']) {
                                     // Ensure we have a disabled link;
-                                    attributes['href'] = 'javascript:void()';
+                                    attributes['href'] = 'javascript:void(0)';
                                 };
                             };
                             return null;

@@ -1,8 +1,31 @@
 
 
 (function(CKEDITOR, $){
+    /**
+     * CKEditor Plugin for Images in Silva. They are represented in
+     * the editor like this:
+     *
+     * <span class="inline-container image-container alignement">
+     *    <div class="image">
+     *       <a class="image-link" href="">
+     *          <img alt="Alt text" />
+     *       </a>
+     *       <span class="image-caption">Caption</span>
+     *    </div>
+     * </span>
+     */
 
     CKEDITOR.plugins.silvaimage = {
+        isImageWrapper: function(element) {
+            // Return true if the element is an image wrapper.
+            if (element != null &&
+                element.type == CKEDITOR.NODE_ELEMENT &&
+                element.is('span') &&
+                element.hasClass('image-container')) {
+                return true;
+            }
+            return false;
+        },
         isImage: function(element) {
             // Given an element return true if it is an image.
             if (element != null &&
@@ -17,8 +40,19 @@
             var image;
 
             if (element !== null) {
-                image = element.getAscendant('div', true);
+                image = element.getAscendant('span', true);
+                if (API.isImageWrapper(image)) {
+                    var children = image.getChildren(),
+                        i, len, child;
+                    for (i=0, len=children.count(); i < len; i++) {
+                        child = children.getItem(i);
+                        if (API.isImage(child)) {
+                            return child;
+                        };
+                    };
+                };
 
+                image = element.getAscendant('div', true);
                 if (API.isImage(image)) {
                     return image;
                 };
@@ -43,13 +77,20 @@
         },
         getSelectedImage: function(editor, no_selection) {
             // Find the currently selected image. Correct the selection if needed.
-            var selected = CKEDITOR.plugins.silvautils.getSelectedElement(editor),
-                image = API.findImage(selected);
+            var selected = CKEDITOR.silva.utils.getSelectedElement(editor),
+                image = API.findImage(selected),
+                wrapper = null;
 
-            console.log(selected && selected.$);
             if (image !== null) {
-                if (!no_selection && selected.$ !== image.$) {
-                    CKEDITOR.plugins.silvautils.selectBlock(editor, image);
+                if (!no_selection) {
+                    wrapper = image.getParent();
+                    if (!API.isImageWrapper(wrapper)) {
+                        wrapper = image;
+                    };
+                    // Select the wrapper if needed.
+                    if (selected.$ !== wrapper.$) {
+                        CKEDITOR.silva.utils.selectBlock(editor, wrapper);
+                    };
                 };
                 return image;
             };
@@ -63,7 +104,7 @@
     CKEDITOR.plugins.add('silvaimage', {
         requires: ['dialog', 'silvautils', 'silvalink'],
         init: function(editor) {
-            var UTILS = CKEDITOR.plugins.silvautils;
+            var UTILS = CKEDITOR.silva.utils;
 
             editor.addCommand(
                 'silvaimage',
@@ -81,37 +122,15 @@
                     'display: inline-block;' +
                     '}');
             editor.addCss(
+                'div.image img {' +
+                    'z-index: -1;' +
+                    '}');
+            editor.addCss(
                 'div.image span.image-caption {' +
                     'display: block;' +
                     'padding-left: 5px' +
                     '}');
-            editor.addCss(
-                'div.image.float-left {' +
-                    'float: left;' +
-                    '}');
-            editor.addCss(
-                'div.image.float-right {' +
-                    'float: right;' +
-                    '}');
-            editor.addCss(
-                'div.image.align-left {' +
-                    'text-align: left;' +
-                    'display: block;' +
-                    '}');
-            editor.addCss(
-                'div.image.align-right {' +
-                    'text-align: right;' +
-                    'display: block;' +
-                    '}');
-            editor.addCss(
-                'div.image.align-center {' +
-                    'text-align: center;' +
-                    'display: block;' +
-                    '}');
-            editor.addCss(
-                'div.image img {' +
-                    'z-index: -1;' +
-                    '}');
+
             // Events
             editor.on('selectionChange', function(event) {
                 var image = API.getSelectedImage(editor),
@@ -136,12 +155,17 @@
                 editor.on('contentDom', function() {
                     editor.document.on('mousedown', function(event) {
                         var selected,
-                            image = API.findImage(event.data.getTarget());
+                            image = API.findImage(event.data.getTarget()),
+                            wrapper;
 
                         if (image !== null) {
+                            wrapper = image.getParent();
+                            if (!API.isImageWrapper(wrapper)) {
+                                wrapper = image;
+                            };
                             selected = UTILS.getSelectedElement(editor);
-                            if (selected === null || selected.$ !== image.$) {
-                                UTILS.selectBlock(editor, image);
+                            if (selected === null || selected.$ !== wrapper.$) {
+                                UTILS.selectBlock(editor, wrapper);
                             };
                             // Prevent broken drag'n drop.
                             event.data.preventDefault();
@@ -150,20 +174,25 @@
                 });
                 };
             editor.on('key', function(event) {
+                // Improve the navigation before and after the image with the arrows.
                 if (editor.mode != 'wysiwyg')
                     return;
 
                 var code = event.data.keyCode;
-                // Improve the navigation before and after the code source with the arrows.
                 if (code in {9:1, 37:1, 38:1, 39:1, 40:1}) {
                     setTimeout(function() {
                         var image = API.getSelectedImage(editor, true),
+                            parent = null,
                             on_top = code in {37:1, 38:1};
 
                         if (image !== null) {
-                            UTILS.selectText(editor, UTILS.getParagraph(editor, image, on_top), on_top);
+                            parent = image.getParent();
+                            if (!API.isImageWrapper(parent)) {
+                                parent = image;
+                            };
+                            UTILS.selectText(editor, UTILS.getParagraph(editor, parent, on_top), on_top);
                         };
-                    }, 25);
+                    }, 0);
                 };
             });
 
@@ -192,10 +221,6 @@
             };
         },
         afterInit: function(editor) {
-            // Input / Output transformations
-            var dataProcessor = editor.dataProcessor;
-            var dataFilter = dataProcessor && dataProcessor.dataFilter;
-            var htmlFilter = dataProcessor && dataProcessor.htmlFilter;
 
             var remove = function(attributes, name) {
                 // Remove an attribute from an object.
@@ -203,38 +228,47 @@
                     delete attributes[name];
                 };
             };
-            var is_img_div = function(element) {
+            var is_container = function(element) {
                 // Test if the given element is an image div.
                 return (element &&
                         element.name == 'div' &&
                         element.attributes['class'] != undefined &&
                         element.attributes['class'].match('image'));
             };
-            var is_img_a = function(element) {
+            var is_link = function(element) {
                 // Test if the given element is image link.
                 return (element &&
                         element.name == 'a' &&
                         element.attributes['class'] == 'image-link');
             };
 
+            // Input / Output transformations
+            var dataProcessor = editor.dataProcessor,
+                dataFilter = dataProcessor && dataProcessor.dataFilter,
+                htmlFilter = dataProcessor && dataProcessor.htmlFilter,
+                WRAPPER = new CKEDITOR.silva.parser.Wrapper(is_container, 'image-container'),
+                ALIGNEMENT = new CKEDITOR.silva.RE(/^image (.*)$/, 'default');
+
+
             if (dataFilter) {
                 dataFilter.addRules({
                     elements: {
                         div: function(element) {
-                            var attributes = element.attributes;
-
-                            if (is_img_div(element)) {
-                                attributes['contenteditable'] = 'false';
+                            if (is_container(element)) {
+                                element.attributes['contenteditable'] = 'false';
+                                return WRAPPER.wrap(
+                                    element,
+                                    ALIGNEMENT.extract(element.attributes['class']));
                             } else {
-                                remove(attributes, 'style');
+                                remove(element.attributes, 'style');
                             };
                             return null;
                         },
                         img: function(element) {
-                            var parent = element.parent;
-                            var attributes = element.attributes;
+                            var parent = element.parent,
+                                attributes = element.attributes;
 
-                            if (!is_img_div(parent) && !is_img_a(parent)) {
+                            if (!is_container(parent) && !is_link(parent)) {
                                 // This is an image from the outside world.
                                 // Prepare a structure.
                                 var div = new CKEDITOR.htmlParser.fragment.fromHtml(
@@ -256,19 +290,18 @@
                                         attributes['data-cke-saved-src'] ||
                                         attributes['src'];
                                 };
-                                return div;
-                            } else {
-                                if (!attributes['src']){
-                                    var src = attributes['data-silva-url'] || attributes['data-silva-backup'];
-                                    if (src) {
-                                        attributes['src'] = src;
-                                        attributes['data-cke-saved-src'] = src;
-                                    };
-                                } else if (attributes['data-silva-reference']) {
-                                    // Backup URL is used by reference to keep URL between
-                                    // source and edit mode.
-                                    attributes['data-silva-backup'] = attributes['src'];
+                                return WRAPPER.wrap(div, 'default');
+                            };
+                            if (!attributes['src']){
+                                var src = attributes['data-silva-url'] || attributes['data-silva-backup'];
+                                if (src) {
+                                    attributes['src'] = src;
+                                    attributes['data-cke-saved-src'] = src;
                                 };
+                            } else if (attributes['data-silva-reference']) {
+                                // Backup URL is used by reference to keep URL between
+                                // source and edit mode.
+                                attributes['data-silva-backup'] = attributes['src'];
                             };
                             return null;
                         }
@@ -278,13 +311,15 @@
             if (htmlFilter) {
                 htmlFilter.addRules({
                     elements: {
+                        span: function(element) {
+                            return WRAPPER.remove(element);
+                        },
                         div: function(element) {
-                            if (is_img_div(element)) {
-                                var attributes = element.attributes;
-
-                                remove(attributes, 'contenteditable');
-                                remove(attributes, 'style');
+                            if (is_container(element)) {
+                                remove(element.attributes, 'contenteditable');
+                                remove(element.attributes, 'style');
                             };
+                            return null;
                         },
                         a: function(element) {
                             var attributes = element.attributes;

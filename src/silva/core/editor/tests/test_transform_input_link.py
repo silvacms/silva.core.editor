@@ -51,7 +51,7 @@ class InputTransformTestCase(TestCase):
             """
 <p>
    <a class="link"
-      href="javascript:void()"
+      href="javascript:void(0)"
       title="Silva"
       data-silva-url=" /silva/some-broken/path  ">
       <i>To Silva</i></a>
@@ -78,7 +78,7 @@ class InputTransformTestCase(TestCase):
 <p>
    <a class="link broken-link"
       title="Silva"
-      href="javascript:void()"
+      href="javascript:void(0)"
       data-silva-url="/silva/some-broken/path">
       <i>To Silva</i></a>
 </p>
@@ -94,7 +94,7 @@ class InputTransformTestCase(TestCase):
             """
 <p>
    <a class="link"
-      href="javascript:void()"
+      href="javascript:void(0)"
       title="Silva"
       data-silva-url="mail to: /silva/some-broken/path  ">
       <i>To Silva</i></a>
@@ -120,7 +120,7 @@ class InputTransformTestCase(TestCase):
 <p>
    <a class="link broken-link"
       title="Silva"
-      href="javascript:void()"
+      href="javascript:void(0)"
       data-silva-url="broken:mail%20to:%20/silva/some-broken/path">
       <i>To Silva</i></a>
 </p>
@@ -136,7 +136,7 @@ class InputTransformTestCase(TestCase):
             """
 <p>
    <a class="link broken-link"
-      href="javascript:void()"
+      href="javascript:void(0)"
       title="Silva"
       data-silva-url="broken:mail%20to:%20/silva/some-broken/path  ">
       <i>To Silva</i></a>
@@ -162,7 +162,7 @@ class InputTransformTestCase(TestCase):
 <p>
    <a class="link broken-link"
       title="Silva"
-      href="javascript:void()"
+      href="javascript:void(0)"
       data-silva-url="broken:mail%20to:%20/silva/some-broken/path">
       <i>To Silva</i></a>
 </p>
@@ -175,7 +175,7 @@ class InputTransformTestCase(TestCase):
             """
 <p>
    <a class="link"
-      href="javascript:void()"
+      href="javascript:void(0)"
       title="Silva"
       data-silva-url="javascript:window.open('http://hack.org')  ">
       <i>To Silva</i></a>
@@ -198,7 +198,7 @@ class InputTransformTestCase(TestCase):
             """
 <p>
    <a class="link"
-      href="javascript:void()"
+      href="javascript:void(0)"
       title="Silva"
       data-silva-url="http://infrae.com/products/silva">
       <i>To Silva</i></a>
@@ -225,7 +225,7 @@ class InputTransformTestCase(TestCase):
 <p>
    <a class="link"
       title="Silva"
-      href="javascript:void()"
+      href="javascript:void(0)"
       data-silva-url="http://infrae.com/products/silva">
       <i>To Silva</i></a>
 </p>
@@ -238,7 +238,7 @@ class InputTransformTestCase(TestCase):
             """
 <p>
    <a class="link"
-      href="javascript:void()"
+      href="javascript:void(0)"
       target="_blank"
       data-silva-anchor="bar">
       <b>To the nearest local bar</b></a>
@@ -266,7 +266,7 @@ class InputTransformTestCase(TestCase):
    <a class="link"
       target="_blank"
       data-silva-anchor="bar"
-      href="javascript:void()">
+      href="javascript:void(0)">
       <b>To the nearest local bar</b></a>
 </p>
 """)
@@ -279,9 +279,9 @@ class InputTransformTestCase(TestCase):
             """
 <p>
    <a class="link"
-      href="javascript:void()"
+      href="javascript:void(0)"
       target="_blank"
-      data-silva-url="javascript:void()"
+      data-silva-url="javascript:void(0)"
       data-silva-anchor="bar">
       <b>To the nearest local bar</b></a>
 </p>
@@ -310,7 +310,7 @@ class InputTransformTestCase(TestCase):
             """
 <p>
    <a class="link"
-      href="javascript:void()"
+      href="javascript:void(0)"
       data-silva-reference="new"
       data-silva-target="%s">To Target</a>
 </p>
@@ -350,7 +350,7 @@ class InputTransformTestCase(TestCase):
    <a class="link"
       data-silva-reference="%s"
       data-silva-target="%s"
-      href="javascript:void()">
+      href="javascript:void(0)">
       To Target</a>
 </p>
 """ % (reference_name, target_id))
@@ -377,7 +377,7 @@ class InputTransformTestCase(TestCase):
             extern_format,
             """
 <p>
- <a class="link broken-link" data-silva-reference="broken-link-id" data-silva-target="0" data-silva-anchor="world" href="javascript:void()">
+ <a class="link broken-link" data-silva-reference="broken-link-id" data-silva-target="0" data-silva-anchor="world" href="javascript:void(0)">
   Access the world
  </a>
 </p>
@@ -458,7 +458,7 @@ class InputTransformTestCase(TestCase):
       data-silva-reference="original-link-id"
       data-silva-target="%s"
       data-silva-anchor="world"
-      href="javascript:void()">
+      href="javascript:void(0)">
       Access the world</a>
 </p>
 """ % (target_id))
@@ -521,7 +521,7 @@ class InputTransformTestCase(TestCase):
       data-silva-anchor="world"
       data-silva-target="%s">Access the world</a>
    <a class="link"
-      href="javascript:void()"
+      href="javascript:void(0)"
       data-silva-reference="original-link-id"
       data-silva-target="%s">Other part of the world</a>
 </p>
@@ -555,11 +555,11 @@ class InputTransformTestCase(TestCase):
       data-silva-reference="original-link-id"
       data-silva-target="%s"
       data-silva-anchor="world"
-      href="javascript:void()">Access the world</a>
+      href="javascript:void(0)">Access the world</a>
    <a class="link"
       data-silva-reference="%s"
       data-silva-target="%s"
-      href="javascript:void()">Other part of the world</a>
+      href="javascript:void(0)">Other part of the world</a>
 </p>
 """ % (target_id, reference_name, target_id))
 

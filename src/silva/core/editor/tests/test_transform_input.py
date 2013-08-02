@@ -138,7 +138,7 @@ class InputTransformTestCase(unittest.TestCase):
         intern_format = self.transform(
             """
 <p>
-   <a class="anchor" name="simple" title="Simple Anchor" href="javascript:void()">
+   <a class="anchor" name="simple" title="Simple Anchor" href="javascript:void(0)">
      Simple Anchor
    </a>
    The ultimate store of the anchors.
@@ -242,7 +242,7 @@ class InputTransformTestCase(unittest.TestCase):
         intern_format = self.transform(
             """
 <p>
-   <a class="anchor" name="missing" href="javascript:void()">Missing Title</a>
+   <a class="anchor" name="missing" href="javascript:void(0)">Missing Title</a>
    The ultimate store of the anchors.
    <a class="anchor" name="empty" title="">Empty Title</a>
    <a class="anchor" name="space" title=" ">Title with a space</a>

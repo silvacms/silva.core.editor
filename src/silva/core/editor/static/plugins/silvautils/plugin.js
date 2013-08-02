@@ -1,6 +1,106 @@
 (function($, jsontemplate, CKEDITOR) {
+    /**
+     * Silva module
+     */
+    CKEDITOR.silva = {};
+
+    /**
+     * Regular expression helper.
+     */
+    CKEDITOR.silva.RE = function(pattern, fallback, position) {
+        this.pattern = pattern;
+        this.fallback = fallback;
+        this.position = position !== undefined ? position : 1;
+    };
+    CKEDITOR.silva.RE.prototype.extract = function(value) {
+        var result = this.pattern.exec(value);
+
+        if (result !== null) {
+            return result[this.position];
+        }
+        return this.fallback;
+    };
+
+    /**
+     * htmlParser helper for wrapper, used in the editor for
+     * non-editable blocks (like images and external sources).
+     */
+    CKEDITOR.silva.parser = {};
+    CKEDITOR.silva.parser.Wrapper = function(test, category) {
+        this.test = test;
+        this.category = category;
+        if (category) {
+            this.css = 'inline-container ' + category + ' ';
+            this.pattern = new RegExp('^inline-container ' + category);
+        } else {
+            this.css = 'inline-container ';
+            this.pattern = new RegExp('^inline-container');
+        };
+    };
+    CKEDITOR.silva.parser.Wrapper.prototype = {
+        /**
+         * Return true if the element is a wrapper.
+         */
+        is: function(element) {
+            return (element &&
+                    element.name == 'span' &&
+                    element.attributes['class'] != null &&
+                    element.attributes['class'].match(this.pattern));
+        },
+        /**
+         * Wrap the element inside a wrapper.
+         */
+        wrap: function(element, alignement) {
+            var parent = element.parent,
+                container;
+
+            if (!this.is(parent)) {
+                container = new CKEDITOR.htmlParser.element(
+                    'span', {'class': this.css + alignement});
+                if (CKEDITOR.env.webkit) {
+                    // To help the selection in
+                    // Chrome we add a space before
+                    // and after each source.
+                    container.children = [
+                        new CKEDITOR.htmlParser.text(''),
+                        element,
+                        new CKEDITOR.htmlParser.text('')];
+                } else {
+                    container.children = [element];
+                };
+                if (!CKEDITOR.env.gecko) {
+                    container.attributes['contenteditable'] = 'false';
+                };
+                container.parent = parent;
+                element.parent = container;
+                return container;
+            };
+            return null;
+        },
+        /**
+         * Remove an existing wrapper.
+         */
+        remove: function(element) {
+            var i, len, children = [];
+
+            if (this.is(element)) {
+                for (i=0, len=element.children.length; i < len; i++) {
+                    if (this.test(element.children[i])) {
+                        children.push(element.children[i]);
+                        break;
+                    };
+                };
+                return children[0];
+            };
+            return null;
+        }
+    };
+
+    /**
+     * Utilities functions.
+     */
     if (CKEDITOR.env.ie) {
-        CKEDITOR.plugins.silvautils = {
+        CKEDITOR.silva.utils = {
             /**
              * Return a element where the current selection points to
              * (IE implementation).
@@ -85,7 +185,7 @@
             }
         };
     } else {
-        CKEDITOR.plugins.silvautils = {
+        CKEDITOR.silva.utils = {
             /**
              * Return a element where the current selection points to
              * (non-IE implementation).
@@ -138,7 +238,7 @@
             }
         };
     };
-    CKEDITOR.plugins.silvautils = CKEDITOR.tools.extend(CKEDITOR.plugins.silvautils, {
+    CKEDITOR.silva.utils = CKEDITOR.tools.extend(CKEDITOR.silva.utils, {
         /**
          * Get (or add) a paragraph before (or after) the targeted
          * element.
@@ -186,6 +286,51 @@
                     };
                 };
             })();
+            (function() {
+                // Patch dtd. Span are like div now, because of the support for inline-container.
+                for (var key in CKEDITOR.dtd) {
+                    if (!!CKEDITOR.dtd[key]['span']) {
+                        delete CKEDITOR.dtd[key]['span'];
+                    };
+                    if (!!CKEDITOR.dtd[key]['div']) {
+                        CKEDITOR.dtd[key]['span']  = 1;
+                    };
+                    CKEDITOR.dtd['span']['div'] = 1;
+                    CKEDITOR.dtd['span']['a'] = 1; // For image link (the caption).
+                }
+            })();
+
+            /**
+             * Support for inline-container helper, used for
+             * non-editable block in CKEditor.
+             */
+            editor.addCss(
+                'span.inline-container {' +
+                    'display: inline-block;' +
+                    '}');
+            editor.addCss(
+                'span.inline-container.float-left {' +
+                    'float: left;' +
+                    '}');
+            editor.addCss(
+                'span.inline-container.float-right {' +
+                    'float: right;' +
+                    '}');
+            editor.addCss(
+                'span.inline-container.align-left {' +
+                    'text-align: left;' +
+                    'display: block;' +
+                    '}');
+            editor.addCss(
+                'span.inline-container.align-right {' +
+                    'text-align: right;' +
+                    'display: block;' +
+                    '}');
+            editor.addCss(
+                'span.inline-container.align-center {' +
+                    'text-align: center;' +
+                    'display: block;' +
+                    '}');
 
             /**
              * Support for the reference widget inside CKEditor.

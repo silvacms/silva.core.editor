@@ -44,7 +44,7 @@ class LinkTransformer(ReferenceTransformationFilter):
                 link.attrib['data-silva-anchor'] = link.attrib['anchor']
                 del link.attrib['anchor']
             # Ensure href is always disabled.
-            link.attrib['href'] = 'javascript:void()'
+            link.attrib['href'] = 'javascript:void(0)'
 
 
 class AnchorTransformer(TransformationFilter):
@@ -124,4 +124,4 @@ class ImageLinkTransformer(ReferenceTransformationFilter):
                     link.attrib['data-silva-anchor'] = link.attrib['anchor']
                     del link.attrib['anchor']
                 # Ensure link is always disabled.
-                link.attrib['href'] = 'javascript:void()'
+                link.attrib['href'] = 'javascript:void(0)'

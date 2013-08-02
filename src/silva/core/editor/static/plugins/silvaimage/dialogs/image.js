@@ -302,9 +302,10 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
         }
                   ],
         onShow: function() {
-            var data = {};
-            var editor = this.getParentEditor();
-            var div = CKEDITOR.plugins.silvaimage.getCurrentImage(editor);
+            var data = {},
+                editor = this.getParentEditor(),
+                div = CKEDITOR.plugins.silvaimage.getCurrentImage(editor),
+                ALIGNEMENT = new CKEDITOR.silva.RE(/^image (.*)$/, 'default');
 
             var defaultSettings = function() {
                 data.link = {};
@@ -359,13 +360,7 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
             };
 
             if (div != null) {
-                var parse_alignment = /^image\s+([a-z-]+)\s*$/;
-                var info_alignment = parse_alignment.exec(
-                    div.getAttribute('class'));
-
-                if (info_alignment != null) {
-                    data.image.align = info_alignment[1];
-                }
+                data.image.align = ALIGNEMENT.extract(div.getAttribute('class'));
                 if (div.getChildCount()) {
                     var a = div.getChild(0);
 
@@ -381,7 +376,7 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
                         } else {
                             var href = a.getAttribute('data-silva-url');
 
-                            if (!href || href == 'javascript:void()') {
+                            if (!href || href == 'javascript:void(0)') {
                                 data.link.type = 'anchor';
                             } else {
                                 data.link.type = 'extern';
@@ -437,13 +432,16 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
                 // We are adding a new image. Create a new div and select it.
                 var selection = editor.getSelection();
                 var ranges = selection.getRanges(true);
-
+                var container = new CKEDITOR.dom.element('span');
+                container.setAttributes({'class': 'inline-container image-container ' + data.image.align});
                 div = new CKEDITOR.dom.element('div');
-                div.unselectable();
                 div_attributes['contenteditable'] = false;
-                ranges[0].insertNode(div);
-                selection.selectElement(div);
+                container.append(div);
+                ranges[0].insertNode(container);
+                selection.selectElement(container);
             } else {
+                div.getParent().setAttribute('class', 'inline-container image-container ' + data.image.align);
+
                 // Edit an image. Inspect div content.
                 start = 0,
                 node = null;
@@ -506,7 +504,7 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
 
                 if (a == null) {
                     a = new CKEDITOR.dom.element('a');
-                    attributes['href'] = 'javascript:void()';
+                    attributes['href'] = 'javascript:void(0)';
                     attributes['class'] = 'image-link';
                     div.append(a);
                     if (img) {
@@ -541,7 +539,7 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
                     attributes_to_clean.push('data-silva-url');
                     break;
                 case 'extern':
-                    attributes['href'] = 'javascript:void()';
+                    attributes['href'] = 'javascript:void(0)';
                     attributes['data-silva-url'] = data.link.url;
                     attributes_to_clean.push('data-silva-reference');
                     attributes_to_clean.push('data-silva-target');

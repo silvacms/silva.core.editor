@@ -33,7 +33,7 @@ CKEDITOR.dialog.add('silvalink', function(editor) {
                 } else {
                     var href = link.getAttribute('data-silva-url');
 
-                    if (!href || href == 'javascript:void()') {
+                    if (!href || href == 'javascript:void(0)') {
                         data.link.type = 'anchor';
                     } else {
                         data.link.type = 'extern';
@@ -49,7 +49,7 @@ CKEDITOR.dialog.add('silvalink', function(editor) {
         },
         onOk: function() {
             var data = {};
-            var attributes = {href: 'javascript:void()'};
+            var attributes = {href: 'javascript:void(0)'};
             var attributes_to_clean = [];
             var editor = this.getParentEditor();
             var element = CKEDITOR.plugins.silvalink.getSelectedLink(editor);
@@ -81,7 +81,7 @@ CKEDITOR.dialog.add('silvalink', function(editor) {
             case 'extern':
                 // We save the value into data-silva-url. We set the href
                 // attribute to get the link underlined.
-                attributes['href'] = 'javascript:void()';
+                attributes['href'] = 'javascript:void(0)';
                 attributes['data-silva-url'] = data.link.url;
                 attributes_to_clean.push('data-silva-reference');
                 attributes_to_clean.push('data-silva-target');

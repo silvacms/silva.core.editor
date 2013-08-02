@@ -433,7 +433,7 @@ class InputTransformTestCase(TestCase):
     <a class="image-link"
        data-silva-reference="%s"
        data-silva-target="%s"
-       href="javascript:void()">
+       href="javascript:void(0)">
       <img alt="image"
            data-silva-reference="%s"
            data-silva-target="%s"
@@ -528,7 +528,7 @@ class InputTransformTestCase(TestCase):
        data-silva-reference="%s"
        data-silva-target="%s"
        data-silva-query="hires"
-       href="javascript:void()">
+       href="javascript:void(0)">
       <img alt="image"
            data-silva-reference="%s"
            data-silva-target="%s"
