@@ -5,17 +5,15 @@ visibility:visible;
 .cke_skin_silva .cke_dialog_body {
 margin:1px 16px 20px;
 position:relative;
-background:#f7f8fd;
+background:#f7f8fd url(images/dialog_top_gradient.png) top left repeat-x;
 }
 
 .cke_skin_silva .cke_dialog_title {
 overflow:hidden;
 text-overflow:ellipsis;
 border-bottom: 1px solid #bbb;
-}
-
-.cke_skin_silva .cke_dialog table {
-  table-layout: fixed;
+max-width: 600px;
+height: 21px;
 }
 
 .cke_skin_silva .cke_dialog textarea {
@@ -23,6 +21,20 @@ border-bottom: 1px solid #bbb;
   max-width: 99%;
   background: #fff;
   border: 1px solid #aaa;
+}
+
+.cke_dialog_ui_input_textarea {
+border:none;
+overflow:auto;
+padding:0;
+resize:none;
+width:99%;
+max-width: 99%;
+}
+
+textarea.cke_dialog_ui_input_textarea {
+width:100%;
+max-width: 100%;
 }
 
 .cke_skin_silva .cke_dialog_tl,.cke_skin_silva .cke_dialog_tr,.cke_skin_silva .cke_dialog_tc,.cke_skin_silva .cke_dialog_bl,.cke_skin_silva .cke_dialog_br,.cke_skin_silva .cke_dialog_bc {
@@ -126,10 +138,6 @@ margin-top:3px;
 }
 
 .cke_skin_silva .cke_dialog_title {
-/* background-color:#8db1ff;
-background-image:url(images/sprites.png);
-background-position:0 -678px;
-background-repeat:repeat-x; */
 background:#eee url(images/gradient.png);
 background-position:0 -60px;
 color:#444;
@@ -148,8 +156,6 @@ unicode-bidi:bidi-override;
 
 .cke_skin_silva .cke_dialog_contents {
 background-color:#f7f8fd;
-/* border:#2b66c9 1px solid; */
-/* moved the border to the title border-top:1px solid #bbb; */
 overflow:auto;
 padding:5px 10px;
 }
@@ -246,15 +252,6 @@ border-width:0;
 
 .cke_skin_silva .cke_browser_gecko18.cke_hc div.cke_dialog_ui_input_text,.cke_skin_silva .cke_browser_gecko18.cke_hc div.cke_dialog_ui_input_password {
 border-width:1px;
-}
-
-.cke_skin_silva textarea.cke_dialog_ui_input_textarea {
-background-color:#FFF;
-border:none;
-overflow:auto;
-padding:0;
-resize:none;
-width:100%;
 }
 
 .cke_skin_silva div.cke_disabled .cke_dialog_ui_labeled_content * {
@@ -520,7 +517,7 @@ padding:2px 3px!important;
 display:none;
 }
 
-.cke_skin_silva div.cke_dialog_ui_input_text,.cke_skin_silva div.cke_dialog_ui_input_password,.cke_skin_silva div.cke_dialog_ui_input_textarea {
+.cke_skin_silva div.cke_dialog_ui_input_text,.cke_skin_silva div.cke_dialog_ui_input_password {
 border:1px solid #aaa;
 padding:4px;
 font-family:Tahoma, Geneva, Verdana, sans-serif;
@@ -552,7 +549,9 @@ vertical-align:middle;
 
 .cke_skin_silva .form-content a.form-button {
   border: none;
-  border-raduis: 0px;
+  -webkit-border-radius: 0px;
+  -moz-border-radius: 0px;
+  border-radius: 0px;
   margin: 0px;
   padding: 0px;
 }
