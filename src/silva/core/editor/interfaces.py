@@ -40,11 +40,14 @@ tools_vocabulary = SimpleVocabulary([
     SimpleTerm(title='Link a Silva content', value='SilvaLink'),
     SimpleTerm(title='Remove a link', value='SilvaUnlink'),
     SimpleTerm(title='Include a Silva (or remote) image', value='SilvaImage'),
-    SimpleTerm(title='Include an anchor or Silva Index entry', value='SilvaAnchor'),
-    SimpleTerm(title='Remove an anchor or Silva Index entry', value='SilvaRemoveAnchor'),
+    SimpleTerm(title='Include an anchor or Silva Index entry',
+               value='SilvaAnchor'),
+    SimpleTerm(title='Remove an anchor or Silva Index entry',
+               value='SilvaRemoveAnchor'),
     SimpleTerm(title='Format using service settings', value='SilvaFormat'),
     SimpleTerm(title='Add an External Source', value='SilvaExternalSource'),
-    SimpleTerm(title='Remove an External Source', value='SilvaRemoveExternalSource'),
+    SimpleTerm(title='Remove an External Source',
+               value='SilvaRemoveExternalSource'),
     SimpleTerm(title='Cut', value='Cut'),
     SimpleTerm(title='Copy', value='Copy'),
     SimpleTerm(title='Paste', value='Paste'),
@@ -83,10 +86,9 @@ tools_vocabulary = SimpleVocabulary([
 
 @grok.provider(IContextSourceBinder)
 def skin_vocabulary(context):
-    skins = [
-            SimpleTerm(title='Kama', value='kama'),
-            SimpleTerm(title='Office 2003', value='office2003'),
-            SimpleTerm(title='v2', value='v2')]
+    skins = [SimpleTerm(title='Kama', value='kama'),
+             SimpleTerm(title='Office 2003', value='office2003'),
+             SimpleTerm(title='v2', value='v2')]
     service = getUtility(ICKEditorService)
     for extension, base in service.get_custom_extensions():
         if hasattr(extension, 'skins'):
@@ -161,6 +163,32 @@ grok.global_utility(
     direct=True)
 
 
+class ICKEditorTableStyle(interface.Interface):
+    """CKEditor Table style.
+    """
+    name = schema.TextLine(
+        title=u"Style name",
+        required=True)
+    html_class = schema.TextLine(
+        title=u"Class name",
+        required=True)
+
+
+class CKEditorTableStyle(object):
+    grok.implements(ICKEditorTableStyle)
+
+    def __init__(self, name, html_class):
+        self.name = name
+        self.html_class = html_class
+
+
+grok.global_utility(
+    CKEditorTableStyle,
+    provides=IFactory,
+    name=ICKEditorTableStyle.__identifier__,
+    direct=True)
+
+
 class ICKEditorSettings(interface.Interface):
 
     toolbars = schema.List(
@@ -172,7 +200,8 @@ class ICKEditorSettings(interface.Interface):
             'Cut', 'Copy', 'Paste', 'PasteFromWord', '-',
             'Undo', 'Redo', '-',
             'Find', 'Replace', '-', 'Maximize', '/',
-            'SilvaFormat', '-', 'Bold', 'Italic', 'Strike', '-',
+            'SilvaFormat', 'SilvaTableStyles', '-',
+            'Bold', 'Italic', 'Strike', '-',
             'NumberedList', 'BulletedList', '-',
             'Subscript', 'Superscript', '-',
             'Outdent', 'Indent', '-',
@@ -204,15 +233,39 @@ class ICKEditorSettings(interface.Interface):
             CKEditorFormat(
                 u'Lead', 'p', [CKEditorHTMLAttribute('class', 'lead')]),
             CKEditorFormat(
-                u'Annotation', 'p', [CKEditorHTMLAttribute('class', 'annotation')]),
+                u'Annotation', 'p', [CKEditorHTMLAttribute('class',
+                                                           'annotation')]),
             CKEditorFormat(
                 u'Preformatted', 'pre', []),
+            ],
+        required=True)
+    table_styles = schema.List(
+        title=u"Table styles",
+        description=u"Styling for tables",
+        value_type=schema.Object(
+            title=u"Table styles",
+            schema=ICKEditorTableStyle),
+        default=[
+            CKEditorTableStyle(
+                u'Plain', 'plain'),
+            CKEditorTableStyle(
+                u'List', 'list'),
+            CKEditorTableStyle(
+                u'Grid', 'grid'),
+            CKEditorTableStyle(
+                u'Datagrid', 'datagrid'),
             ],
         required=True)
     contents_css = schema.TextLine(
         title=u"Contents CSS",
         description=u"CSS to apply to edited content in the editor",
         default=u'++static++/silva.core.editor/content.css',
+        required=True)
+    editor_body_class = schema.TextLine(
+        title=u"Editor iframe body class",
+        description=u"""Sets the class attribute to be used
+                     on the body element of the editing area.""",
+        default=u'ckeditor_contents',
         required=True)
     skin = schema.Choice(
         title=u"Editor skin",
@@ -224,6 +277,12 @@ class ICKEditorSettings(interface.Interface):
         title=u"Disable colors",
         description=u"Disallow users to use colors in the editor",
         default=True,
+        required=True)
+    startup_show_borders = schema.Bool(
+        title=u"Borders around elements",
+        description=u"""Whether to automatically enable the
+                     'show border' command when the editor loads""",
+        default=False,
         required=True)
 
 

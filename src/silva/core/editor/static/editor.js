@@ -31,6 +31,7 @@
                 language: smi.get_language(),
                 contentsCss: configuration['contents_css'],
                 silvaFormats: configuration['formats'],
+                silvaTableStyles: configuration['table_styles'],
                 extraPlugins: plugins_extra.join(','),
                 removePlugins: plugins_blacklist.join(','),
                 toolbar: 'Silva',
@@ -38,6 +39,8 @@
                 height: '2000px',
                 resize_enabled: false,
                 disable_colors: configuration['disable_colors'],
+                startupShowBorders: configuration['startup_show_borders'],
+                bodyClass: configuration['editor_body_class'],
                 dialog_buttonsOrder: 'rtl'
             };
             if (configuration['skin']) {

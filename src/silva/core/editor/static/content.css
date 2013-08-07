@@ -56,3 +56,30 @@ p.annotation {
 a.broken-link {
   color: #a00;
 }
+
+
+/* table styling in ckeditor, it can be overridden by using '.ckeditor_contents' */
+
+table.plain, table.list {
+    border: none;
+}
+
+table.plain td {
+    border: 1px dashed #777;
+}
+
+table.list td {
+    border: 1px solid #777;
+    border-right: none;
+    border-left: none;
+}
+
+table.grid,
+table.grid td {
+    border: 1px solid #777;
+}
+
+table.datagrid,
+table.datagrid td {
+    border: 2px solid #777;
+}

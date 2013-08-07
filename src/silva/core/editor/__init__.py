@@ -11,13 +11,14 @@ silvaconf.extension_system()
 
 class CKEditorExtension(object):
     base = '++static++/silva.core.editor'
-    plugins =  {
+    plugins = {
         'silvautils': 'plugins/silvautils',
         'silvalink': 'plugins/silvalink',
         'silvaimage': 'plugins/silvaimage',
         'silvaanchor': 'plugins/silvaanchor',
         'silvasave': 'plugins/silvasave',
         'silvaformat': 'plugins/silvaformat',
+        'silvatablestyles': 'plugins/silvatablestyles',
         'silvadialog': 'plugins/silvadialog',
         }
     skins = {

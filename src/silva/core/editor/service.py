@@ -40,6 +40,7 @@ from .utils import CSS_ATTRIBUTES_WHITELIST
 
 logger = logging.getLogger('silva.core.editor')
 FORMAT_IDENTIFIER_BASE = 'format%0004d'
+TABLE_STYLE_IDENTIFIER_BASE = 'table_style_%0004d'
 
 
 class CKEditorConfiguration(ZMIObject):
@@ -56,9 +57,13 @@ class CKEditorConfiguration(ZMIObject):
 
     toolbars = FieldProperty(ICKEditorSettings['toolbars'])
     formats = FieldProperty(ICKEditorSettings['formats'])
+    table_styles = FieldProperty(ICKEditorSettings['table_styles'])
     contents_css = FieldProperty(ICKEditorSettings['contents_css'])
     skin = FieldProperty(ICKEditorSettings['skin'])
     disable_colors = FieldProperty(ICKEditorSettings['disable_colors'])
+    startup_show_borders = FieldProperty(
+        ICKEditorSettings['startup_show_borders'])
+    editor_body_class = FieldProperty(ICKEditorSettings['editor_body_class'])
 
     def __init__(self, id, title=None):
         self.id = id
@@ -97,10 +102,26 @@ class CKEditorConfiguration(ZMIObject):
             if attributes_result:
                 format_result['attributes'] = attributes_result
             format_identifier = FORMAT_IDENTIFIER_BASE % count
-            result[format_identifier] =  format_result
+            result[format_identifier] = format_result
             order.append(format_identifier)
             count += 1
         return result
+
+    def get_table_styles(self):
+        count = 0
+        order = []
+        results = {}
+        for table_style in self.table_styles:
+            table_style_result = {
+                'name': table_style.name,
+                'html_class': table_style.html_class
+            }
+            table_style_identifier = TABLE_STYLE_IDENTIFIER_BASE % count
+            results[table_style_identifier] = table_style_result
+            order.append(table_style_identifier)
+            count += 1
+        results['order'] = order
+        return results
 
 
 InitializeClass(CKEditorConfiguration)
@@ -215,14 +236,14 @@ def configurations_source(context):
     configurations = list(context.available_configurations())
     configurations.sort(key=operator.itemgetter(0))
     return SimpleVocabulary([
-            SimpleTerm(value=name, token=name, title=info[0])
-            for name, info in configurations])
+        SimpleTerm(value=name, token=name, title=info[0])
+        for name, info in configurations])
 
 
 class ICKEditorConfigurations(Interface):
     config = schema.Choice(title=u'Configuration',
-                    source=configurations_source,
-                    required=True)
+                           source=configurations_source,
+                           required=True)
 
 
 class CKEditorServiceConfigurationManager(silvaforms.ZMIComposedForm):
@@ -303,7 +324,7 @@ class CKEditorServiceEditConfigurations(silvaforms.ZMISubTableForm):
 
     def getItems(self):
         return list(self.context.objectValues(
-                spec=CKEditorConfiguration.meta_type))
+            spec=CKEditorConfiguration.meta_type))
 
 
 class CKEditorEditConfiguration(silvaforms.ZMIForm):
@@ -344,8 +365,11 @@ class CKEditorRESTConfiguration(rest.REST):
              'paths': plugins_url,
              'contents_css': configuration.contents_css,
              'formats': configuration.get_formats(),
+             'table_styles': configuration.get_table_styles(),
              'plugins': list(plugins_url.keys()),
              'disable_colors': configuration.disable_colors,
+             'startup_show_borders': configuration.startup_show_borders,
+             'editor_body_class': configuration.editor_body_class,
              'skin': skin})
 
 
@@ -358,11 +382,11 @@ def add_default_configuration(service, event):
 
 class ISanitizerConfiguration(Interface):
     _allowed_html_tags = schema.Set(title=u"Allowed HTML tags",
-                      value_type=schema.TextLine())
+                                    value_type=schema.TextLine())
     _allowed_html_attributes = schema.Set(title=u"Allowed HTML attributes",
-                            value_type=schema.TextLine())
+                                          value_type=schema.TextLine())
     _allowed_css_attributes = schema.Set(title=u"Allowed CSS attributes",
-                            value_type=schema.TextLine())
+                                         value_type=schema.TextLine())
 
 
 class CKEditorServiceHTMLSanitizerConfiguration(silvaforms.ZMIForm):
@@ -371,7 +395,8 @@ class CKEditorServiceHTMLSanitizerConfiguration(silvaforms.ZMIForm):
 
     ignoreContent = False
     label = _(u"Manage HTML Sanitizer")
-    description = _(u"Manager allowed HTML tags and attributes allowed in editor.")
+    description = _(u"""Manager allowed HTML tags
+                    and attributes allowed in editor.""")
 
     fields = silvaforms.Fields(ISanitizerConfiguration)
     actions = silvaforms.Actions(EditAction(title=_(u"Save changes")))
