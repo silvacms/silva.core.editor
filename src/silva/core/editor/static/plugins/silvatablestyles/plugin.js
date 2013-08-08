@@ -64,7 +64,7 @@ CKEDITOR.plugins.add('silvatablestyles', {
 
                     if (selected !== null && selected.getName() === 'table') {
 
-                        $('#cke_'+ this.id).slideDown(300);
+                        $('#cke_'+ this.id).show(500);
 
                         var id = null;
                         var table_style = null;
@@ -80,14 +80,13 @@ CKEDITOR.plugins.add('silvatablestyles', {
                         }
                         var default_table_style = table_styles[table_styles.order[0]];
                         selected.addClass(default_table_style.html_class);
-                        this.setValue(default_table_style.name);
+                        this.setValue(table_styles.order[0], default_table_style.name);
                     }
                     else {
                         this.setValue('');
-                        $('#cke_'+ this.id).slideUp(300);
+                        $('#cke_'+ this.id).hide(500);
                     }
                 }, this);
-                $('#cke_'+ this.id).slideDown(300);
             }
         });
     }

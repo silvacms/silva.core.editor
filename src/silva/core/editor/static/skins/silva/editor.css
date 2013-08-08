@@ -962,7 +962,7 @@ cursor:default;
 display:block;
 }
 
-.cke_skin_silva .cke_maximized .cke_resizer,.cke_skin_silva .cke_voice_label,.cke_skin_silva legend.cke_voice_label,cke_skin_silva .cke_panel_frame .cke_label,.cke_skin_silva a.cke_toolbox_collapser span,.cke_skin_silva .cke_hc .cke_button .cke_icon,.cke_skin_silva .cke_browser_gecko18 .cke_hc .cke_button .cke_icon,.cke_skin_silva .cke_menuarrow span,.cke_skin_silva .cke_rcombo .cke_openbutton span,.cke_skin_silva .cke_path .cke_label {
+.cke_skin_silva .cke_maximized .cke_resizer,.cke_skin_silva .cke_voice_label,.cke_skin_silva legend.cke_voice_label,.cke_skin_silva .cke_panel_frame .cke_label,.cke_skin_silva a.cke_toolbox_collapser span,.cke_skin_silva .cke_hc .cke_button .cke_icon,.cke_skin_silva .cke_browser_gecko18 .cke_hc .cke_button .cke_icon,.cke_skin_silva .cke_menuarrow span,.cke_skin_silva .cke_rcombo .cke_openbutton span,.cke_skin_silva .cke_path .cke_label {
 display:none;
 }
 
@@ -988,7 +988,7 @@ float:left;
 }
 
 .cke_skin_silva .cke_browser_ie .cke_rtl .cke_toolgroup,.cke_skin_silva .cke_browser_ie .cke_rtl .cke_separator {
-#float:none;
+float:none;
 }
 
 .cke_skin_silva .cke_button a.cke_disabled *,.cke_skin_silva .cke_browser_ie a:hover.cke_button .cke_disabled *,.cke_skin_silva .cke_rcombo .cke_disabled .cke_label {
@@ -1019,8 +1019,8 @@ display:inline;
 }
 
 .cke_skin_silva .cke_browser_ie .cke_rcombo,.cke_skin_silva .cke_browser_ie .cke_toolgroup,.cke_skin_silva .cke_browser_ie .cke_separator {
-#display:inline;
-#float:none;
+display:inline;
+float:none;
 }
 
 .cke_skin_silva .cke_hc .cke_rcombo a,.cke_skin_silva .cke_hc .cke_rcombo .cke_label,.cke_skin_silva .cke_rcombo .cke_off a:hover,.cke_skin_silva .cke_rcombo .cke_off a:focus,.cke_skin_silva .cke_rcombo .cke_off a:active,.cke_skin_silva .cke_rcombo .cke_on a {
@@ -1045,9 +1045,12 @@ height:170px;
 width:150px;
 }
 
+.cke_table_style {
+    display: none;
+}
+
 @media print {
 .cke_skin_silva .cke_toolbox,.cke_path {
 display:none;
 }
 }
-

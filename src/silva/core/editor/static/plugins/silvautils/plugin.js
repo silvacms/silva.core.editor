@@ -107,16 +107,13 @@
              */
             getSelectedElement: function(editor) {
                 var selection = selection = editor.document.$.selection,
-                    range,
+                    range = selection.createRange(),
                     element = null;
 
-                if (selection.type != "None") {
-                    range = editor.document.$.selection.createRange();
-                    if (selection.type == "Text") {
-                        element = range.parentElement();
-                    } else if (range.length > 0) {
-                        element = range.item(0);
-                    };
+                if (selection.type == "Control") {
+                    element = range.item(0);
+                } else {
+                    element = range.parentElement();
                 };
                 if (element !== null) {
                     return new CKEDITOR.dom.element(element);
