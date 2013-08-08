@@ -62,40 +62,50 @@ a.broken-link {
 
 table.plain,
 table.list,
-table.grid {
+table.grid,
+table.datagrid {
     width: 100%;
     border: none;
-    border-collapse: collapse
+    border-collapse: collapse;
 }
 
 table.datagrid {
-    width: 100%;
     border-collapse: separate;
     border-spacing: 2px;
 }
 
-table.plain td, table.plain th {
-    border: 1px dashed #777;
+table.plain td,
+table.plain th,
+table.list td,
+table.list th,
+table.grid td,
+table.grid th,
+table.datagrid td,
+table.datagrid th {
+    border: 1px solid #777;
     text-align: left;
     padding: 0 4px 0 0;
 }
 
-table.list td, table.list th {
-    border: 1px solid #777;
-    border-right: 1px dashed #777;
-    border-left: 1px dashed #777;
-    text-align: left;
-    padding: 0 4px 0 0;
+table.plain td,
+table.plain th {
+    border-style: dashed;
 }
 
-table.grid td, table.grid th {
-    border: 1px solid #777;
-    text-align: left;
+table.list td,
+table.list th {
+    border-right-style: dashed;
+    border-left-style: dashed;
+}
+
+table.grid td,
+table.grid th,
+table.datagrid td,
+table.datagrid th {
     padding: 0 2px;
 }
 
-table.datagrid td, table.datagrid th {
-    border: 2px solid #777;
-    text-align: left;
-    padding: 0 2px;
+table.datagrid td,
+table.datagrid th {
+    border-width: 2px;
 }
