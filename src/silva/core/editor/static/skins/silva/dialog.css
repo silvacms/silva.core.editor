@@ -11,7 +11,6 @@ background:#f7f8fd url(images/dialog_top_gradient.png) top left repeat-x;
 .cke_skin_silva .cke_dialog_title {
 overflow:hidden;
 text-overflow:ellipsis;
-border-bottom: 1px solid #bbb;
 max-width: 600px;
 height: 21px;
 }
@@ -138,8 +137,6 @@ margin-top:3px;
 }
 
 .cke_skin_silva .cke_dialog_title {
-background:#eee url(images/gradient.png);
-background-position:0 -60px;
 color:#444;
 cursor:move;
 font-size:18px;
@@ -155,6 +152,7 @@ unicode-bidi:bidi-override;
 }
 
 .cke_skin_silva .cke_dialog_contents {
+border-top: 1px solid #aaa;
 background-color:#f7f8fd;
 overflow:auto;
 padding:5px 10px;
