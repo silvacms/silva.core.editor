@@ -11,6 +11,7 @@ background:#f7f8fd url(images/dialog_top_gradient.png) top left repeat-x;
 .cke_skin_silva .cke_dialog_title {
 overflow:hidden;
 text-overflow:ellipsis;
+-ms-text-overflow:ellipsis;
 max-width: 600px;
 height: 21px;
 }
