@@ -45,6 +45,7 @@ tools_vocabulary = SimpleVocabulary([
     SimpleTerm(title='Remove an anchor or Silva Index entry',
                value='SilvaRemoveAnchor'),
     SimpleTerm(title='Format using service settings', value='SilvaFormat'),
+    SimpleTerm(title='Table styles', value='SilvaTableStyles'),
     SimpleTerm(title='Add an External Source', value='SilvaExternalSource'),
     SimpleTerm(title='Remove an External Source',
                value='SilvaRemoveExternalSource'),
