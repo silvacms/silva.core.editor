@@ -14,7 +14,7 @@
                         infoTab.remove('borderColor');
                         infoTab.remove('borderColorChoose');
                     }
-                    if (dialogName == 'table') {
+                    if (dialogName == 'table' || dialogName == 'tableProperties') {
                         var advancedTab = dialogDefinition.getContents('advanced');
                         advancedTab.remove('advCSSClasses');
                         var infoTableTab = dialogDefinition.getContents('info');
