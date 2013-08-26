@@ -357,3 +357,43 @@ class ITextIndexEntries(interface.Interface):
     def clear():
         """Clear all indexes.
         """
+
+
+class IPerTagAllowedAttributes(interface.Interface):
+    """An allowed HTML tag and its allowed attributes and CSS properties
+    """
+    html_tag = schema.TextLine(
+        title=u"Allowed HTML tag",
+        required=True)
+    html_attributes = schema.Set(
+        title=u"Allowed HTML attributes",
+        value_type=schema.TextLine(),
+        required=False)
+    css_properties = schema.Set(
+        title=u"Allowed CSS properties",
+        value_type=schema.TextLine(),
+        required=False)
+
+
+class PerTagAllowedAttributes(object):
+    grok.implements(IPerTagAllowedAttributes)
+
+    def __init__(self, html_tag, html_attributes=set(), css_properties=set()):
+        self.html_tag = html_tag
+        self.html_attributes = set(html_attributes)
+        self.css_properties = set(css_properties)
+
+    def __hash__(self):
+        return hash(self.html_tag)
+
+    def __eq__(self, other):
+        if not isinstance(other, PerTagAllowedAttributes):
+            return NotImplemented
+        return self.html_tag == other.html_tag
+
+
+grok.global_utility(
+    PerTagAllowedAttributes,
+    provides=IFactory,
+    name=IPerTagAllowedAttributes.__identifier__,
+    direct=True)

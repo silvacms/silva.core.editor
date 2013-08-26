@@ -33,9 +33,11 @@ from zeam.form.ztk.actions import EditAction
 
 from .interfaces import ICKEditorService
 from .interfaces import ICKEditorSettings
-from .utils import HTML_TAGS_WHITELIST
-from .utils import HTML_ATTRIBUTES_WHITELIST
-from .utils import CSS_ATTRIBUTES_WHITELIST
+from .interfaces import IPerTagAllowedAttributes
+
+from .utils import DEFAULT_PER_TAG_WHITELISTS
+from .utils import DEFAULT_HTML_ATTR_WHITELIST
+from .utils import DEFAULT_CSS_PROP_WHITELIST
 
 
 logger = logging.getLogger('silva.core.editor')
@@ -150,7 +152,7 @@ class CKEditorService(Folder, SilvaService):
          'action': 'manage_html_sanitizer'},) + SilvaService.manage_options
 
     _config_declarations = None
-    _allowed_html_tags = None
+    _per_tag_allowed_attr = None
     _allowed_html_attributes = None
     _allowed_css_attributes = None
 
@@ -158,9 +160,9 @@ class CKEditorService(Folder, SilvaService):
         Folder.__init__(self, *args, **kw)
         SilvaService.__init__(self, *args, **kw)
         self._config_declarations = {}
-        self._allowed_html_tags = set(HTML_TAGS_WHITELIST)
-        self._allowed_html_attributes = set(HTML_ATTRIBUTES_WHITELIST)
-        self._allowed_css_attributes = set(CSS_ATTRIBUTES_WHITELIST)
+        self._per_tag_allowed_attr = set(DEFAULT_PER_TAG_WHITELISTS)
+        self._allowed_html_attributes = set(DEFAULT_HTML_ATTR_WHITELIST)
+        self._allowed_css_attributes = set(DEFAULT_CSS_PROP_WHITELIST)
 
     def get_configuration(self, name):
         names = [name]
@@ -209,23 +211,23 @@ class CKEditorService(Folder, SilvaService):
                     extra_plugins[name] = '/'.join((base, path))
         return extra_plugins
 
-    def set_allowed_html_tags(self, tags):
-        self._allowed_html_tags = set(tags)
-
     def set_allowed_html_attributes(self, attributes):
         self._allowed_html_attributes = set(attributes)
 
     def set_allowed_css_attributes(self, attributes):
         self._allowed_css_attributes = set(attributes)
 
-    def get_allowed_html_tags(self):
-        return self._allowed_html_tags
+    def set_per_tag_allowed_attr(self, per_tag_allowed_attr_set):
+        self._per_tag_allowed_attr = set(per_tag_allowed_attr_set)
 
     def get_allowed_html_attributes(self):
         return self._allowed_html_attributes
 
     def get_allowed_css_attributes(self):
         return self._allowed_css_attributes
+
+    def get_per_tag_allowed_attr(self):
+        return self._per_tag_allowed_attr
 
 
 InitializeClass(CKEditorService)
@@ -381,12 +383,16 @@ def add_default_configuration(service, event):
 
 
 class ISanitizerConfiguration(Interface):
-    _allowed_html_tags = schema.Set(title=u"Allowed HTML tags",
-                                    value_type=schema.TextLine())
-    _allowed_html_attributes = schema.Set(title=u"Allowed HTML attributes",
-                                          value_type=schema.TextLine())
-    _allowed_css_attributes = schema.Set(title=u"Allowed CSS attributes",
-                                         value_type=schema.TextLine())
+    _per_tag_allowed_attr = schema.Set(
+        title=(u"Allowed HTML tags and \
+            PER TAG allowed HTML attributes and CSS properties"),
+        value_type=schema.Object(schema=IPerTagAllowedAttributes))
+    _allowed_html_attributes = schema.Set(
+        title=u"Globally allowed HTML attributes",
+        value_type=schema.TextLine())
+    _allowed_css_attributes = schema.Set(
+        title=u"Globally allowed CSS properties",
+        value_type=schema.TextLine())
 
 
 class CKEditorServiceHTMLSanitizerConfiguration(silvaforms.ZMIForm):

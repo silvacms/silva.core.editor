@@ -14,10 +14,11 @@ from silva.core.editor.transform.interfaces import ISaveEditorFilter
 from silva.core.editor.transform.base import ReferenceTransformationFilter
 from silva.core.editor.transform.base import TransformationFilter
 from silva.core.editor.utils import html_sanitize_node
-from silva.core.editor.utils import HTML_TAGS_WHITELIST
-from silva.core.editor.utils import URL_SCHEMES_WHITELIST, URL_SCHEMES_BLACKLIST
-from silva.core.editor.utils import HTML_ATTRIBUTES_WHITELIST
-from silva.core.editor.utils import CSS_ATTRIBUTES_WHITELIST
+from silva.core.editor.utils import URL_SCHEMES_WHITELIST
+from silva.core.editor.utils import URL_SCHEMES_BLACKLIST
+from silva.core.editor.utils import DEFAULT_PER_TAG_WHITELISTS
+from silva.core.editor.utils import DEFAULT_HTML_ATTR_WHITELIST
+from silva.core.editor.utils import DEFAULT_CSS_PROP_WHITELIST
 
 
 def extract_url(url, url_schemes=URL_SCHEMES_WHITELIST):
@@ -61,7 +62,8 @@ class SilvaReferenceTransformationFilter(ReferenceTransformationFilter):
     grok.provides(ISaveEditorFilter)
 
     def update_reference_for(self, attributes):
-        name, reference = self.get_reference(attributes['data-silva-reference'])
+        name, reference = self.get_reference(
+            attributes['data-silva-reference'])
         if reference is not None:
             target_id = attributes.get('data-silva-target', '0')
             try:
@@ -198,28 +200,33 @@ class SanitizeTransformer(TransformationFilter):
     grok.provides(ISaveEditorFilter)
     grok.order(1000)
 
-    _html_tags = None
+    _per_tag_allowed_attr = None
     _html_attributes = None
-    _extra_html_attributes = set(['reference', 'anchor', 'query', 'resolution'])
+    _extra_html_attributes = set(
+        ['reference', 'anchor', 'query', 'resolution'])
     _css_attributes = None
 
     def prepare(self, name, text):
         service = queryUtility(ICKEditorService)
+
         if service is not None:
-            self._html_tags = service.get_allowed_html_tags()
+            self._per_tag_allowed_attr = service.get_per_tag_allowed_attr()
             self._html_attributes = service.get_allowed_html_attributes()
             self._css_attributes = service.get_allowed_css_attributes()
-        if self._html_tags is None:
-            self._html_tags = HTML_TAGS_WHITELIST
+
+        if self._per_tag_allowed_attr is None:
+            self._per_tag_allowed_attr = DEFAULT_PER_TAG_WHITELISTS
         if self._html_attributes is None:
-            self._html_attributes = HTML_ATTRIBUTES_WHITELIST
+            self._html_attributes = DEFAULT_HTML_ATTR_WHITELIST
         if self._css_attributes is None:
-            self._css_attributes = CSS_ATTRIBUTES_WHITELIST
+            self._css_attributes = DEFAULT_CSS_PROP_WHITELIST
+
         self._html_attributes |= self._extra_html_attributes
 
     def __call__(self, tree):
-        if self._html_tags is not None and self._html_attributes is not None:
+        if (self._per_tag_allowed_attr is not None
+                and self._html_attributes is not None):
             html_sanitize_node(tree,
-                self._html_tags,
-                self._html_attributes,
-                self._css_attributes)
+                               self._per_tag_allowed_attr,
+                               self._html_attributes,
+                               self._css_attributes)

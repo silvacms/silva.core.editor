@@ -6,8 +6,10 @@ import lxml
 import lxml.html
 import re
 from tinycss import CSS21Parser
+from .interfaces import PerTagAllowedAttributes
 
 norm_whitespace_re = re.compile(r'[ \t\n]{2,}')
+
 
 def normalize_space(text, strip=False):
     if text is not None:
@@ -102,12 +104,13 @@ def html_truncate_characters(el, remaining_length, append=u"…"):
 WORD_PATTERN = re.compile(r'\s*[^\s]+\s*')
 RE_TRAIL_SPC = re.compile(r'\s*$')
 
+
 def html_truncate_words(el, remaining_words, append=u"…"):
     """Truncate the content of the lxml node ``el`` to contain no
     more than ``remaining_words`` words. ``append`` is appended to
     the end of the final truncated node, if any.
     """
-    found_words  = re.findall(WORD_PATTERN, el.text or u'')
+    found_words = re.findall(WORD_PATTERN, el.text or u'')
 
     if len(found_words) >= remaining_words:
         el.text = ''.join(found_words[:remaining_words])
@@ -116,7 +119,7 @@ def html_truncate_words(el, remaining_words, append=u"…"):
         el.text += append
         el.tail = None
         for child in el.iterchildren():
-            el.remove(child);
+            el.remove(child)
         return 0
 
     remaining_words -= len(found_words)
@@ -132,7 +135,7 @@ def html_truncate_words(el, remaining_words, append=u"…"):
     if not remaining_words:
         return 0
 
-    found_words  = re.findall(WORD_PATTERN, el.tail or u'')
+    found_words = re.findall(WORD_PATTERN, el.tail or u'')
 
     if len(found_words) >= remaining_words:
         el.tail = ''.join(found_words[:remaining_words])
@@ -150,161 +153,149 @@ _CSS_RULE_FORMAT = "%s: %s;"
 _DATA_ATTRIBUTE = 'data-'
 
 
-def html_sanitize_node(el, allowed_tags_set, allowed_attributes_set,
-        allowed_css_style_attributes_set=None):
-    attribute_names = set(el.attrib.iterkeys())
+def html_sanitize_node(el,
+                       per_tag_allowed_attr,
+                       allowed_attributes_set,
+                       allowed_css_style_attributes_set=None):
 
-    # CSS sanitizing
-    if allowed_css_style_attributes_set is not None and \
-        STYLE_ATTRIBUTE in attribute_names:
-        style = el.attrib[STYLE_ATTRIBUTE]
-        attribute_names.remove(STYLE_ATTRIBUTE)
-        rules, errors = CSS21Parser().parse_style_attr(style)
-        if not rules and errors:
-            del el.attrib[STYLE_ATTRIBUTE]
-        else:
-            style_buffer = bytearray()
-            for rule in rules:
-                if rule.name in allowed_css_style_attributes_set:
-                    style_buffer += _CSS_RULE_FORMAT % (
-                        rule.name.encode(UTF8),
-                        rule.value.as_css().encode(UTF8))
-            el.attrib[STYLE_ATTRIBUTE] = str(style_buffer)
+    allowed_tags = {}
+    for allowed_tag in per_tag_allowed_attr:
+        allowed_tags[allowed_tag.html_tag] = (
+            set(allowed_tag.html_attributes),
+            set(allowed_tag.css_properties))
 
-    # HTML attributes sanitizing
-    for attribute_name in attribute_names - allowed_attributes_set:
-        # We authorize data- attributes.
-        if not attribute_name.startswith(_DATA_ATTRIBUTE):
-            del el.attrib[attribute_name]
+    def recursive_html_sanitize_node(el):
+        attribute_names = set(el.attrib.iterkeys())
 
-    # HTML tags sanitizing
-    for child in el.iterchildren():
-        if not isinstance(child, lxml.html.HtmlElement):
-            el.remove(child)
-            continue
-        if child.tag in allowed_tags_set:
-            html_sanitize_node(child, allowed_tags_set, allowed_attributes_set,
-                allowed_css_style_attributes_set)
-        else:
-            el.remove(child)
-            if child.tail:
-                if el.text is not None:
-                    el.text += child.tail
-                else:
-                    el.text = child.tail
+        extra_allowed_html_attr_for_el = set()
+        extra_allowed_css_proper_for_el = set()
+        if el.tag in allowed_tags:
+            extra_allowed_html_attr_for_el = allowed_tags[el.tag][0]
+            extra_allowed_css_proper_for_el = allowed_tags[el.tag][1]
+
+        # CSS sanitizing
+        if ((allowed_css_style_attributes_set is not None
+             or extra_allowed_css_proper_for_el)
+                and STYLE_ATTRIBUTE in attribute_names):
+            style = el.attrib[STYLE_ATTRIBUTE]
+            attribute_names.remove(STYLE_ATTRIBUTE)
+            rules, errors = CSS21Parser().parse_style_attr(style)
+            if not rules and errors:
+                del el.attrib[STYLE_ATTRIBUTE]
+            else:
+                style_buffer = bytearray()
+                for rule in rules:
+                    if (rule.name in allowed_css_style_attributes_set
+                            or rule.name in extra_allowed_css_proper_for_el):
+                        style_buffer += _CSS_RULE_FORMAT % (
+                            rule.name.encode(UTF8),
+                            rule.value.as_css().encode(UTF8))
+                el.attrib[STYLE_ATTRIBUTE] = str(style_buffer)
+
+        # HTML attributes sanitizing
+        for attribute_name in (
+                attribute_names - (allowed_attributes_set |
+                                   extra_allowed_html_attr_for_el)):
+            # We authorize data- attributes.
+            if not attribute_name.startswith(_DATA_ATTRIBUTE):
+                del el.attrib[attribute_name]
+
+        # HTML tags sanitizing
+        for child in el.iterchildren():
+            if not isinstance(child, lxml.html.HtmlElement):
+                el.remove(child)
+                continue
+            if (child.tag in allowed_tags):
+                recursive_html_sanitize_node(child)
+            else:
+                el.remove(child)
+                if child.tail:
+                    if el.text is not None:
+                        el.text += child.tail
+                    else:
+                        el.text = child.tail
+
+    recursive_html_sanitize_node(el)
+
 
 URL_SCHEMES_BLACKLIST = set([
-        'javascript'])
+    'javascript'])
 
 URL_SCHEMES_WHITELIST = set([
-        'http', 'https', 'ftp', 'ftps', 'ssh', 'news', 'mailto',
-        'tel', 'webcal', 'itms', 'broken',
-        ])
+    'http', 'https', 'ftp', 'ftps', 'ssh', 'news', 'mailto',
+    'tel', 'webcal', 'itms', 'broken',
+    ])
 
-HTML_TAGS_WHITELIST = set([
-    "a",
-    "abbr",
-    "acronym",
-    "address",
-    "area",
-    "article",
-    "aside",
-    "blockquote",
-    "br",
-    "caption",
-    "col",
-    "colgroup",
-    "comment",
-    "dd",
-    "del",
-    "details",
-    "div",
-    "dl",
-    "dt",
-    "b",
-    "i",
-    "h1",
-    "h2",
-    "h3",
-    "h4",
-    "h5",
-    "h6",
-    "img",
-    "ins",
-    "label",
-    "legend",
-    "li",
-    "map",
-    "mark",
-    "nobr",
-    "ol",
-    "p",
-    "cite",
-    "code",
-    "em",
-    "strong",
-    "strike",
-    "pre",
-    "section",
-    "spacer",
-    "span",
-    "sub",
-    "sup",
-    "table",
-    "tbody",
-    "td",
-    "tfoot",
-    "th",
-    "thead",
-    "time",
-    "tr",
-    "ul",
-    "wbr",
-])
+DEFAULT_PER_TAG_WHITELISTS = set([
+    PerTagAllowedAttributes('a', set(['name', 'target', 'href'])),
+    PerTagAllowedAttributes('br'),
+    PerTagAllowedAttributes('abbr'),
+    PerTagAllowedAttributes('acronym'),
+    PerTagAllowedAttributes('blockquote'),
+    PerTagAllowedAttributes('caption'),
+    PerTagAllowedAttributes('div'),
+    PerTagAllowedAttributes('h1'),
+    PerTagAllowedAttributes('h2'),
+    PerTagAllowedAttributes('h3'),
+    PerTagAllowedAttributes('h4'),
+    PerTagAllowedAttributes('h5'),
+    PerTagAllowedAttributes('h6'),
+    PerTagAllowedAttributes('dl'),
+    PerTagAllowedAttributes('dt'),
+    PerTagAllowedAttributes('dd'),
+    PerTagAllowedAttributes('pre'),
+    PerTagAllowedAttributes('img', set(['alt', 'src'])),
+    PerTagAllowedAttributes('li'),
+    PerTagAllowedAttributes('ol', set(['start', 'type']),
+                            set(['list-style-type'])),
+    PerTagAllowedAttributes('p'),
+    PerTagAllowedAttributes('em'),
+    PerTagAllowedAttributes('strong'),
+    PerTagAllowedAttributes('i'),
+    PerTagAllowedAttributes('b'),
+    PerTagAllowedAttributes('strike'),
+    PerTagAllowedAttributes('span'),
+    PerTagAllowedAttributes('sub'),
+    PerTagAllowedAttributes('sup'),
+    PerTagAllowedAttributes('table', set(['summary', 'dir', 'cols']),
+                            set(['width', 'height'])),
+    PerTagAllowedAttributes('tbody'),
+    PerTagAllowedAttributes('td', set(['colspan', 'rowspan', 'scope']),
+                            set(['text-align', 'vertical-align',
+                                 'white-space', 'width', 'height'])),
+    PerTagAllowedAttributes('th', set(['colspan', 'rowspan', 'scope']),
+                            set(['text-align', 'vertical-align',
+                                 'white-space', 'width', 'height'])),
+    PerTagAllowedAttributes('thead'),
+    PerTagAllowedAttributes('tr'),
+    PerTagAllowedAttributes('ul', set(['type']), set(['list-style-type']))
+    ])
 
-HTML_ATTRIBUTES_WHITELIST = set([
-    "accesskey",
-    "alt",
-    "cite",
-    "class",
-    "colspan",
-    "coords",
-    "crossorigin",
-    "datetime",
-    "for",
-    "href",
-    "hreflang",
+
+DEFAULT_HTML_ATTR_WHITELIST = set([
     "id",
-    "ismap",
-    "media",
-    "min",
-    "name",
-    "rowspan",
-    "src",
-    "tabindex",
-    "target",
-    "title",
-    "translate",
-    "type",
-    "usemap",
-    "value",
+    "class",
+    "title"
 ])
 
-CSS_ATTRIBUTES_WHITELIST = set([
-    'clear',
-    'list-style-type',
+DEFAULT_CSS_PROP_WHITELIST = set([
     'margin',
     'margin-left',
+    'margin-right'
 ])
+
 
 ####### All the code below is only used in tests ####################
 
-def html_sanitize(html_data, allowed_tags, allowed_attributes,
-                  allowed_css_style_attributes=None):
+def html_sanitize(html_data, per_tag_allowed_attr,
+                  global_allowed_html_attr, global_allowed_css_prop=None):
     html_tree = lxml.html.fromstring(html_data)
-    if allowed_css_style_attributes is not None:
-        allowed_css_style_attributes = set(allowed_css_style_attributes)
-    html_sanitize_node(html_tree, set(allowed_tags), set(allowed_attributes),
-        allowed_css_style_attributes)
-    return lxml.html.tostring(html_tree)
+    if global_allowed_css_prop is not None:
+        global_allowed_css_prop = set(global_allowed_css_prop)
 
+    html_sanitize_node(html_tree,
+                       set(per_tag_allowed_attr),
+                       set(global_allowed_html_attr),
+                       global_allowed_css_prop)
+
+    return lxml.html.tostring(html_tree)
