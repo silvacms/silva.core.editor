@@ -309,6 +309,28 @@ class OutputTransformTestCase(TestCase):
 
             self.assertXMLEqual(expected_image_block, actual_image_block)
 
+    def test_block_without_img(self):
+            """ An image block without an image inside has to be removed.
+            """
+            editor_image_block = """
+            <div class="image ">
+                    <a class="wrong-class"
+                       data-silva-anchor="Infrae"
+                       data-silva-url="http://infrae.com"
+                       target="_self"
+                       title="Silva 3.0 Documentation">
+                    </a>
+                    <span class="wrong-class">CAPTION</span>
+            </div>
+            """
+
+            actual_image_block = self.transform(editor_image_block,
+                                                ISaveEditorFilter)
+
+            expected_image_block = """"""
+
+            self.assertXMLEqual(expected_image_block, actual_image_block)
+
 
 def test_suite():
     suite = unittest.TestSuite()

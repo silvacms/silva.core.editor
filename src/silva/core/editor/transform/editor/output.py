@@ -87,6 +87,13 @@ def clean_image_block(block_tree):
             ## If the class has been modified we put the correct one.
             caption.attrib['class'] = 'image-caption'
 
+    ## If the image block has no image inside
+    ## then it's invalid and we remove it.
+    if image is None:
+        block_tree.tag = 'invalid_image_block'
+        etree.strip_elements(block_tree, 'invalid_image_block')
+        return
+
     ## Sanitazing the caption, we strip out every element inside the span
     ## preserving the content and thus all the texts present.
     if caption is not None:
