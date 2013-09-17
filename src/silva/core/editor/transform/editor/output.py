@@ -3,6 +3,7 @@
 # See also LICENSE.txt
 
 import urlparse
+from lxml import etree
 
 from five import grok
 from zope.component import queryUtility
@@ -51,6 +52,60 @@ def clean_editor_attributes(tag):
 
     for name in filter(is_an_editor_attribute, tag.attrib.keys()):
         del tag.attrib[name]
+
+
+def clean_image_block(block_tree):
+    """ Cleans up an image block to assure that
+        it has the correct structure.
+    """
+    image = None
+    img_wrapper = None
+    caption = None
+    image_found = False
+    caption_found = False
+
+    ## We get all the block descendants using lxml (should be "depth-first")
+    ## in order to get image and caption elements, if any.
+    for des in block_tree.iterdescendants():
+        ## We only take the first img element found.
+        if des.tag == 'img' and not image_found:
+            image_found = True
+            ## We set the image element.
+            image = des
+            ## If the img element is wrapped by a link
+            ## we set the image_wrapper too.
+            if des.getparent().tag == 'a':
+                img_wrapper = des.getparent()
+                ## If the class has been modified we put the correct one.
+                img_wrapper.attrib['class'] = 'image-link'
+
+        ## We only take the first span element (caption) found.
+        if des.tag == 'span' and not caption_found:
+            caption_found = True
+            ## We set the caption element.
+            caption = des
+            ## If the class has been modified we put the correct one.
+            caption.attrib['class'] = 'image-caption'
+
+    ## Sanitazing the caption, we strip out every element inside the span
+    ## preserving the content and thus all the texts present.
+    if caption is not None:
+        etree.strip_tags(caption, '*')
+
+    ## We go through the descendants again to mark invalid elements.
+    for des in block_tree.iterdescendants():
+        ## Invalid elements are all those elements which are neither the image
+        ## nor the caption, nor the image_wrapper.
+        if des is image or des is img_wrapper or des is caption:
+            continue
+        ## We remove invalid tags texts.
+        des.text = ''
+        ## We mark invalid tags for removal.
+        des.tag = 'tag_to_be_stripped_out'
+
+    ## We finally strip out tags marked as invalid
+    ## now the image block should have the correct structure.
+    etree.strip_tags(block_tree, 'tag_to_be_stripped_out')
 
 
 class SilvaReferenceTransformationFilter(ReferenceTransformationFilter):
@@ -120,7 +175,18 @@ class ImageTransformer(SilvaReferenceTransformationFilter):
 
     def __call__(self, tree):
         for block in tree.xpath('//div[contains(@class, "image")]'):
+            ## we clean this block up
+            clean_image_block(block)
+
+            ## In some cases there can be invalid nested blocks
+            ## we can skip these blocks since the cleaner routine
+            ## has already taken care of them.
+            ## So the reference we have is pointing to
+            ## an already stripped out block.
             images = block.xpath('descendant::img')
+            if len(images) < 1:
+                continue
+
             assert len(images) == 1, u"Invalid image construction"
             image = images[0]
             if 'src' in image.attrib:
