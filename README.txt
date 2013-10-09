@@ -8,7 +8,7 @@ Introduction
 Support for `CKEditor`_ within `Silva`_.
 
 .. _CKEditor: http://ckeditor.com/
-.. _Silva: http://infrae.com/products/silva
+.. _Silva: http://silvacms.org/
 
 Code repository
 ===============

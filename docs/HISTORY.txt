@@ -1,10 +1,21 @@
 Changes
 =======
 
-3.0.2 (unreleased)
+3.0.2 (2013/10/09)
 ------------------
 
-* ...
+* Extend text API: introduction can be truncated to a given of words
+  in addition to a number of letters. Support changing the level of
+  titles (like h1 are converted to h2 and so on).
+
+* Add a CKEditor plugin to style tables.
+
+* Improve selection of Silva block elements in CKEditor.
+
+* Add support for various flavor of broken links, like invalid external URL.
+
+* Add a per-tag HTML sanitizer for more control on the edition
+  process. An upgrade is required for it to work.
 
 3.0.1 (2013/05/24)
 ------------------
