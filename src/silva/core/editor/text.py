@@ -97,6 +97,9 @@ class Text(Persistent):
         transformer = factory(self.__name, self, None, type)
         self.save_raw_text(transformer.truncate())
 
+    def __len__(self):
+        return len(self.__text)
+
     def __str__(self):
         return str(self.__text)
 

@@ -345,6 +345,10 @@ class IText(IAttributeAnnotatable):
         """Return stored text without any transformation.
         """
 
+    def __len__():
+        """Return the size of the stored text.
+        """
+
 
 class ITextIndexEntries(interface.Interface):
     """Reprensent index entries in a text.

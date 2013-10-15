@@ -34,9 +34,19 @@ class TextTestCase(unittest.TestCase):
     def setUp(self):
         self.root = self.layer.get_application()
 
-    def test_text(self):
-        text = Text('test_text', '')
+    def test_empty_text(self):
+        text = Text('test_text')
         self.assertTrue(verifyObject(IText, text))
+        self.assertEqual(len(text), 0)
+        self.assertEqual(str(text), "")
+        self.assertEqual(unicode(text), u"")
+
+    def test_html_text(self):
+        html_text = Text("test_intro", HTML_CHUNK)
+        self.assertTrue(verifyObject(IText, html_text))
+        self.assertEqual(len(html_text), 352)
+        self.assertEqual(str(html_text), HTML_CHUNK)
+        self.assertEqual(unicode(html_text), HTML_CHUNK)
 
 
 class IntroductionTestCase(TestCase):
