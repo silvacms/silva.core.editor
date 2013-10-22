@@ -158,6 +158,12 @@ class LinkTransformer(SilvaReferenceTransformationFilter):
             if 'broken-link' in classes:
                 classes.remove('broken-link')
                 link.attrib['class'] = ' '.join(classes)
+            if 'target' in link.attrib:
+                target = link.attrib['target'].strip()
+                if target:
+                    link.attrib['target'] = target
+                else:
+                    del link.attrib['target']
             if 'href' in link.attrib:
                 del link.attrib['href']
             if 'data-silva-reference' in link.attrib:

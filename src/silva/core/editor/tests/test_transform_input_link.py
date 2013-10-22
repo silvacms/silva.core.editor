@@ -231,6 +231,48 @@ class InputTransformTestCase(TestCase):
 </p>
 """)
 
+    def test_external_link_empty_target(self):
+        """Even though you can't input them through the U.I you can
+        have links with an empty target attribute. That is not valid
+        and should be removed.
+        """
+        intern_format = self.transform(
+            """
+<p>
+   <a class="link"
+      href="javascript:void(0)"
+      title="Silva"
+      target=""
+      data-silva-url=" http://silvacms.org  ">
+      <i>To Silva</i></a>
+</p>
+""", ISaveEditorFilter)
+
+        self.assertXMLEqual(
+            intern_format,
+"""
+<p>
+   <a class="link"
+       title="Silva"
+       href="http://silvacms.org"><i>To Silva</i></a>
+</p>
+""")
+        # And changing it back to the editor format.
+        extern_format = self.transform(
+            intern_format,
+            IInputEditorFilter)
+        self.assertXMLEqual(
+            extern_format,
+            """
+<p>
+   <a class="link"
+      title="Silva"
+      href="javascript:void(0)"
+      data-silva-url="http://silvacms.org">
+      <i>To Silva</i></a>
+</p>
+""")
+
     def test_anchor_link(self):
         """On input, an external link is slightly modified.
         """
