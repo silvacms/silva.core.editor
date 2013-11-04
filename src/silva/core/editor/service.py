@@ -23,9 +23,11 @@ from OFS.Folder import Folder
 from zExceptions import Redirect
 
 from infrae import rest
+from silva.ui import menu
 from silva.core import conf as silvaconf
 from silva.core.interfaces import ISilvaObject
 from silva.core.services.base import SilvaService, ZMIObject
+from silva.core.interfaces import ISilvaConfigurableService
 from silva.core.views.interfaces import IVirtualSite
 from silva.translations import translate as _
 from zeam.form import silva as silvaforms
@@ -140,7 +142,7 @@ def manage_addCKEditorConfiguration(self, id, REQUEST=None):
 class CKEditorService(Folder, SilvaService):
     """Configure the editor service.
     """
-    grok.implements(ICKEditorService)
+    grok.implements(ICKEditorService, ISilvaConfigurableService)
     grok.name('service_ckeditor')
     meta_type = 'Silva CKEditor Service'
     silvaconf.icon('service.png')
@@ -233,113 +235,11 @@ class CKEditorService(Folder, SilvaService):
 InitializeClass(CKEditorService)
 
 
-@grok.provider(IContextSourceBinder)
-def configurations_source(context):
-    configurations = list(context.available_configurations())
-    configurations.sort(key=operator.itemgetter(0))
-    return SimpleVocabulary([
-        SimpleTerm(value=name, token=name, title=info[0])
-        for name, info in configurations])
-
-
-class ICKEditorConfigurations(Interface):
-    config = schema.Choice(title=u'Configuration',
-                           source=configurations_source,
-                           required=True)
-
-
-class CKEditorServiceConfigurationManager(silvaforms.ZMIComposedForm):
-    grok.context(ICKEditorService)
-    grok.name('manage_settings')
-
-    label = _(u"Manage CKEditor configurations")
-    description = _(u"You can from here modify the WYSIYG editor settings.")
-
-
-class CKEditorServiceAddConfiguration(silvaforms.ZMISubForm):
-    grok.context(ICKEditorService)
-    grok.view(CKEditorServiceConfigurationManager)
-    grok.order(20)
-
-    label = _(u"Add a configuration")
-    description = _(u"Add a specific editor configuration "
-                    u"for a content type in Silva.")
-    ignoreContent = False
-    fields = silvaforms.Fields(ICKEditorConfigurations)
-
-    def available(self):
-        return bool(self.fields['config'].getChoices(self))
-
-    @silvaforms.action(title=_(u'Add'))
-    def add(self):
-        data, errors = self.extractData()
-        if errors:
-            self.status = _(u'There were errors')
-            return silvaforms.FAILURE
-
-        name = data['config']
-        factory = self.context.manage_addProduct['silva.core.editor']
-        factory.manage_addCKEditorConfiguration(name)
-        return silvaforms.SUCCESS
-
-
-class EditConfigurationAction(silvaforms.Action):
-    title = _(u'Edit')
-    description = _(u'edit the selected configuration')
-
-    def __call__(self, form, config, line):
-        raise Redirect(
-            absoluteURL(config, form.request) + '/manage_configuration')
-
-
-class RemoveConfigurationAction(silvaforms.Action):
-    title = _(u'Remove')
-    description = _(u'remove the selected configuration')
-
-    def __call__(self, form, config, line):
-        identifier = config.getId()
-        if identifier == 'default':
-            raise silvaforms.ActionError(
-                _('You cannot remove the default configuration'))
-        form.context.manage_delObjects([identifier])
-        return silvaforms.SUCCESS
-
-
-class IConfigurationListItemFields(Interface):
-    id = schema.TextLine(title=u'Name')
-
-
-class CKEditorServiceEditConfigurations(silvaforms.ZMISubTableForm):
-    grok.context(ICKEditorService)
-    grok.view(CKEditorServiceConfigurationManager)
-    grok.order(10)
-
-    ignoreContent = False
-    label = _(u"Manage existing configurations")
-    description = _(u"Edit or remove editor configuration for the given Silva "
-                    u"content types.")
-    mode = silvaforms.DISPLAY
-    tableFields = silvaforms.Fields(IConfigurationListItemFields)
-    tableActions = silvaforms.TableActions(
-        EditConfigurationAction(),
-        RemoveConfigurationAction())
-
-    def getItems(self):
-        return list(self.context.objectValues(
-            spec=CKEditorConfiguration.meta_type))
-
-
-class CKEditorEditConfiguration(silvaforms.ZMIForm):
-    """Update the settings.
-    """
-    grok.name('manage_configuration')
-    grok.context(CKEditorConfiguration)
-
-    label = _(u"CKEditor settings")
-    description = _(u"You can from here modify the WYSIYG editor settings.")
-    ignoreContent = False
-    fields = silvaforms.Fields(ICKEditorSettings)
-    actions = silvaforms.Actions(silvaforms.EditAction())
+@grok.subscribe(ICKEditorService, IObjectAddedEvent)
+def add_default_configuration(service, event):
+    if service._getOb('default', None) is None:
+        factory = service.manage_addProduct['silva.core.editor']
+        factory.manage_addCKEditorConfiguration('default')
 
 
 class CKEditorRESTConfiguration(rest.REST):
@@ -374,15 +274,28 @@ class CKEditorRESTConfiguration(rest.REST):
              'editor_body_class': configuration.editor_body_class,
              'skin': skin})
 
+# Configuration form for ZMI
 
-@grok.subscribe(ICKEditorService, IObjectAddedEvent)
-def add_default_configuration(service, event):
-    if service._getOb('default', None) is None:
-        factory = service.manage_addProduct['silva.core.editor']
-        factory.manage_addCKEditorConfiguration('default')
+@grok.provider(IContextSourceBinder)
+def configurations_source(context):
+    configurations = list(context.available_configurations())
+    configurations.sort(key=operator.itemgetter(0))
+    return SimpleVocabulary([
+        SimpleTerm(value=name, token=name, title=info[0])
+        for name, info in configurations])
 
 
-class ISanitizerConfiguration(Interface):
+class ICKEditorConfiguration(Interface):
+    config = schema.Choice(title=u'Configuration',
+                           source=configurations_source,
+                           required=True)
+
+
+class IConfigurationListItemFields(Interface):
+    id = schema.TextLine(title=u'Name')
+
+
+class ISanitizerSettings(Interface):
     _per_tag_allowed_attr = schema.Set(
         title=(u"Allowed HTML tags and \
             PER TAG allowed HTML attributes and CSS properties"),
@@ -395,14 +308,209 @@ class ISanitizerConfiguration(Interface):
         value_type=schema.TextLine())
 
 
-class CKEditorServiceHTMLSanitizerConfiguration(silvaforms.ZMIForm):
+class EditConfigurationAction(silvaforms.Action):
+    title = _(u'Edit')
+    description = _(u'edit the selected configuration')
+
+    def __call__(self, form, config, line):
+        raise Redirect(
+            absoluteURL(config, form.request) + '/manage_configuration')
+
+
+class RemoveConfigurationAction(silvaforms.Action):
+    title = _(u'Remove')
+    description = _(u'remove the selected configuration')
+
+    def __call__(self, form, config, line):
+        identifier = config.getId()
+        if identifier == 'default':
+            raise silvaforms.ActionError(
+                _('You cannot remove the default configuration'))
+        form.context.manage_delObjects([identifier])
+        return silvaforms.SUCCESS
+
+
+class CKEditorServiceForm(silvaforms.ZMIComposedForm):
+    grok.context(ICKEditorService)
+    grok.name('manage_settings')
+
+    label = _(u"Manage CKEditor configurations")
+    description = _(u"You can from here modify the WYSIYG editor settings.")
+
+
+class CKEditorServiceAddConfigurationForm(silvaforms.ZMISubForm):
+    grok.context(ICKEditorService)
+    grok.view(CKEditorServiceForm)
+    grok.order(20)
+
+    label = _(u"Add a configuration")
+    description = _(u"Add a specific editor configuration "
+                    u"for a content type in Silva.")
+    ignoreContent = False
+    fields = silvaforms.Fields(ICKEditorConfiguration)
+
+    def available(self):
+        return bool(self.fields['config'].getChoices(self))
+
+    @silvaforms.action(title=_(u'Add'))
+    def add(self):
+        data, errors = self.extractData()
+        if errors:
+            self.status = _(u'There were errors')
+            return silvaforms.FAILURE
+
+        name = data['config']
+        factory = self.context.manage_addProduct['silva.core.editor']
+        factory.manage_addCKEditorConfiguration(name)
+        return silvaforms.SUCCESS
+
+
+class CKEditorServiceEditConfigurationForm(silvaforms.ZMISubTableForm):
+    grok.context(ICKEditorService)
+    grok.view(CKEditorServiceForm)
+    grok.order(10)
+
+    ignoreContent = False
+    label = _(u"Manage existing configurations")
+    description = _(u"Edit or remove editor configuration for the given Silva "
+                    u"content types.")
+    mode = silvaforms.DISPLAY
+    tableFields = silvaforms.Fields(IConfigurationListItemFields)
+    tableActions = silvaforms.TableActions(
+        EditConfigurationAction(),
+        RemoveConfigurationAction())
+
+    def getItems(self):
+        return list(self.context.objectValues(
+            spec=CKEditorConfiguration.meta_type))
+
+
+class CKEditorConfigurationEditForm(silvaforms.ZMIForm):
+    """Update the settings.
+    """
+    grok.name('manage_configuration')
+    grok.context(CKEditorConfiguration)
+
+    label = _(u"CKEditor settings")
+    description = _(u"You can from here modify the WYSIYG editor settings.")
+    ignoreContent = False
+    fields = silvaforms.Fields(ICKEditorSettings)
+    actions = silvaforms.Actions(silvaforms.EditAction())
+
+
+
+class CKEditorServiceHTMLSanitizerForm(silvaforms.ZMIForm):
     grok.context(ICKEditorService)
     grok.name('manage_html_sanitizer')
 
     ignoreContent = False
     label = _(u"Manage HTML Sanitizer")
-    description = _(u"""Manager allowed HTML tags
-                    and attributes allowed in editor.""")
+    description = _(u"""Configure allowed HTML tags
+                    and attributes in the editor.""")
 
-    fields = silvaforms.Fields(ISanitizerConfiguration)
+    fields = silvaforms.Fields(ISanitizerSettings)
     actions = silvaforms.Actions(EditAction(title=_(u"Save changes")))
+
+
+# Configuration form for the service in SMI
+
+
+class CKEditorServiceConfiguration(silvaforms.ComposedConfigurationForm):
+    grok.context(ICKEditorService)
+    grok.name('admin')
+
+    label = _(u"CKEditor configurations")
+    description = _(u"You can from here modify the WYSIYG editor settings.")
+
+
+class CKEditorServiceConfigurationMenu(menu.MenuItem):
+    grok.adapts(menu.ContentMenu, ICKEditorService)
+    grok.order(10)
+    name = _('CKEditor settings')
+    screen = CKEditorServiceConfiguration
+
+
+class CKEditorServiceAddConfigurationForm(silvaforms.SMISubForm):
+    grok.context(ICKEditorService)
+    grok.view(CKEditorServiceConfiguration)
+    grok.order(20)
+
+    label = _(u"Add a configuration")
+    description = _(u"Add a specific editor configuration "
+                    u"for a content type in Silva.")
+    ignoreContent = False
+    fields = silvaforms.Fields(ICKEditorConfiguration)
+    actions = silvaforms.Actions(silvaforms.CancelConfigurationAction())
+
+    def available(self):
+        return bool(self.fields['config'].getChoices(self))
+
+    @silvaforms.action(title=_(u'Add'))
+    def add(self):
+        data, errors = self.extractData()
+        if errors:
+            self.status = _(u'There were errors')
+            return silvaforms.FAILURE
+
+        name = data['config']
+        factory = self.context.manage_addProduct['silva.core.editor']
+        factory.manage_addCKEditorConfiguration(name)
+        return silvaforms.SUCCESS
+
+
+class CKEditorServiceEditConfiguration(silvaforms.ZMISubTableForm):
+    grok.context(ICKEditorService)
+    grok.view(CKEditorServiceConfiguration)
+    grok.order(10)
+
+    ignoreContent = False
+    label = _(u"Manage existing configurations")
+    description = _(u"Edit or remove editor configuration for the given Silva "
+                    u"content types.")
+    mode = silvaforms.DISPLAY
+    actions = silvaforms.Actions(silvaforms.CancelAction())
+    tableFields = silvaforms.Fields(IConfigurationListItemFields)
+    tableFields['id'].mode = 'silva.icon.edit'
+    tableActions = silvaforms.TableActions(RemoveConfigurationAction())
+
+    def updateWidgets(self):
+        super(CKEditorServiceEditConfiguration, self).updateWidgets()
+        for widgets in self.lineWidgets:
+            list(widgets)[1].screen = 'admin'
+
+    def getItems(self):
+        return list(self.context.objectValues(
+            spec=CKEditorConfiguration.meta_type))
+
+
+
+class CKEditorConfigurationEditConfiguration(silvaforms.ConfigurationForm):
+    grok.context(CKEditorConfiguration)
+
+    label = _(u"CKEditor settings")
+    description = _(u"You can from here modify the WYSIYG editor settings.")
+    fields = silvaforms.Fields(ICKEditorSettings)
+    actions = silvaforms.Actions(
+        silvaforms.CancelConfigurationAction(),
+        silvaforms.EditAction())
+
+
+class CKEditorServiceHTMLSanitizerConfiguration(silvaforms.ConfigurationForm):
+    grok.context(ICKEditorService)
+    grok.name('admin-sanitizer')
+
+    label = _(u"HTML sanitizer")
+    description = _(u"""Configure allowed HTML tags
+                    and attributes in the editor.""")
+
+    fields = silvaforms.Fields(ISanitizerSettings)
+    actions = silvaforms.Actions(
+        silvaforms.CancelConfigurationAction(),
+        silvaforms.EditAction())
+
+
+class CKEditorServiceHTMLSanitizerMenu(menu.MenuItem):
+    grok.adapts(menu.ContentMenu, ICKEditorService)
+    grok.order(20)
+    name = _('HTML sanitizer')
+    screen = CKEditorServiceHTMLSanitizerConfiguration
