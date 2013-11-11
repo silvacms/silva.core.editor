@@ -79,7 +79,7 @@ CKEDITOR.dialog.add('silvaimage', function(editor) {
                 type: 'reference',
                 id: 'image_content',
                 label: 'Image',
-                content: 'silva.core.interfaces.content.IImage',
+                content: 'silva.core.interfaces.content.IImageIncluable',
                 required: true,
                 onReferenceUpdate: function(event) {
                     var dialog = this.getDialog();
