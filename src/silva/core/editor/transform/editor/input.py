@@ -5,6 +5,8 @@
 from five import grok
 from zope.traversing.browser import absoluteURL
 
+from silva.core.interfaces import IImageIncluable
+
 from ..base import ReferenceTransformationFilter, TransformationFilter
 from ..interfaces import IInputEditorFilter
 
@@ -79,14 +81,15 @@ class ImageTransformer(ReferenceTransformationFilter):
             if 'reference' in image.attrib:
                 name, reference = self.get_reference(image.attrib['reference'])
                 if reference is not None:
-                    image.attrib['data-silva-reference'] = name
+                    target_id = '0'
+                    url = './++static++/silva.core.editor/broken-link.jpg'
                     if reference.target_id:
-                        target = str(reference.target_id)
-                        url = absoluteURL(reference.target, self.request)
-                    else:
-                        target = '0'
-                        url = './++static++/silva.core.editor/broken-link.jpg'
-                    image.attrib['data-silva-target'] = target
+                        target_id = str(reference.target_id)
+                        target = reference.target
+                        if IImageIncluable.providedBy(target):
+                            url = absoluteURL(target, self.request)
+                    image.attrib['data-silva-reference'] = name
+                    image.attrib['data-silva-target'] = target_id
                     image.attrib['src'] = url
                     del image.attrib['reference']
             elif 'src' in image.attrib:

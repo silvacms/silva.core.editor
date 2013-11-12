@@ -155,6 +155,126 @@ class InputTransformTestCase(TestCase):
 </div>
 """ % (reference_name, target_id))
 
+    def test_edit_broken_reference_image(self):
+        """On input, broken references for images are replaced with a
+        broken logo. The reference 0 is used to identify them.
+        """
+
+        version = self.root.document.get_editable()
+        service = getUtility(IReferenceService)
+        reference = service.new_reference(version, name=u"test image")
+        reference.add_tag(u"original-image-id")
+        # Reference target is not set.
+
+        # Now if we display this in the editor we get a broken image:
+        intern_format = """
+<div>
+  <p>Some description about the world</p>
+  <div class="image">
+    <img alt="image"
+         reference="original-image-id" />
+  </div>
+</div>
+"""
+        extern_format = self.transform(intern_format, IInputEditorFilter)
+        self.assertXMLEqual(
+            extern_format, """
+<div>
+  <p>Some description about the world</p>
+  <div class="image">
+    <img alt="image"
+         data-silva-reference="original-image-id"
+         data-silva-target="0"
+         src="./++static++/silva.core.editor/broken-link.jpg"></img>
+  </div>
+</div>
+""")
+
+        # Now if we save it, we get back the original format. The
+        # reference is preserved.
+        saved_format = self.transform(extern_format, ISaveEditorFilter)
+        saved_references = list(service.get_references_from(version))
+        self.assertEqual(len(saved_references), 1)
+        saved_reference = saved_references[0]
+        self.assertEqual(saved_reference.source, version)
+        self.assertIs(saved_reference.target, None)
+        self.assertEqual(
+            saved_reference.tags,
+            [u"test image", u"original-image-id"])
+        self.assertXMLEqual(
+            saved_format, """
+<div>
+  <p>Some description about the world</p>
+  <div class="image">
+    <img alt="image"
+         reference="original-image-id" />
+  </div>
+</div>
+""")
+
+    def test_edit_invalid_reference_image(self):
+        """On input, images that doesn't point to an includable image
+        content uses a broken logo as image source (but the reference
+        is kept).
+        """
+        with self.layer.open_fixture('chocobo.png') as stream:
+            factory = self.root.manage_addProduct['Silva']
+            factory.manage_addFile('peco', 'Peco Peco', stream)
+            factory.manage_addGhostAsset('image', None, haunted=self.root.peco)
+
+        version = self.root.document.get_editable()
+        service = getUtility(IReferenceService)
+        reference = service.new_reference(version, name=u"test image")
+        reference.set_target(self.root.image)
+        reference.add_tag(u"original-image-id")
+        target_id = get_content_id(self.root.image)
+
+        # Now if we display this in the editor we get a broken image:
+        self.assertXMLEqual(
+            self.transform("""
+<div>
+  <p>Some description about the world</p>
+  <div class="image">
+    <img alt="image"
+         reference="original-image-id" />
+  </div>
+</div>
+""", IInputEditorFilter), """
+<div>
+  <p>Some description about the world</p>
+  <div class="image">
+    <img alt="image"
+         data-silva-reference="original-image-id"
+         data-silva-target="%s"
+         src="./++static++/silva.core.editor/broken-link.jpg"></img>
+  </div>
+</div>
+""" % (target_id))
+
+        # If you fix the ghost to an image, everything works:
+        reference.set_target(self.root.chocobo)
+        target_id = get_content_id(self.root.chocobo)
+        self.assertXMLEqual(
+            self.transform("""
+<div>
+  <p>Some description about the world</p>
+  <div class="image">
+    <img alt="image"
+         reference="original-image-id" />
+  </div>
+</div>
+""", IInputEditorFilter), """
+<div>
+  <p>Some description about the world</p>
+  <div class="image">
+    <img alt="image"
+         data-silva-reference="original-image-id"
+         data-silva-target="%s"
+         src="http://localhost/root/chocobo"></img>
+  </div>
+</div>
+""" % (target_id))
+
     def test_edit_reference_image(self):
         """On input, updated local images update their references.
         """
@@ -165,7 +285,9 @@ class InputTransformTestCase(TestCase):
         reference.add_tag(u"original-image-id")
         target_id = get_content_id(self.root.chocobo)
         # So we have a reference, the one we will edit
-        self.assertEqual(list(service.get_references_from(version)), [reference])
+        self.assertEqual(
+            list(service.get_references_from(version)),
+            [reference])
 
         intern_format = self.transform(
             """

@@ -327,7 +327,7 @@ class OutputTransformTestCase(TestCase):
             actual_image_block = self.transform(editor_image_block,
                                                 ISaveEditorFilter)
 
-            expected_image_block = """"""
+            expected_image_block = ""
 
             self.assertXMLEqual(expected_image_block, actual_image_block)
 
