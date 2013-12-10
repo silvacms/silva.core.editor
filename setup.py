@@ -14,7 +14,7 @@ tests_require = [
 
 setup(name='silva.core.editor',
       version=version,
-      description="Support for the WYSIWYG editor CKEditor for Silva.",
+      description="Support for the WYSIWYG editor CKEditor in the Silva CMS",
       long_description=open("README.txt").read() + "\n" +
                        open(os.path.join("docs", "HISTORY.txt")).read(),
       classifiers=[
@@ -30,7 +30,7 @@ setup(name='silva.core.editor',
       package_dir={'': 'src'},
       packages=find_packages('src'),
       namespace_packages=['silva', 'silva.core'],
-      url='http://infrae.com/products/silva',
+      url='https://github.com/silvacms/silva.core.editor',
       include_package_data=True,
       zip_safe=False,
       install_requires=[
