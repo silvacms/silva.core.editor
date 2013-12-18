@@ -318,8 +318,9 @@ class EditConfigurationAction(silvaforms.Action):
 
 
 class RemoveConfigurationAction(silvaforms.Action):
+    grok.implements(silvaforms.IRemoverAction)
     title = _(u'Remove')
-    description = _(u'remove the selected configuration')
+    description = _(u'Remove the selected configuration')
 
     def __call__(self, form, config, line):
         identifier = config.getId()
@@ -383,6 +384,9 @@ class CKEditorServiceEditConfigurationForm(silvaforms.ZMISubTableForm):
     def getItems(self):
         return list(self.context.objectValues(
             spec=CKEditorConfiguration.meta_type))
+
+    def getItemIdentifier(self, item, position):
+        return item.getId()
 
 
 class CKEditorConfigurationEditForm(silvaforms.ZMIForm):
@@ -458,7 +462,7 @@ class CKEditorServiceAddConfigurationForm(silvaforms.SMISubForm):
         return silvaforms.SUCCESS
 
 
-class CKEditorServiceEditConfiguration(silvaforms.ZMISubTableForm):
+class CKEditorServiceEditConfiguration(silvaforms.SMISubTableForm):
     grok.context(ICKEditorService)
     grok.view(CKEditorServiceConfiguration)
     grok.order(10)
@@ -468,7 +472,6 @@ class CKEditorServiceEditConfiguration(silvaforms.ZMISubTableForm):
     description = _(u"Edit or remove editor configuration for the given Silva "
                     u"content types.")
     mode = silvaforms.DISPLAY
-    actions = silvaforms.Actions(silvaforms.CancelAction())
     tableFields = silvaforms.Fields(IConfigurationListItemFields)
     tableFields['id'].mode = 'silva.icon.edit'
     tableActions = silvaforms.TableActions(RemoveConfigurationAction())
@@ -482,6 +485,8 @@ class CKEditorServiceEditConfiguration(silvaforms.ZMISubTableForm):
         return list(self.context.objectValues(
             spec=CKEditorConfiguration.meta_type))
 
+    def getItemIdentifier(self, item, position):
+        return item.getId()
 
 
 class CKEditorConfigurationEditConfiguration(silvaforms.ConfigurationForm):
