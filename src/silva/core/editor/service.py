@@ -33,6 +33,7 @@ from silva.core.interfaces import ISilvaConfigurableService
 from silva.core.views.interfaces import IVirtualSite
 from silva.translations import translate as _
 from zeam.form import silva as silvaforms
+from zeam.form.silva.interfaces import ISMIForm
 from zeam.form.ztk.actions import EditAction
 
 from .interfaces import ICKEditorService, ICKEditorHTMLAttribute
@@ -338,9 +339,17 @@ class RemoveConfigurationAction(silvaforms.Action):
     def __call__(self, form, config, line):
         identifier = config.getId()
         if identifier == 'default':
+            if ISMIForm.providedBy(form):
+                form.send_message(
+                    _(u'You cannot remove the default configuration.'),
+                    type='error')
             raise silvaforms.ActionError(
-                _('You cannot remove the default configuration'))
+                _(u'You cannot remove the default configuration.'))
         form.context.manage_delObjects([identifier])
+        if ISMIForm.providedBy(form):
+            form.send_message(_(u'Configuration for ${name} removed.',
+                                mapping=dict(name=identifier)),
+                              type='feedback')
         return silvaforms.SUCCESS
 
 
@@ -447,7 +456,7 @@ class CKEditorServiceConfigurationMenu(menu.MenuItem):
     screen = CKEditorServiceConfiguration
 
 
-class CKEditorServiceAddConfigurationForm(silvaforms.SMISubForm):
+class CKEditorServiceAddConfiguration(silvaforms.SMISubForm):
     grok.context(ICKEditorService)
     grok.view(CKEditorServiceConfiguration)
     grok.order(20)
@@ -466,12 +475,14 @@ class CKEditorServiceAddConfigurationForm(silvaforms.SMISubForm):
     def add(self):
         data, errors = self.extractData()
         if errors:
-            self.status = _(u'There were errors')
+            self.send_message(_(u'There were errors'), type='error')
             return silvaforms.FAILURE
 
         name = data['config']
         factory = self.context.manage_addProduct['silva.core.editor']
         factory.manage_addCKEditorConfiguration(name)
+        self.send_message(_(u'Configuration for ${name} added.',
+                            mapping=dict(name=name)), type='feedback')
         return silvaforms.SUCCESS
 
 
