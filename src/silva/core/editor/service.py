@@ -16,6 +16,8 @@ from zope.schema.fieldproperty import FieldProperty
 from zope.schema.interfaces import IContextSourceBinder
 from zope.schema.vocabulary import SimpleVocabulary, SimpleTerm
 from zope.traversing.browser import absoluteURL
+from zope.schema.interfaces import ITextLine
+
 
 from AccessControl.security import ClassSecurityInfo
 from AccessControl.class_init import InitializeClass
@@ -33,8 +35,8 @@ from silva.translations import translate as _
 from zeam.form import silva as silvaforms
 from zeam.form.ztk.actions import EditAction
 
-from .interfaces import ICKEditorService
-from .interfaces import ICKEditorSettings
+from .interfaces import ICKEditorService, ICKEditorHTMLAttribute
+from .interfaces import ICKEditorSettings, ICKEditorFormat
 from .interfaces import IPerTagAllowedAttributes
 
 from .utils import DEFAULT_PER_TAG_WHITELISTS
@@ -310,6 +312,13 @@ class ISanitizerSettings(Interface):
     _allowed_css_attributes = schema.Set(
         title=u"Globally allowed CSS properties",
         value_type=schema.TextLine())
+
+
+@silvaforms.customize(origin=ITextLine, schema=ICKEditorHTMLAttribute)
+@silvaforms.customize(origin=ITextLine, schema=ICKEditorFormat)
+@silvaforms.customize(origin=ITextLine, schema=IPerTagAllowedAttributes)
+def small_fields(field):
+    field.htmlAttributes['size'] = '20'
 
 
 class EditConfigurationAction(silvaforms.Action):
