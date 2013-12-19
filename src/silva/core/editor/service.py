@@ -92,7 +92,9 @@ class CKEditorConfiguration(ZMIObject):
             splitted_list.append(raw_list)
         return splitted_list
 
-    def get_formats(self):
+    def get_formats_configuration(self):
+        """Return the formats configuration for the editor.
+        """
         count = 0
         order = []
         result = {'order': order}
@@ -111,7 +113,9 @@ class CKEditorConfiguration(ZMIObject):
             count += 1
         return result
 
-    def get_table_styles(self):
+    def get_table_styles_configuration(self):
+        """Return the table styles configuration for the editor.
+        """
         count = 0
         order = []
         results = {}
@@ -266,8 +270,8 @@ class CKEditorRESTConfiguration(rest.REST):
             {'toolbars': configuration.get_toolbars_configuration(),
              'paths': plugins_url,
              'contents_css': configuration.contents_css,
-             'formats': configuration.get_formats(),
-             'table_styles': configuration.get_table_styles(),
+             'formats': configuration.get_formats_configuration(),
+             'table_styles': configuration.get_table_styles_configuration(),
              'plugins': list(plugins_url.keys()),
              'disable_colors': configuration.disable_colors,
              'startup_show_borders': configuration.startup_show_borders,
@@ -505,8 +509,8 @@ class CKEditorServiceHTMLSanitizerConfiguration(silvaforms.ConfigurationForm):
     grok.name('admin-sanitizer')
 
     label = _(u"HTML sanitizer")
-    description = _(u"""Configure allowed HTML tags
-                    and attributes in the editor.""")
+    description = _(u"Configure allowed HTML tags and attributes in "
+                    u"the editor.")
 
     fields = silvaforms.Fields(ISanitizerSettings)
     actions = silvaforms.Actions(
