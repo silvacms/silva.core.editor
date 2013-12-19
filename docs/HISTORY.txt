@@ -1,10 +1,19 @@
 Changes
 =======
 
-3.0.3 (unreleased)
+3.0.3 (2013/12/19)
 ------------------
 
-* ...
+* Make possible to configure the settings in SMI.
+
+* Remove link ``target`` attribute if they are empty.
+
+* Add support to determine the size of the text.
+
+* Update interface used to lookup images, to support Silva Ghost Asset
+  as possible images.
+
+* Improve tests.
 
 3.0.2 (2013/10/09)
 ------------------

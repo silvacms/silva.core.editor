@@ -5,7 +5,7 @@ silva.core.editor
 Introduction
 ============
 
-Support for `CKEditor`_ within `Silva`_.
+Support to edit rich text using `CKEditor`_ within `Silva`_ 3.
 
 Code repository
 ===============
